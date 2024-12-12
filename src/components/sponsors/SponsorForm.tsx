@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Sponsor } from "@/types";
+import { PaymentMethodsForm } from "./PaymentMethodsForm";
 
 interface SponsorFormProps {
   selectedSponsor: Sponsor | null;
@@ -45,15 +46,12 @@ export const SponsorForm = ({ selectedSponsor, onSubmit, onCancel }: SponsorForm
 
   const handleInputChange = (field: string, value: string) => {
     if (field === 'contribution') {
-      // Remove any non-digit characters except decimal point
       const cleanValue = value.replace(/[^\d.]/g, '');
-      // Ensure only one decimal point
       const parts = cleanValue.split('.');
       let formattedValue = parts[0];
       if (parts.length > 1) {
         formattedValue += '.' + parts[1];
       }
-      // Limit to 9 digits before decimal point
       if (parts[0].length > 9) {
         return;
       }
@@ -87,62 +85,71 @@ export const SponsorForm = ({ selectedSponsor, onSubmit, onCancel }: SponsorForm
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Nombre completo</Label>
-            <Input
-              id="name"
-              placeholder="Nombre del padrino"
-              value={formData.name}
-              onChange={(e) => handleInputChange('name', e.target.value)}
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="Email"
-              value={formData.email}
-              onChange={(e) => handleInputChange('email', e.target.value)}
-            />
-          </div>
+        <div className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Nombre completo</Label>
+              <Input
+                id="name"
+                placeholder="Nombre del padrino"
+                value={formData.name}
+                onChange={(e) => handleInputChange('name', e.target.value)}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="Email"
+                value={formData.email}
+                onChange={(e) => handleInputChange('email', e.target.value)}
+              />
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="phone">Teléfono</Label>
-            <Input
-              id="phone"
-              placeholder="Teléfono"
-              value={formData.phone}
-              onChange={(e) => handleInputChange('phone', e.target.value)}
-            />
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="phone">Teléfono</Label>
+              <Input
+                id="phone"
+                placeholder="Teléfono"
+                value={formData.phone}
+                onChange={(e) => handleInputChange('phone', e.target.value)}
+              />
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="contribution">Contribución mensual</Label>
-            <Input
-              id="contribution"
-              type="text"
-              inputMode="decimal"
-              placeholder="Contribución mensual"
-              value={formData.contribution}
-              onChange={(e) => handleInputChange('contribution', e.target.value)}
-              className="font-mono"
-            />
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="contribution">Contribución mensual</Label>
+              <Input
+                id="contribution"
+                type="text"
+                inputMode="decimal"
+                placeholder="Contribución mensual"
+                value={formData.contribution}
+                onChange={(e) => handleInputChange('contribution', e.target.value)}
+                className="font-mono"
+              />
+            </div>
 
-          <div className="flex justify-end gap-2">
-            {selectedSponsor && (
-              <Button variant="outline" onClick={onCancel}>
-                Cancelar
+            <div className="flex justify-end gap-2">
+              {selectedSponsor && (
+                <Button variant="outline" onClick={onCancel}>
+                  Cancelar
+                </Button>
+              )}
+              <Button type="submit">
+                {selectedSponsor ? 'Actualizar' : 'Registrar'}
               </Button>
-            )}
-            <Button type="submit">
-              {selectedSponsor ? 'Actualizar' : 'Registrar'}
-            </Button>
-          </div>
-        </form>
+            </div>
+          </form>
+
+          {selectedSponsor && (
+            <div className="pt-6 border-t">
+              <h3 className="text-lg font-medium mb-4">Métodos de pago</h3>
+              <PaymentMethodsForm sponsorId={selectedSponsor.id} />
+            </div>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

@@ -74,6 +74,50 @@ export type Database = {
           },
         ]
       }
+      payment_methods: {
+        Row: {
+          account_number: string | null
+          bank_name: string | null
+          card_last_four: string | null
+          created_at: string
+          id: string
+          is_default: boolean | null
+          method: Database["public"]["Enums"]["payment_method"]
+          paypal_email: string | null
+          sponsor_id: string
+        }
+        Insert: {
+          account_number?: string | null
+          bank_name?: string | null
+          card_last_four?: string | null
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          method: Database["public"]["Enums"]["payment_method"]
+          paypal_email?: string | null
+          sponsor_id: string
+        }
+        Update: {
+          account_number?: string | null
+          bank_name?: string | null
+          card_last_four?: string | null
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          method?: Database["public"]["Enums"]["payment_method"]
+          paypal_email?: string | null
+          sponsor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_methods_sponsor_id_fkey"
+            columns: ["sponsor_id"]
+            isOneToOne: false
+            referencedRelation: "sponsors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       schools: {
         Row: {
           address: string | null
@@ -190,6 +234,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      payment_method: "bank_transfer" | "credit_card" | "paypal" | "cash"
       user_role: "admin" | "editor" | "viewer"
     }
     CompositeTypes: {
