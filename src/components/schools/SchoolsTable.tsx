@@ -12,6 +12,17 @@ import { School } from "@/pages/Schools";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useState } from "react";
 
 interface SchoolsTableProps {
   schools: School[];
@@ -26,13 +37,13 @@ export const SchoolsTable = ({
   setSearch,
   onSelectSchool,
 }: SchoolsTableProps) => {
+  const [schoolToDelete, setSchoolToDelete] = useState<School | null>(null);
+
   const filteredSchools = schools.filter(school =>
     school.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleDelete = async (e: React.MouseEvent, schoolId: string) => {
-    e.stopPropagation(); // Previene que se active el onClick de la fila
-    
+  const handleDelete = async (schoolId: string) => {
     try {
       const { error } = await supabase
         .from('schools')
@@ -42,6 +53,7 @@ export const SchoolsTable = ({
       if (error) throw error;
       
       toast.success('Colegio eliminado exitosamente');
+      setSchoolToDelete(null);
       // La tabla se actualizará automáticamente gracias a React Query
     } catch (error) {
       console.error('Error:', error);
@@ -83,7 +95,10 @@ export const SchoolsTable = ({
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={(e) => handleDelete(e, school.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSchoolToDelete(school);
+                    }}
                     className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -101,6 +116,26 @@ export const SchoolsTable = ({
           </TableBody>
         </Table>
       </div>
+
+      <AlertDialog open={!!schoolToDelete} onOpenChange={() => setSchoolToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. Se eliminará permanentemente el colegio {schoolToDelete?.name}.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-500 hover:bg-red-600"
+              onClick={() => schoolToDelete && handleDelete(schoolToDelete.id)}
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

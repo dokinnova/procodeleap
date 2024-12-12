@@ -4,6 +4,17 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useState } from "react";
 
 interface Child {
   id: string;
@@ -23,13 +34,13 @@ interface ChildrenTableProps {
 }
 
 export const ChildrenTable = ({ children, search, setSearch, setSelectedChild }: ChildrenTableProps) => {
+  const [childToDelete, setChildToDelete] = useState<Child | null>(null);
+
   const filteredChildren = children.filter(child =>
     child.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleDelete = async (e: React.MouseEvent, childId: string) => {
-    e.stopPropagation(); // Previene que se active el onClick de la fila
-    
+  const handleDelete = async (childId: string) => {
     try {
       const { error } = await supabase
         .from('children')
@@ -39,6 +50,7 @@ export const ChildrenTable = ({ children, search, setSearch, setSelectedChild }:
       if (error) throw error;
       
       toast.success('Niño eliminado exitosamente');
+      setChildToDelete(null);
       // La tabla se actualizará automáticamente gracias a React Query
     } catch (error) {
       console.error('Error:', error);
@@ -82,7 +94,10 @@ export const ChildrenTable = ({ children, search, setSearch, setSelectedChild }:
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={(e) => handleDelete(e, child.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setChildToDelete(child);
+                    }}
                     className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -100,6 +115,26 @@ export const ChildrenTable = ({ children, search, setSearch, setSelectedChild }:
           </TableBody>
         </Table>
       </div>
+
+      <AlertDialog open={!!childToDelete} onOpenChange={() => setChildToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. Se eliminará permanentemente el registro de {childToDelete?.name}.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-500 hover:bg-red-600"
+              onClick={() => childToDelete && handleDelete(childToDelete.id)}
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
