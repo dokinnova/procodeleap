@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import {
   Table,
   TableBody,
@@ -39,7 +39,7 @@ const Children = () => {
         .order('name');
       
       if (error) {
-        console.error('Error fetching children:', error);
+        console.error('Error al obtener niños:', error);
         throw error;
       }
       
@@ -69,7 +69,7 @@ const Children = () => {
         description: "No se pudo registrar al niño. Por favor, inténtalo de nuevo.",
         variant: "destructive",
       });
-      console.error('Error adding child:', error);
+      console.error('Error al agregar niño:', error);
       return;
     }
 
@@ -87,7 +87,7 @@ const Children = () => {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header Section */}
+      {/* Sección del encabezado */}
       <div className="flex flex-col space-y-2">
         <nav className="flex" aria-label="Breadcrumb">
           <ol className="inline-flex items-center space-x-1 text-sm text-gray-500">
@@ -145,7 +145,7 @@ const Children = () => {
         </div>
       </div>
 
-      {/* Search and Table */}
+      {/* Búsqueda y Tabla */}
       <div className="space-y-4">
         <div className="flex items-center space-x-4">
           <div className="relative flex-1">
