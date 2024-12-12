@@ -6,24 +6,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import { Search, Trash2 } from "lucide-react";
-import { School } from "@/pages/Schools";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { Trash2 } from "lucide-react";
+import { School } from "@/pages/Schools";
+import { SchoolSearchBar } from "./SchoolSearchBar";
+import { DeleteSchoolDialog } from "./DeleteSchoolDialog";
+import { useDeleteSchool } from "@/hooks/useDeleteSchool";
 
 interface SchoolsTableProps {
   schools: School[];
@@ -38,66 +26,15 @@ export const SchoolsTable = ({
   setSearch,
   onSelectSchool,
 }: SchoolsTableProps) => {
-  const [schoolToDelete, setSchoolToDelete] = useState<School | null>(null);
-  const queryClient = useQueryClient();
+  const { schoolToDelete, setSchoolToDelete, handleDelete } = useDeleteSchool();
 
   const filteredSchools = schools.filter(school =>
     school.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleDelete = async (schoolId: string) => {
-    try {
-      console.log("Attempting to delete school with ID:", schoolId);
-      
-      // First check if there are any children associated with this school
-      const { data: children, error: checkError } = await supabase
-        .from('children')
-        .select('id')
-        .eq('school_id', schoolId);
-
-      if (checkError) {
-        console.error('Error checking children:', checkError);
-        throw checkError;
-      }
-
-      if (children && children.length > 0) {
-        toast.error('No se puede eliminar el colegio porque tiene niños asociados');
-        setSchoolToDelete(null);
-        return;
-      }
-
-      const { error: deleteError } = await supabase
-        .from('schools')
-        .delete()
-        .eq('id', schoolId);
-
-      if (deleteError) {
-        console.error('Error deleting school:', deleteError);
-        throw deleteError;
-      }
-
-      // Invalidate and refetch schools query after successful deletion
-      await queryClient.invalidateQueries({ queryKey: ["schools"] });
-      
-      toast.success('Colegio eliminado exitosamente');
-      setSchoolToDelete(null);
-    } catch (error) {
-      console.error('Error:', error);
-      toast.error('Error al eliminar el colegio');
-    }
-  };
-
   return (
     <div className="space-y-4">
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-        <Input
-          className="pl-10 bg-white"
-          placeholder="Buscar por nombre..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </div>
+      <SchoolSearchBar search={search} setSearch={setSearch} />
 
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <Table>
@@ -143,25 +80,11 @@ export const SchoolsTable = ({
         </Table>
       </div>
 
-      <AlertDialog open={!!schoolToDelete} onOpenChange={() => setSchoolToDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta acción no se puede deshacer. Se eliminará permanentemente el colegio {schoolToDelete?.name}.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-red-500 hover:bg-red-600"
-              onClick={() => schoolToDelete && handleDelete(schoolToDelete.id)}
-            >
-              Eliminar
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteSchoolDialog
+        school={schoolToDelete}
+        onOpenChange={() => setSchoolToDelete(null)}
+        onConfirmDelete={handleDelete}
+      />
     </div>
   );
 };
