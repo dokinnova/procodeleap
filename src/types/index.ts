@@ -13,3 +13,11 @@ export interface School {
   name: string;
   address: string | null;
 }
+
+export interface Sponsor {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  contribution: number;
+}

@@ -1,71 +1,16 @@
 import { useState } from "react";
-import { UserPlus, Search } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { UserPlus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-
-interface Sponsor {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  contribution: number;
-}
+import { SponsorForm } from "@/components/sponsors/SponsorForm";
+import { SponsorsTable } from "@/components/sponsors/SponsorsTable";
+import { Sponsor } from "@/types";
 
 const Sponsors = () => {
   const { toast } = useToast();
   const [sponsors, setSponsors] = useState<Sponsor[]>([]);
   const [search, setSearch] = useState("");
   const [selectedSponsor, setSelectedSponsor] = useState<Sponsor | null>(null);
-  const [formData, setFormData] = useState({
-    name: selectedSponsor?.name || '',
-    email: selectedSponsor?.email || '',
-    phone: selectedSponsor?.phone || '',
-    contribution: selectedSponsor?.contribution || '',
-  });
-
-  const handleInputChange = (field: string, value: string) => {
-    if (field === 'contribution') {
-      // Remove any non-digit characters except decimal point
-      const cleanValue = value.replace(/[^\d.]/g, '');
-      // Ensure only one decimal point
-      const parts = cleanValue.split('.');
-      let formattedValue = parts[0];
-      if (parts.length > 1) {
-        formattedValue += '.' + parts[1];
-      }
-      // Limit to 9 digits before decimal point
-      if (parts[0].length > 9) {
-        return;
-      }
-      setFormData(prev => ({
-        ...prev,
-        [field]: formattedValue
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [field]: value
-      }));
-    }
-  };
 
   const loadSponsors = async () => {
     try {
@@ -86,9 +31,7 @@ const Sponsors = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const handleSubmit = async (formData: any) => {
     if (!formData.name || !formData.email || !formData.contribution) {
       toast({
         variant: "destructive",
@@ -129,12 +72,6 @@ const Sponsors = () => {
           : "Padrino registrado correctamente",
       });
 
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        contribution: '',
-      });
       setSelectedSponsor(null);
       loadSponsors();
     } catch (error) {
@@ -147,10 +84,6 @@ const Sponsors = () => {
     }
   };
 
-  const filteredSponsors = sponsors.filter(sponsor =>
-    sponsor.name.toLowerCase().includes(search.toLowerCase())
-  );
-
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
@@ -158,128 +91,18 @@ const Sponsors = () => {
         <h1 className="text-2xl font-bold text-gray-900">Padrinos Registrados</h1>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            {selectedSponsor ? 'Editar Padrino' : 'Registrar Nuevo Padrino'}
-          </CardTitle>
-          <CardDescription>
-            {selectedSponsor 
-              ? 'Modifica los datos del padrino seleccionado' 
-              : 'Ingresa los datos para registrar un nuevo padrino'}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Nombre completo</Label>
-              <Input
-                id="name"
-                placeholder="Nombre del padrino"
-                value={formData.name}
-                onChange={(e) => handleInputChange('name', e.target.value)}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="Email"
-                value={formData.email}
-                onChange={(e) => handleInputChange('email', e.target.value)}
-              />
-            </div>
+      <SponsorForm
+        selectedSponsor={selectedSponsor}
+        onSubmit={handleSubmit}
+        onCancel={() => setSelectedSponsor(null)}
+      />
 
-            <div className="space-y-2">
-              <Label htmlFor="phone">Teléfono</Label>
-              <Input
-                id="phone"
-                placeholder="Teléfono"
-                value={formData.phone}
-                onChange={(e) => handleInputChange('phone', e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="contribution">Contribución mensual</Label>
-              <Input
-                id="contribution"
-                type="text"
-                inputMode="decimal"
-                placeholder="Contribución mensual"
-                value={formData.contribution}
-                onChange={(e) => handleInputChange('contribution', e.target.value)}
-                className="font-mono"
-              />
-            </div>
-
-            <div className="flex justify-end gap-2">
-              {selectedSponsor && (
-                <Button variant="outline" onClick={() => setSelectedSponsor(null)}>
-                  Cancelar
-                </Button>
-              )}
-              <Button type="submit">
-                {selectedSponsor ? 'Actualizar' : 'Registrar'}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-
-      <div className="space-y-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input
-            className="pl-10 bg-white"
-            placeholder="Buscar por nombre..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nombre</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Contribución</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredSponsors.map((sponsor) => (
-                <TableRow 
-                  key={sponsor.id} 
-                  className="hover:bg-gray-50 cursor-pointer"
-                  onClick={() => {
-                    setSelectedSponsor(sponsor);
-                    setFormData({
-                      name: sponsor.name,
-                      email: sponsor.email,
-                      phone: sponsor.phone || '',
-                      contribution: sponsor.contribution.toString(),
-                    });
-                  }}
-                >
-                  <TableCell className="font-medium">{sponsor.name}</TableCell>
-                  <TableCell>{sponsor.email}</TableCell>
-                  <TableCell>${sponsor.contribution}/mes</TableCell>
-                </TableRow>
-              ))}
-              {filteredSponsors.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={3} className="text-center py-8 text-gray-500">
-                    No se encontraron padrinos
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
+      <SponsorsTable
+        sponsors={sponsors}
+        search={search}
+        onSearchChange={setSearch}
+        onSponsorSelect={setSelectedSponsor}
+      />
     </div>
   );
 };
