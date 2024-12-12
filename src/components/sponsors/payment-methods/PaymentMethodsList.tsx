@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { CreditCard, Banknote, Trash2 } from "lucide-react";
 
 interface PaymentMethod {
   id: string;
@@ -7,7 +7,6 @@ interface PaymentMethod {
   bank_name?: string;
   account_number?: string;
   card_last_four?: string;
-  paypal_email?: string;
   is_default?: boolean;
 }
 
@@ -26,9 +25,19 @@ export const PaymentMethodsList = ({ paymentMethods, onDelete }: PaymentMethodsL
           className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
         >
           <div>
-            <p className="font-medium">
-              {method.method === "bank_transfer" && "Transferencia bancaria"}
-              {method.method === "credit_card" && "Tarjeta de crédito"}
+            <p className="font-medium flex items-center gap-2">
+              {method.method === "bank_transfer" && (
+                <>
+                  <Banknote className="h-4 w-4" />
+                  <span>Transferencia bancaria</span>
+                </>
+              )}
+              {method.method === "credit_card" && (
+                <>
+                  <CreditCard className="h-4 w-4" />
+                  <span>Tarjeta de crédito</span>
+                </>
+              )}
               {method.is_default && (
                 <span className="ml-2 text-sm text-primary">(Principal)</span>
               )}

@@ -9,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { CreditCard, Banknote } from "lucide-react";
 
 interface PaymentMethodFormProps {
   onSubmit: (data: {
@@ -50,8 +51,18 @@ export const PaymentMethodForm = ({ onSubmit }: PaymentMethodFormProps) => {
             <SelectValue placeholder="Selecciona un método de pago" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="bank_transfer">Transferencia bancaria</SelectItem>
-            <SelectItem value="credit_card">Tarjeta de crédito</SelectItem>
+            <SelectItem value="bank_transfer" className="flex items-center gap-2">
+              <div className="flex items-center gap-2">
+                <Banknote className="h-4 w-4" />
+                <span>Transferencia bancaria</span>
+              </div>
+            </SelectItem>
+            <SelectItem value="credit_card" className="flex items-center gap-2">
+              <div className="flex items-center gap-2">
+                <CreditCard className="h-4 w-4" />
+                <span>Tarjeta de crédito</span>
+              </div>
+            </SelectItem>
           </SelectContent>
         </Select>
       </div>
