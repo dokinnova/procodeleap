@@ -21,17 +21,19 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <ProtectedRoute>
-          <div className="flex min-h-screen bg-gray-100">
+          <div className="flex min-h-screen bg-[#F8FAFC]">
             <Navigation />
-            <main className="flex-1 ml-64 p-6">
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/children" element={<Children />} />
-                <Route path="/sponsors" element={<Sponsors />} />
-                <Route path="/management" element={<Management />} />
-                <Route path="/schools" element={<Schools />} />
-                <Route path="/configuration" element={<Configuration />} />
-              </Routes>
+            <main className="flex-1 ml-64 p-8 transition-all duration-300 ease-in-out">
+              <div className="max-w-7xl mx-auto">
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/children" element={<Children />} />
+                  <Route path="/sponsors" element={<Sponsors />} />
+                  <Route path="/management" element={<Management />} />
+                  <Route path="/schools" element={<Schools />} />
+                  <Route path="/configuration" element={<Configuration />} />
+                </Routes>
+              </div>
             </main>
           </div>
         </ProtectedRoute>

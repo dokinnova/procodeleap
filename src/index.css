@@ -32,7 +32,7 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
   }
 
   .dark {
@@ -72,6 +72,53 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
   }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Modern scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #E2E8F0;
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #CBD5E1;
+  }
+}
+
+/* Animations */
+.fade-enter {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.fade-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms, transform 300ms;
+}
+
+.fade-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.fade-exit-active {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 300ms, transform 300ms;
 }

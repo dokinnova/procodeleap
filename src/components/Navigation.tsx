@@ -21,64 +21,74 @@ const Navigation = () => {
 
   return (
     <div className="flex h-screen">
-      <div className="w-64 bg-gray-900 text-white fixed h-full">
-        <div className="p-4 border-b border-gray-800 flex items-center gap-2">
-          <Link to="/" className="text-xl font-bold text-primary hover:opacity-80 transition-opacity flex items-center gap-2">
+      <div className="w-64 bg-white border-r border-gray-100 fixed h-full shadow-sm transition-all duration-300 ease-in-out">
+        <div className="p-6 border-b border-gray-100">
+          <Link to="/" className="text-xl font-semibold text-gray-900 hover:opacity-80 transition-opacity flex items-center gap-3">
             PROCODELI
             {siteSettings?.logo_url && (
               <img 
                 src={siteSettings.logo_url} 
                 alt="Logo" 
-                className="w-12 h-12 object-contain"
+                className="w-8 h-8 object-contain rounded-full"
               />
             )}
           </Link>
         </div>
-        <nav className="mt-6">
+        <nav className="mt-6 px-3">
           <Link
             to="/children"
-            className={`flex items-center px-6 py-3 hover:bg-gray-800 transition-colors ${
-              isActive("/children") ? "bg-gray-800 border-l-4 border-primary" : ""
+            className={`flex items-center px-4 py-3 mb-2 rounded-lg transition-colors ${
+              isActive("/children") 
+                ? "bg-primary/10 text-primary" 
+                : "text-gray-600 hover:bg-gray-50"
             }`}
           >
             <Users className="w-5 h-5 mr-3" />
-            <span>Niños</span>
+            <span className="font-medium">Niños</span>
           </Link>
           <Link
             to="/sponsors"
-            className={`flex items-center px-6 py-3 hover:bg-gray-800 transition-colors ${
-              isActive("/sponsors") ? "bg-gray-800 border-l-4 border-primary" : ""
+            className={`flex items-center px-4 py-3 mb-2 rounded-lg transition-colors ${
+              isActive("/sponsors") 
+                ? "bg-primary/10 text-primary" 
+                : "text-gray-600 hover:bg-gray-50"
             }`}
           >
             <UserPlus className="w-5 h-5 mr-3" />
-            <span>Padrinos</span>
+            <span className="font-medium">Padrinos</span>
           </Link>
           <Link
             to="/schools"
-            className={`flex items-center px-6 py-3 hover:bg-gray-800 transition-colors ${
-              isActive("/schools") ? "bg-gray-800 border-l-4 border-primary" : ""
+            className={`flex items-center px-4 py-3 mb-2 rounded-lg transition-colors ${
+              isActive("/schools") 
+                ? "bg-primary/10 text-primary" 
+                : "text-gray-600 hover:bg-gray-50"
             }`}
           >
             <School className="w-5 h-5 mr-3" />
-            <span>Colegios</span>
+            <span className="font-medium">Colegios</span>
           </Link>
           <Link
             to="/management"
-            className={`flex items-center px-6 py-3 hover:bg-gray-800 transition-colors ${
-              isActive("/management") ? "bg-gray-800 border-l-4 border-primary" : ""
+            className={`flex items-center px-4 py-3 mb-2 rounded-lg transition-colors ${
+              isActive("/management") 
+                ? "bg-primary/10 text-primary" 
+                : "text-gray-600 hover:bg-gray-50"
             }`}
           >
             <Settings className="w-5 h-5 mr-3" />
-            <span>Gestión</span>
+            <span className="font-medium">Gestión</span>
           </Link>
           <Link
             to="/configuration"
-            className={`flex items-center px-6 py-3 hover:bg-gray-800 transition-colors ${
-              isActive("/configuration") ? "bg-gray-800 border-l-4 border-primary" : ""
+            className={`flex items-center px-4 py-3 mb-2 rounded-lg transition-colors ${
+              isActive("/configuration") 
+                ? "bg-primary/10 text-primary" 
+                : "text-gray-600 hover:bg-gray-50"
             }`}
           >
             <Settings className="w-5 h-5 mr-3" />
-            <span>Configuración</span>
+            <span className="font-medium">Configuración</span>
           </Link>
         </nav>
       </div>
