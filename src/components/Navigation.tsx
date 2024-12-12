@@ -22,8 +22,8 @@ const Navigation = () => {
   return (
     <div className="flex h-screen">
       <div className="w-64 bg-[#F1F0FB] fixed h-full shadow-sm transition-all duration-300 ease-in-out">
-        <div className="p-6 border-b border-purple-100/30 bg-[#D4D1EC] backdrop-blur-sm">
-          <Link to="/" className="text-xl font-semibold text-gray-900 hover:opacity-80 transition-opacity flex items-center gap-3">
+        <div className="p-6 border-b border-purple-100/30 bg-[#1A1F2C] backdrop-blur-sm">
+          <Link to="/" className="text-xl font-semibold text-white hover:opacity-80 transition-opacity flex items-center gap-3">
             PROCODELI
             {siteSettings?.logo_url && (
               <img 
