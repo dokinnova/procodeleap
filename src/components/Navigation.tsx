@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Users, UserPlus, Settings, School } from "lucide-react";
+import { Users, UserPlus, Settings, School, FileText, BarChart2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -79,6 +79,58 @@ const Navigation = () => {
             <Settings className="w-5 h-5 mr-3" />
             <span className="font-medium">Gestión</span>
           </Link>
+
+          {/* Reports Section */}
+          <div className="mt-6 mb-4">
+            <h3 className="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Informes
+            </h3>
+          </div>
+          <Link
+            to="/reports/children"
+            className={`flex items-center px-4 py-3 mb-2 rounded-lg transition-colors ${
+              isActive("/reports/children") 
+                ? "bg-primary/10 text-primary" 
+                : "text-gray-600 hover:bg-white/50"
+            }`}
+          >
+            <FileText className="w-5 h-5 mr-3" />
+            <span className="font-medium">Listado de Niños</span>
+          </Link>
+          <Link
+            to="/reports/sponsors"
+            className={`flex items-center px-4 py-3 mb-2 rounded-lg transition-colors ${
+              isActive("/reports/sponsors") 
+                ? "bg-primary/10 text-primary" 
+                : "text-gray-600 hover:bg-white/50"
+            }`}
+          >
+            <FileText className="w-5 h-5 mr-3" />
+            <span className="font-medium">Listado de Padrinos</span>
+          </Link>
+          <Link
+            to="/reports/schools"
+            className={`flex items-center px-4 py-3 mb-2 rounded-lg transition-colors ${
+              isActive("/reports/schools") 
+                ? "bg-primary/10 text-primary" 
+                : "text-gray-600 hover:bg-white/50"
+            }`}
+          >
+            <FileText className="w-5 h-5 mr-3" />
+            <span className="font-medium">Listado de Colegios</span>
+          </Link>
+          <Link
+            to="/reports/sponsorships"
+            className={`flex items-center px-4 py-3 mb-2 rounded-lg transition-colors ${
+              isActive("/reports/sponsorships") 
+                ? "bg-primary/10 text-primary" 
+                : "text-gray-600 hover:bg-white/50"
+            }`}
+          >
+            <BarChart2 className="w-5 h-5 mr-3" />
+            <span className="font-medium">Niños con Padrinos</span>
+          </Link>
+
           <Link
             to="/configuration"
             className={`flex items-center px-4 py-3 mb-2 rounded-lg transition-colors ${
