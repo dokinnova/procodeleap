@@ -28,11 +28,23 @@ const Configuration = () => {
 
   const addAdminMutation = useMutation({
     mutationFn: async (email: string) => {
-      const { data: userData, error: userError } = await supabase
+      const { data: { user }, error: authError } = await supabase.auth.admin.createUser({
+        email,
+        email_confirm: true,
+        password: Math.random().toString(36).slice(-8),
+      });
+
+      if (authError) throw authError;
+      if (!user) throw new Error("No se pudo crear el usuario");
+
+      const { error: adminError } = await supabase
         .from("admin_users")
-        .insert([{ email }]);
-      if (userError) throw userError;
-      return userData;
+        .insert({
+          email,
+          user_id: user.id,
+        });
+
+      if (adminError) throw adminError;
     },
     onSuccess: () => {
       toast.success("Administrador añadido correctamente");
