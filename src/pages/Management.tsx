@@ -4,22 +4,11 @@ import { Input } from "@/components/ui/input";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Plus, Search } from "lucide-react";
 import { Child, Sponsor } from "@/types";
 import { SponsorshipForm } from "@/components/management/SponsorshipForm";
+import { AvailableSponsorsTable } from "@/components/management/AvailableSponsorsTable";
 
 const Management = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -40,7 +29,19 @@ const Management = () => {
     },
   });
 
-  const { data: sponsors = [], isLoading: isLoadingSponsors } = useQuery({
+  const { data: sponsorships = [], isLoading: isLoadingSponsorships } = useQuery({
+    queryKey: ["sponsorships"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("sponsorships")
+        .select("*");
+      
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const { data: allSponsors = [], isLoading: isLoadingSponsors } = useQuery({
     queryKey: ["sponsors"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -51,6 +52,11 @@ const Management = () => {
       return data || [];
     },
   });
+
+  // Filter out sponsors who already have a sponsorship
+  const availableSponsors = allSponsors.filter(sponsor => 
+    !sponsorships.some(s => s.sponsor_id === sponsor.id)
+  );
 
   const filteredChildren = children.filter((child: Child) =>
     child.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -155,54 +161,12 @@ const Management = () => {
           </div>
         </div>
 
-        {/* Lista de Padrinos */}
-        <div className="bg-white rounded-lg shadow">
-          <div className="p-4 border-b">
-            <h2 className="text-lg font-semibold text-gray-900">Padrinos Disponibles</h2>
-          </div>
-
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nombre</TableHead>
-                  <TableHead>Contribución</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoadingSponsors ? (
-                  <TableRow>
-                    <TableCell colSpan={2} className="text-center py-8">
-                      Cargando...
-                    </TableCell>
-                  </TableRow>
-                ) : sponsors.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={2} className="text-center py-8">
-                      No hay padrinos disponibles
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  sponsors.map((sponsor: Sponsor) => (
-                    <TableRow 
-                      key={sponsor.id}
-                      className="cursor-pointer hover:bg-gray-50"
-                      onClick={() => handleSponsorSelect(sponsor)}
-                    >
-                      <TableCell>{sponsor.name}</TableCell>
-                      <TableCell className="font-mono">
-                        ${sponsor.contribution.toLocaleString('en-US', { 
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2 
-                        })}/mes
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </div>
+        {/* Lista de Padrinos Disponibles */}
+        <AvailableSponsorsTable
+          sponsors={availableSponsors}
+          onSponsorSelect={handleSponsorSelect}
+          isLoading={isLoadingSponsors || isLoadingSponsorships}
+        />
       </div>
     </div>
   );

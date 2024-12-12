@@ -12,6 +12,7 @@ import {
 import { Child, Sponsor } from "@/types";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface SponsorshipFormProps {
   child: Child | null;
@@ -22,26 +23,59 @@ interface SponsorshipFormProps {
 export const SponsorshipForm = ({ child, sponsor, onClose }: SponsorshipFormProps) => {
   const [startDate, setStartDate] = useState("");
   const [notes, setNotes] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!child || !sponsor) {
+    if (!child || !sponsor || !startDate) {
       toast({
         title: "Error",
-        description: "Por favor selecciona un niño y un padrino",
+        description: "Por favor completa todos los campos requeridos",
         variant: "destructive",
       });
       return;
     }
 
-    // Aquí iría la lógica para guardar el apadrinamiento
-    toast({
-      title: "Éxito",
-      description: "Apadrinamiento actualizado correctamente",
-    });
-    onClose();
+    setIsSubmitting(true);
+
+    try {
+      const { error } = await supabase
+        .from('sponsorships')
+        .insert([
+          {
+            child_id: child.id,
+            sponsor_id: sponsor.id,
+            start_date: startDate,
+            notes: notes || null,
+          }
+        ]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Éxito",
+        description: "Apadrinamiento creado correctamente",
+      });
+
+      // Invalidate queries to refresh the data
+      queryClient.invalidateQueries({ queryKey: ["sponsorships"] });
+      queryClient.invalidateQueries({ queryKey: ["sponsors"] });
+      queryClient.invalidateQueries({ queryKey: ["children"] });
+
+      onClose();
+    } catch (error) {
+      console.error('Error creating sponsorship:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo crear el apadrinamiento",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -73,12 +107,13 @@ export const SponsorshipForm = ({ child, sponsor, onClose }: SponsorshipFormProp
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="startDate">Fecha de inicio</Label>
+            <Label htmlFor="startDate">Fecha de inicio *</Label>
             <Input
               id="startDate"
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
+              required
             />
           </div>
 
@@ -93,11 +128,11 @@ export const SponsorshipForm = ({ child, sponsor, onClose }: SponsorshipFormProp
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={onClose}>
+            <Button variant="outline" onClick={onClose} type="button">
               Cancelar
             </Button>
-            <Button type="submit">
-              Guardar
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Guardando..." : "Guardar"}
             </Button>
           </div>
         </form>

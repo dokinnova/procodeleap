@@ -140,6 +140,48 @@ export type Database = {
         }
         Relationships: []
       }
+      sponsorships: {
+        Row: {
+          child_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          sponsor_id: string
+          start_date: string
+        }
+        Insert: {
+          child_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          sponsor_id: string
+          start_date: string
+        }
+        Update: {
+          child_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          sponsor_id?: string
+          start_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sponsorships_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: true
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sponsorships_sponsor_id_fkey"
+            columns: ["sponsor_id"]
+            isOneToOne: true
+            referencedRelation: "sponsors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
