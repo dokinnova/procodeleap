@@ -32,6 +32,10 @@ export const SponsorsTable = ({
     sponsor.name.toLowerCase().includes(search.toLowerCase())
   );
 
+  const handleRowClick = (sponsor: Sponsor) => {
+    onSponsorSelect(sponsor);
+  };
+
   return (
     <div className="space-y-4">
       <div className="relative">
@@ -58,20 +62,31 @@ export const SponsorsTable = ({
             {filteredSponsors.map((sponsor) => (
               <TableRow 
                 key={sponsor.id} 
-                className="hover:bg-gray-50 cursor-pointer"
-                onClick={() => onSponsorSelect(sponsor)}
+                className="hover:bg-gray-50"
               >
-                <TableCell className="font-medium">{sponsor.name}</TableCell>
-                <TableCell>{sponsor.email}</TableCell>
-                <TableCell className="font-mono">${sponsor.contribution.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mes</TableCell>
+                <TableCell 
+                  className="font-medium cursor-pointer"
+                  onClick={() => handleRowClick(sponsor)}
+                >
+                  {sponsor.name}
+                </TableCell>
+                <TableCell 
+                  className="cursor-pointer"
+                  onClick={() => handleRowClick(sponsor)}
+                >
+                  {sponsor.email}
+                </TableCell>
+                <TableCell 
+                  className="font-mono cursor-pointer"
+                  onClick={() => handleRowClick(sponsor)}
+                >
+                  ${sponsor.contribution.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mes
+                </TableCell>
                 <TableCell>
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSponsorToDelete(sponsor);
-                    }}
+                    onClick={() => setSponsorToDelete(sponsor)}
                     className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
                   >
                     <Trash2 className="h-4 w-4" />
