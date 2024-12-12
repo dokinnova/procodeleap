@@ -7,7 +7,6 @@ interface PrintableChildrenListProps {
 export const PrintableChildrenList = ({ children }: PrintableChildrenListProps) => {
   return (
     <div className="hidden print:block print:p-8 print:max-w-[210mm] print:mx-auto">
-      <h1 className="text-2xl font-bold mb-6 text-center">Listado de Niños</h1>
       <table className="w-full border-collapse">
         <thead>
           <tr className="border-b-2 border-gray-800">
@@ -28,9 +27,6 @@ export const PrintableChildrenList = ({ children }: PrintableChildrenListProps) 
           ))}
         </tbody>
       </table>
-      <div className="mt-6 text-sm text-gray-500 text-center">
-        <p>Fecha de impresión: {new Date().toLocaleDateString()}</p>
-      </div>
     </div>
   );
 };

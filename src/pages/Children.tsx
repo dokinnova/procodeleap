@@ -41,7 +41,7 @@ const Children = () => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-[80vh]">
+      <div className="flex justify-center items-center min-h-[80vh] print:hidden">
         <div className="animate-pulse text-lg text-gray-600">Cargando datos...</div>
       </div>
     );
@@ -49,7 +49,7 @@ const Children = () => {
 
   if (error) {
     return (
-      <div className="flex flex-col justify-center items-center min-h-[80vh] gap-4">
+      <div className="flex flex-col justify-center items-center min-h-[80vh] gap-4 print:hidden">
         <p className="text-lg text-red-500">Error al cargar los datos</p>
         <Button 
           variant="outline"
@@ -63,7 +63,7 @@ const Children = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between print:hidden">
         <div className="flex items-center gap-3">
           <Baby className="h-8 w-8 text-primary" />
           <h1 className="text-2xl font-bold text-gray-900">Niños Registrados</h1>
@@ -71,24 +71,25 @@ const Children = () => {
         <Button
           onClick={handlePrint}
           variant="outline"
-          className="print:hidden"
         >
           <Printer className="h-4 w-4 mr-2" />
           Imprimir Listado
         </Button>
       </div>
 
-      <ChildForm 
-        selectedChild={selectedChild}
-        setSelectedChild={setSelectedChild}
-      />
+      <div className="print:hidden">
+        <ChildForm 
+          selectedChild={selectedChild}
+          setSelectedChild={setSelectedChild}
+        />
 
-      <ChildrenTable 
-        children={children}
-        search={search}
-        setSearch={setSearch}
-        setSelectedChild={setSelectedChild}
-      />
+        <ChildrenTable 
+          children={children}
+          search={search}
+          setSearch={setSearch}
+          setSelectedChild={setSelectedChild}
+        />
+      </div>
 
       <PrintableChildrenList children={children} />
     </div>
