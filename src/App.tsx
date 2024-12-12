@@ -9,6 +9,7 @@ import Children from "./pages/Children";
 import Sponsors from "./pages/Sponsors";
 import Management from "./pages/Management";
 import Schools from "./pages/Schools";
+import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -18,18 +19,20 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <div className="flex min-h-screen bg-gray-100">
-          <Navigation />
-          <main className="flex-1 ml-64 p-6">
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/children" element={<Children />} />
-              <Route path="/sponsors" element={<Sponsors />} />
-              <Route path="/management" element={<Management />} />
-              <Route path="/schools" element={<Schools />} />
-            </Routes>
-          </main>
-        </div>
+        <ProtectedRoute>
+          <div className="flex min-h-screen bg-gray-100">
+            <Navigation />
+            <main className="flex-1 ml-64 p-6">
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/children" element={<Children />} />
+                <Route path="/sponsors" element={<Sponsors />} />
+                <Route path="/management" element={<Management />} />
+                <Route path="/schools" element={<Schools />} />
+              </Routes>
+            </main>
+          </div>
+        </ProtectedRoute>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
