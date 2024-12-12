@@ -9,6 +9,7 @@ import { Plus, Search } from "lucide-react";
 import { Child, Sponsor } from "@/types";
 import { SponsorshipForm } from "@/components/management/SponsorshipForm";
 import { AvailableSponsorsTable } from "@/components/management/AvailableSponsorsTable";
+import { Separator } from "@/components/ui/separator";
 import {
   Table,
   TableBody,
@@ -175,19 +176,31 @@ const Management = () => {
           "No hay niños sin padrinos asignados"
         )}
 
-        {/* Lista de Niños con Padrinos */}
-        {renderChildrenTable(
-          childrenWithSponsorship,
-          "Niños con Padrinos",
-          "No hay niños con padrinos asignados"
-        )}
-
         {/* Lista de Padrinos Disponibles */}
         <AvailableSponsorsTable
           sponsors={availableSponsors}
           onSponsorSelect={handleSponsorSelect}
           isLoading={isLoadingSponsors || isLoadingSponsorships}
         />
+
+        {/* Separador destacado */}
+        <div className="relative py-8">
+          <Separator className="absolute left-0 right-0 top-1/2 transform -translate-y-1/2" />
+          <div className="relative z-10 flex justify-center">
+            <span className="px-4 py-1 bg-primary text-primary-foreground rounded-full text-sm font-medium">
+              Apadrinamientos Activos
+            </span>
+          </div>
+        </div>
+
+        {/* Lista de Niños con Padrinos */}
+        <div className="bg-white rounded-lg shadow-lg border-2 border-primary">
+          {renderChildrenTable(
+            childrenWithSponsorship,
+            "Niños con Padrinos",
+            "No hay niños con padrinos asignados"
+          )}
+        </div>
       </div>
     </div>
   );
