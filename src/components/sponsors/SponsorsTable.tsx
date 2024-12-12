@@ -1,5 +1,6 @@
-import { Search } from "lucide-react";
+import { Search, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -8,6 +9,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { DeleteConfirmationDialog } from "@/components/shared/DeleteConfirmationDialog";
+import { useDeleteSponsor } from "@/hooks/useDeleteSponsor";
 import { Sponsor } from "@/types";
 
 interface SponsorsTableProps {
@@ -23,6 +26,8 @@ export const SponsorsTable = ({
   onSearchChange,
   onSponsorSelect 
 }: SponsorsTableProps) => {
+  const { sponsorToDelete, setSponsorToDelete, handleDelete } = useDeleteSponsor();
+
   const filteredSponsors = sponsors.filter(sponsor =>
     sponsor.name.toLowerCase().includes(search.toLowerCase())
   );
@@ -46,6 +51,7 @@ export const SponsorsTable = ({
               <TableHead>Nombre</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Contribución</TableHead>
+              <TableHead className="w-[100px]">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -57,12 +63,25 @@ export const SponsorsTable = ({
               >
                 <TableCell className="font-medium">{sponsor.name}</TableCell>
                 <TableCell>{sponsor.email}</TableCell>
-                <TableCell>${sponsor.contribution}/mes</TableCell>
+                <TableCell className="font-mono">${sponsor.contribution.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mes</TableCell>
+                <TableCell>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSponsorToDelete(sponsor);
+                    }}
+                    className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </TableCell>
               </TableRow>
             ))}
             {filteredSponsors.length === 0 && (
               <TableRow>
-                <TableCell colSpan={3} className="text-center py-8 text-gray-500">
+                <TableCell colSpan={4} className="text-center py-8 text-gray-500">
                   No se encontraron padrinos
                 </TableCell>
               </TableRow>
@@ -70,6 +89,14 @@ export const SponsorsTable = ({
           </TableBody>
         </Table>
       </div>
+
+      <DeleteConfirmationDialog
+        isOpen={!!sponsorToDelete}
+        onClose={() => setSponsorToDelete(null)}
+        onConfirm={() => sponsorToDelete && handleDelete(sponsorToDelete.id)}
+        title="¿Estás seguro?"
+        description={`Esta acción no se puede deshacer. Se eliminará permanentemente el padrino ${sponsorToDelete?.name}.`}
+      />
     </div>
   );
 };
