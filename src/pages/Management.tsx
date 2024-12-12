@@ -9,6 +9,14 @@ import { Plus, Search } from "lucide-react";
 import { Child, Sponsor } from "@/types";
 import { SponsorshipForm } from "@/components/management/SponsorshipForm";
 import { AvailableSponsorsTable } from "@/components/management/AvailableSponsorsTable";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 const Management = () => {
   const [searchQuery, setSearchQuery] = useState("");
