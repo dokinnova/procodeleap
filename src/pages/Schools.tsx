@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { School, Plus, Search } from "lucide-react";
+import { School, Search } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -69,14 +69,62 @@ const Schools = () => {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {/* Lista de colegios */}
-      <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <School className="h-8 w-8 text-primary" />
-          <h1 className="text-2xl font-bold text-gray-900">Colegios Registrados</h1>
-        </div>
+    <div className="space-y-6">
+      <div className="flex items-center gap-3">
+        <School className="h-8 w-8 text-primary" />
+        <h1 className="text-2xl font-bold text-gray-900">Colegios Registrados</h1>
+      </div>
 
+      {/* Formulario de mantenimiento */}
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            {selectedSchool ? 'Editar Colegio' : 'Registrar Nuevo Colegio'}
+          </CardTitle>
+          <CardDescription>
+            {selectedSchool 
+              ? 'Modifica los datos del colegio seleccionado' 
+              : 'Ingresa los datos para registrar un nuevo colegio'}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Nombre del colegio</Label>
+              <Input
+                id="name"
+                placeholder="Nombre del colegio"
+                value={selectedSchool?.name || ''}
+                onChange={() => {}}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="address">Dirección</Label>
+              <Input
+                id="address"
+                placeholder="Dirección del colegio"
+                value={selectedSchool?.address || ''}
+                onChange={() => {}}
+              />
+            </div>
+
+            <div className="flex justify-end gap-2">
+              {selectedSchool && (
+                <Button variant="outline" onClick={() => setSelectedSchool(null)}>
+                  Cancelar
+                </Button>
+              )}
+              <Button type="submit">
+                {selectedSchool ? 'Actualizar' : 'Registrar'}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+
+      {/* Lista de colegios */}
+      <div className="space-y-4">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
@@ -116,56 +164,6 @@ const Schools = () => {
             </TableBody>
           </Table>
         </div>
-      </div>
-
-      {/* Formulario de mantenimiento */}
-      <div>
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              {selectedSchool ? 'Editar Colegio' : 'Registrar Nuevo Colegio'}
-            </CardTitle>
-            <CardDescription>
-              {selectedSchool 
-                ? 'Modifica los datos del colegio seleccionado' 
-                : 'Ingresa los datos para registrar un nuevo colegio'}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Nombre del colegio</Label>
-                <Input
-                  id="name"
-                  placeholder="Nombre del colegio"
-                  value={selectedSchool?.name || ''}
-                  onChange={() => {}}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="address">Dirección</Label>
-                <Input
-                  id="address"
-                  placeholder="Dirección del colegio"
-                  value={selectedSchool?.address || ''}
-                  onChange={() => {}}
-                />
-              </div>
-
-              <div className="flex justify-end gap-2">
-                {selectedSchool && (
-                  <Button variant="outline" onClick={() => setSelectedSchool(null)}>
-                    Cancelar
-                  </Button>
-                )}
-                <Button type="submit">
-                  {selectedSchool ? 'Actualizar' : 'Registrar'}
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );

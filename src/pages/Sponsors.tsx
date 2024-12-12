@@ -37,14 +37,84 @@ const Sponsors = () => {
   );
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {/* Lista de padrinos */}
-      <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <UserPlus className="h-8 w-8 text-primary" />
-          <h1 className="text-2xl font-bold text-gray-900">Padrinos Registrados</h1>
-        </div>
+    <div className="space-y-6">
+      <div className="flex items-center gap-3">
+        <UserPlus className="h-8 w-8 text-primary" />
+        <h1 className="text-2xl font-bold text-gray-900">Padrinos Registrados</h1>
+      </div>
 
+      {/* Formulario de mantenimiento */}
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            {selectedSponsor ? 'Editar Padrino' : 'Registrar Nuevo Padrino'}
+          </CardTitle>
+          <CardDescription>
+            {selectedSponsor 
+              ? 'Modifica los datos del padrino seleccionado' 
+              : 'Ingresa los datos para registrar un nuevo padrino'}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Nombre completo</Label>
+              <Input
+                id="name"
+                placeholder="Nombre del padrino"
+                value={selectedSponsor?.name || ''}
+                onChange={() => {}}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="Email"
+                value={selectedSponsor?.email || ''}
+                onChange={() => {}}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="phone">Teléfono</Label>
+              <Input
+                id="phone"
+                placeholder="Teléfono"
+                value={selectedSponsor?.phone || ''}
+                onChange={() => {}}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="contribution">Contribución mensual</Label>
+              <Input
+                id="contribution"
+                type="number"
+                placeholder="Contribución mensual"
+                value={selectedSponsor?.contribution || ''}
+                onChange={() => {}}
+              />
+            </div>
+
+            <div className="flex justify-end gap-2">
+              {selectedSponsor && (
+                <Button variant="outline" onClick={() => setSelectedSponsor(null)}>
+                  Cancelar
+                </Button>
+              )}
+              <Button type="submit">
+                {selectedSponsor ? 'Actualizar' : 'Registrar'}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+
+      {/* Lista de padrinos */}
+      <div className="space-y-4">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
@@ -86,78 +156,6 @@ const Sponsors = () => {
             </TableBody>
           </Table>
         </div>
-      </div>
-
-      {/* Formulario de mantenimiento */}
-      <div>
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              {selectedSponsor ? 'Editar Padrino' : 'Registrar Nuevo Padrino'}
-            </CardTitle>
-            <CardDescription>
-              {selectedSponsor 
-                ? 'Modifica los datos del padrino seleccionado' 
-                : 'Ingresa los datos para registrar un nuevo padrino'}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Nombre completo</Label>
-                <Input
-                  id="name"
-                  placeholder="Nombre del padrino"
-                  value={selectedSponsor?.name || ''}
-                  onChange={() => {}}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="Email"
-                  value={selectedSponsor?.email || ''}
-                  onChange={() => {}}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="phone">Teléfono</Label>
-                <Input
-                  id="phone"
-                  placeholder="Teléfono"
-                  value={selectedSponsor?.phone || ''}
-                  onChange={() => {}}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="contribution">Contribución mensual</Label>
-                <Input
-                  id="contribution"
-                  type="number"
-                  placeholder="Contribución mensual"
-                  value={selectedSponsor?.contribution || ''}
-                  onChange={() => {}}
-                />
-              </div>
-
-              <div className="flex justify-end gap-2">
-                {selectedSponsor && (
-                  <Button variant="outline" onClick={() => setSelectedSponsor(null)}>
-                    Cancelar
-                  </Button>
-                )}
-                <Button type="submit">
-                  {selectedSponsor ? 'Actualizar' : 'Registrar'}
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
