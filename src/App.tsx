@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Children from "./pages/Children";
 import Sponsors from "./pages/Sponsors";
 import Management from "./pages/Management";
+import Schools from "./pages/Schools";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,7 @@ const App = () => (
               <Route path="/children" element={<Children />} />
               <Route path="/sponsors" element={<Sponsors />} />
               <Route path="/management" element={<Management />} />
+              <Route path="/schools" element={<Schools />} />
             </Routes>
           </main>
         </div>

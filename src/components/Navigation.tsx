@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Users, UserPlus, Settings } from "lucide-react";
+import { Users, UserPlus, Settings, School } from "lucide-react";
 
 const Navigation = () => {
   const location = useLocation();
@@ -32,6 +32,15 @@ const Navigation = () => {
           >
             <UserPlus className="w-5 h-5 mr-3" />
             <span>Padrinos</span>
+          </Link>
+          <Link
+            to="/schools"
+            className={`flex items-center px-6 py-3 hover:bg-gray-800 transition-colors ${
+              isActive("/schools") ? "bg-gray-800 border-l-4 border-primary" : ""
+            }`}
+          >
+            <School className="w-5 h-5 mr-3" />
+            <span>Colegios</span>
           </Link>
           <Link
             to="/management"
