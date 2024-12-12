@@ -31,6 +31,17 @@ interface School {
 const Schools = () => {
   const [selectedSchool, setSelectedSchool] = useState<School | null>(null);
   const [search, setSearch] = useState("");
+  const [formData, setFormData] = useState({
+    name: selectedSchool?.name || '',
+    address: selectedSchool?.address || ''
+  });
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
 
   // Fetch schools data
   const { data: schools = [], isLoading, error, refetch } = useQuery({
@@ -75,7 +86,6 @@ const Schools = () => {
         <h1 className="text-2xl font-bold text-gray-900">Colegios Registrados</h1>
       </div>
 
-      {/* Formulario de mantenimiento */}
       <Card>
         <CardHeader>
           <CardTitle>
@@ -94,8 +104,8 @@ const Schools = () => {
               <Input
                 id="name"
                 placeholder="Nombre del colegio"
-                value={selectedSchool?.name || ''}
-                onChange={() => {}}
+                value={formData.name}
+                onChange={(e) => handleInputChange('name', e.target.value)}
               />
             </div>
             
@@ -104,8 +114,8 @@ const Schools = () => {
               <Input
                 id="address"
                 placeholder="Dirección del colegio"
-                value={selectedSchool?.address || ''}
-                onChange={() => {}}
+                value={formData.address}
+                onChange={(e) => handleInputChange('address', e.target.value)}
               />
             </div>
 
@@ -123,7 +133,6 @@ const Schools = () => {
         </CardContent>
       </Card>
 
-      {/* Lista de colegios */}
       <div className="space-y-4">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />

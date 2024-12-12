@@ -31,6 +31,19 @@ const Sponsors = () => {
   const [sponsors] = useState<Sponsor[]>([]);
   const [search, setSearch] = useState("");
   const [selectedSponsor, setSelectedSponsor] = useState<Sponsor | null>(null);
+  const [formData, setFormData] = useState({
+    name: selectedSponsor?.name || '',
+    email: selectedSponsor?.email || '',
+    phone: selectedSponsor?.phone || '',
+    contribution: selectedSponsor?.contribution || '',
+  });
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
 
   const filteredSponsors = sponsors.filter(sponsor =>
     sponsor.name.toLowerCase().includes(search.toLowerCase())
@@ -43,7 +56,6 @@ const Sponsors = () => {
         <h1 className="text-2xl font-bold text-gray-900">Padrinos Registrados</h1>
       </div>
 
-      {/* Formulario de mantenimiento */}
       <Card>
         <CardHeader>
           <CardTitle>
@@ -62,8 +74,8 @@ const Sponsors = () => {
               <Input
                 id="name"
                 placeholder="Nombre del padrino"
-                value={selectedSponsor?.name || ''}
-                onChange={() => {}}
+                value={formData.name}
+                onChange={(e) => handleInputChange('name', e.target.value)}
               />
             </div>
             
@@ -73,8 +85,8 @@ const Sponsors = () => {
                 id="email"
                 type="email"
                 placeholder="Email"
-                value={selectedSponsor?.email || ''}
-                onChange={() => {}}
+                value={formData.email}
+                onChange={(e) => handleInputChange('email', e.target.value)}
               />
             </div>
 
@@ -83,8 +95,8 @@ const Sponsors = () => {
               <Input
                 id="phone"
                 placeholder="Teléfono"
-                value={selectedSponsor?.phone || ''}
-                onChange={() => {}}
+                value={formData.phone}
+                onChange={(e) => handleInputChange('phone', e.target.value)}
               />
             </div>
 
@@ -94,8 +106,8 @@ const Sponsors = () => {
                 id="contribution"
                 type="number"
                 placeholder="Contribución mensual"
-                value={selectedSponsor?.contribution || ''}
-                onChange={() => {}}
+                value={formData.contribution}
+                onChange={(e) => handleInputChange('contribution', e.target.value)}
               />
             </div>
 
@@ -113,7 +125,6 @@ const Sponsors = () => {
         </CardContent>
       </Card>
 
-      {/* Lista de padrinos */}
       <div className="space-y-4">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
