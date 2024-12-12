@@ -73,24 +73,16 @@ export const SponsorsTable = ({
             {filteredSponsors.map((sponsor) => (
               <TableRow 
                 key={sponsor.id} 
-                className="hover:bg-gray-50"
+                className="hover:bg-gray-50 cursor-pointer"
+                onClick={() => handleRowClick(sponsor)}
               >
-                <TableCell 
-                  className="font-medium cursor-pointer"
-                  onClick={() => handleRowClick(sponsor)}
-                >
+                <TableCell className="font-medium">
                   {sponsor.name}
                 </TableCell>
-                <TableCell 
-                  className="cursor-pointer"
-                  onClick={() => handleRowClick(sponsor)}
-                >
+                <TableCell>
                   {sponsor.email}
                 </TableCell>
-                <TableCell 
-                  className="font-mono cursor-pointer"
-                  onClick={() => handleRowClick(sponsor)}
-                >
+                <TableCell className="font-mono">
                   ${sponsor.contribution.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mes
                 </TableCell>
                 <TableCell>

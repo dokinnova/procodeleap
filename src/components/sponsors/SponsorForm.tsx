@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,11 +19,29 @@ interface SponsorFormProps {
 
 export const SponsorForm = ({ selectedSponsor, onSubmit, onCancel }: SponsorFormProps) => {
   const [formData, setFormData] = useState({
-    name: selectedSponsor?.name || '',
-    email: selectedSponsor?.email || '',
-    phone: selectedSponsor?.phone || '',
-    contribution: selectedSponsor?.contribution.toString() || '',
+    name: '',
+    email: '',
+    phone: '',
+    contribution: '',
   });
+
+  useEffect(() => {
+    if (selectedSponsor) {
+      setFormData({
+        name: selectedSponsor.name,
+        email: selectedSponsor.email,
+        phone: selectedSponsor.phone || '',
+        contribution: selectedSponsor.contribution.toString(),
+      });
+    } else {
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        contribution: '',
+      });
+    }
+  }, [selectedSponsor]);
 
   const handleInputChange = (field: string, value: string) => {
     if (field === 'contribution') {
