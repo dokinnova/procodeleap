@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { ChildFormFields } from "./form/ChildFormFields";
 import { Child } from "@/types";
@@ -24,13 +24,36 @@ export const ChildForm = ({ selectedChild, setSelectedChild }: ChildFormProps) =
     school_id: string;
     image_url: string | null;
   }>({
-    name: selectedChild?.name || '',
-    age: selectedChild?.age || 0,
-    location: selectedChild?.location || '',
-    story: selectedChild?.story || '',
-    school_id: selectedChild?.school_id || '',
-    image_url: selectedChild?.image_url || null,
+    name: '',
+    age: 0,
+    location: '',
+    story: '',
+    school_id: '',
+    image_url: null,
   });
+
+  // Effect to update form data when a child is selected
+  useEffect(() => {
+    if (selectedChild) {
+      setFormData({
+        name: selectedChild.name,
+        age: selectedChild.age,
+        location: selectedChild.location,
+        story: selectedChild.story || '',
+        school_id: selectedChild.school_id || '',
+        image_url: selectedChild.image_url,
+      });
+    } else {
+      setFormData({
+        name: '',
+        age: 0,
+        location: '',
+        story: '',
+        school_id: '',
+        image_url: null,
+      });
+    }
+  }, [selectedChild]);
 
   const { data: schools = [] } = useQuery({
     queryKey: ['schools'],
