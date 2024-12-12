@@ -159,7 +159,7 @@ const Children = () => {
           </div>
         </div>
 
-        <div className="border rounded-lg">
+        <div className="border rounded-lg bg-white">
           <Table>
             <TableHeader>
               <TableRow>
