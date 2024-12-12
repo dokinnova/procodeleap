@@ -1,41 +1,41 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { School, Search } from "lucide-react";
+import { School as SchoolIcon } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { AuthForm } from "@/components/auth/AuthForm";
+import { SchoolForm } from "@/components/schools/SchoolForm";
+import { SchoolsTable } from "@/components/schools/SchoolsTable";
 
-interface School {
+export interface School {
   id: string;
   name: string;
   address: string | null;
 }
 
 const Schools = () => {
+  const [session, setSession] = useState(null);
   const queryClient = useQueryClient();
   const [selectedSchool, setSelectedSchool] = useState<School | null>(null);
   const [search, setSearch] = useState("");
   const [formData, setFormData] = useState({
-    name: selectedSchool?.name || '',
-    address: selectedSchool?.address || ''
+    name: '',
+    address: ''
   });
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -57,6 +57,11 @@ const Schools = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!session) {
+      toast.error("Debes iniciar sesión para realizar esta acción");
+      return;
+    }
+
     if (!formData.name.trim()) {
       toast.error("El nombre del colegio es requerido");
       return;
@@ -64,7 +69,6 @@ const Schools = () => {
 
     try {
       if (selectedSchool) {
-        // Actualizar colegio existente
         const { error } = await supabase
           .from("schools")
           .update({
@@ -76,7 +80,6 @@ const Schools = () => {
         if (error) throw error;
         toast.success("Colegio actualizado exitosamente");
       } else {
-        // Insertar nuevo colegio
         const { error } = await supabase
           .from("schools")
           .insert([{
@@ -88,7 +91,6 @@ const Schools = () => {
         toast.success("Colegio registrado exitosamente");
       }
 
-      // Limpiar formulario y actualizar datos
       setFormData({ name: '', address: '' });
       setSelectedSchool(null);
       queryClient.invalidateQueries({ queryKey: ["schools"] });
@@ -98,9 +100,22 @@ const Schools = () => {
     }
   };
 
-  const filteredSchools = schools.filter(school =>
-    school.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const handleCancel = () => {
+    setSelectedSchool(null);
+    setFormData({ name: '', address: '' });
+  };
+
+  const handleSelectSchool = (school: School) => {
+    setSelectedSchool(school);
+    setFormData({
+      name: school.name,
+      address: school.address || ''
+    });
+  };
+
+  if (!session) {
+    return <AuthForm />;
+  }
 
   if (isLoading) {
     return (
@@ -114,12 +129,6 @@ const Schools = () => {
     return (
       <div className="flex flex-col justify-center items-center min-h-[80vh] gap-4">
         <p className="text-lg text-red-500">Error al cargar los datos</p>
-        <Button 
-          variant="outline"
-          onClick={() => window.location.reload()}
-        >
-          Reintentar
-        </Button>
       </div>
     );
   }
@@ -127,111 +136,24 @@ const Schools = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <School className="h-8 w-8 text-primary" />
+        <SchoolIcon className="h-8 w-8 text-primary" />
         <h1 className="text-2xl font-bold text-gray-900">Colegios Registrados</h1>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            {selectedSchool ? 'Editar Colegio' : 'Registrar Nuevo Colegio'}
-          </CardTitle>
-          <CardDescription>
-            {selectedSchool 
-              ? 'Modifica los datos del colegio seleccionado' 
-              : 'Ingresa los datos para registrar un nuevo colegio'}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Nombre del colegio</Label>
-              <Input
-                id="name"
-                placeholder="Nombre del colegio"
-                value={formData.name}
-                onChange={(e) => handleInputChange('name', e.target.value)}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="address">Dirección</Label>
-              <Input
-                id="address"
-                placeholder="Dirección del colegio"
-                value={formData.address}
-                onChange={(e) => handleInputChange('address', e.target.value)}
-              />
-            </div>
+      <SchoolForm
+        formData={formData}
+        selectedSchool={selectedSchool}
+        handleInputChange={handleInputChange}
+        handleSubmit={handleSubmit}
+        handleCancel={handleCancel}
+      />
 
-            <div className="flex justify-end gap-2">
-              {selectedSchool && (
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => {
-                    setSelectedSchool(null);
-                    setFormData({ name: '', address: '' });
-                  }}
-                >
-                  Cancelar
-                </Button>
-              )}
-              <Button type="submit">
-                {selectedSchool ? 'Actualizar' : 'Registrar'}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-
-      <div className="space-y-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input
-            className="pl-10 bg-white"
-            placeholder="Buscar por nombre..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nombre</TableHead>
-                <TableHead>Dirección</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredSchools.map((school) => (
-                <TableRow 
-                  key={school.id} 
-                  className="hover:bg-gray-50 cursor-pointer"
-                  onClick={() => {
-                    setSelectedSchool(school);
-                    setFormData({
-                      name: school.name,
-                      address: school.address || ''
-                    });
-                  }}
-                >
-                  <TableCell className="font-medium">{school.name}</TableCell>
-                  <TableCell>{school.address || "No disponible"}</TableCell>
-                </TableRow>
-              ))}
-              {filteredSchools.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={2} className="text-center py-8 text-gray-500">
-                    No se encontraron colegios
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
+      <SchoolsTable
+        schools={schools}
+        search={search}
+        setSearch={setSearch}
+        onSelectSchool={handleSelectSchool}
+      />
     </div>
   );
 };
