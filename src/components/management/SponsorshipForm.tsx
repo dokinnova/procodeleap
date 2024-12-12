@@ -1,20 +1,13 @@
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Child, Sponsor } from "@/types";
-import { useToast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { SponsorshipFormHeader } from "./sponsorship-form/SponsorshipFormHeader";
+import { FormActions } from "./sponsorship-form/FormActions";
 import { ChildSelect } from "./sponsorship-form/ChildSelect";
 import { SponsorSelect } from "./sponsorship-form/SponsorSelect";
 import { SponsorshipFormFields } from "./sponsorship-form/SponsorshipFormFields";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { useSponsorshipForm } from "./sponsorship-form/useSponsorshipForm";
 
 interface SponsorshipFormProps {
   child: Child | null;
@@ -27,52 +20,21 @@ export const SponsorshipForm = ({
   sponsor: initialSponsor, 
   onClose 
 }: SponsorshipFormProps) => {
-  const [selectedChild, setSelectedChild] = useState<Child | null>(initialChild);
-  const [selectedSponsor, setSelectedSponsor] = useState<Sponsor | null>(initialSponsor);
-  const [startDate, setStartDate] = useState("");
-  const [notes, setNotes] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [existingSponsorship, setExistingSponsorship] = useState<any>(null);
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
+  const {
+    selectedChild,
+    selectedSponsor,
+    startDate,
+    notes,
+    isSubmitting,
+    existingSponsorship,
+    setSelectedChild,
+    setSelectedSponsor,
+    setStartDate,
+    setNotes,
+    handleSubmit,
+    handleDeleteSponsorship,
+  } = useSponsorshipForm(initialChild, initialSponsor, onClose);
 
-  // Fetch existing sponsorship if child is already sponsored
-  useEffect(() => {
-    const fetchExistingSponsorship = async () => {
-      if (selectedChild) {
-        const { data } = await supabase
-          .from('sponsorships')
-          .select(`
-            *,
-            sponsor:sponsors (
-              id,
-              name,
-              email,
-              phone,
-              contribution
-            )
-          `)
-          .eq('child_id', selectedChild.id)
-          .single();
-
-        if (data) {
-          setExistingSponsorship(data);
-          setStartDate(data.start_date);
-          setNotes(data.notes || '');
-          setSelectedSponsor(data.sponsor);
-        } else {
-          setExistingSponsorship(null);
-          setStartDate('');
-          setNotes('');
-          setSelectedSponsor(null);
-        }
-      }
-    };
-
-    fetchExistingSponsorship();
-  }, [selectedChild]);
-
-  // Fetch available children (those without sponsorships or the current child)
   const { data: availableChildren = [] } = useQuery({
     queryKey: ["available-children", selectedChild?.id],
     queryFn: async () => {
@@ -82,7 +44,6 @@ export const SponsorshipForm = ({
 
       const sponsoredChildIds = sponsorships?.map(s => s.child_id) || [];
 
-      // If there are no sponsorships or we're editing the current child's sponsorship
       if (sponsoredChildIds.length === 0) {
         const { data: allChildren } = await supabase
           .from("children")
@@ -90,7 +51,6 @@ export const SponsorshipForm = ({
         return allChildren || [];
       }
 
-      // Filter out the current child's ID from the exclusion list if we're editing
       if (selectedChild) {
         const filteredIds = sponsoredChildIds.filter(id => id !== selectedChild.id);
         if (filteredIds.length === 0) {
@@ -112,7 +72,6 @@ export const SponsorshipForm = ({
     },
   });
 
-  // Fetch available sponsors (those without active sponsorships or the current sponsor)
   const { data: availableSponsors = [] } = useQuery({
     queryKey: ["available-sponsors", selectedSponsor?.id],
     queryFn: async () => {
@@ -122,7 +81,6 @@ export const SponsorshipForm = ({
 
       const sponsoringIds = sponsorships?.map(s => s.sponsor_id) || [];
 
-      // If there are no sponsorships or we're editing the current sponsorship
       if (sponsoringIds.length === 0) {
         const { data: allSponsors } = await supabase
           .from("sponsors")
@@ -130,7 +88,6 @@ export const SponsorshipForm = ({
         return allSponsors || [];
       }
 
-      // Filter out the current sponsor's ID from the exclusion list if we're editing
       if (selectedSponsor) {
         const filteredIds = sponsoringIds.filter(id => id !== selectedSponsor.id);
         if (filteredIds.length === 0) {
@@ -162,125 +119,9 @@ export const SponsorshipForm = ({
     setSelectedSponsor(sponsor || null);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!selectedChild || !selectedSponsor || !startDate) {
-      toast({
-        title: "Error",
-        description: "Por favor completa todos los campos requeridos",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      if (existingSponsorship) {
-        // Update existing sponsorship
-        const { error } = await supabase
-          .from('sponsorships')
-          .update({
-            sponsor_id: selectedSponsor.id,
-            start_date: startDate,
-            notes: notes || null,
-          })
-          .eq('id', existingSponsorship.id);
-
-        if (error) throw error;
-
-        toast({
-          title: "Éxito",
-          description: "Apadrinamiento actualizado correctamente",
-        });
-      } else {
-        // Create new sponsorship
-        const { error } = await supabase
-          .from('sponsorships')
-          .insert([
-            {
-              child_id: selectedChild.id,
-              sponsor_id: selectedSponsor.id,
-              start_date: startDate,
-              notes: notes || null,
-            }
-          ]);
-
-        if (error) throw error;
-
-        toast({
-          title: "Éxito",
-          description: "Apadrinamiento creado correctamente",
-        });
-      }
-
-      // Invalidate queries to refresh the data
-      queryClient.invalidateQueries({ queryKey: ["sponsorships"] });
-      queryClient.invalidateQueries({ queryKey: ["sponsors"] });
-      queryClient.invalidateQueries({ queryKey: ["children"] });
-      queryClient.invalidateQueries({ queryKey: ["available-sponsors"] });
-      queryClient.invalidateQueries({ queryKey: ["available-children"] });
-
-      onClose();
-    } catch (error) {
-      console.error('Error saving sponsorship:', error);
-      toast({
-        title: "Error",
-        description: "No se pudo guardar el apadrinamiento",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleDeleteSponsorship = async () => {
-    if (!existingSponsorship) return;
-
-    try {
-      const { error } = await supabase
-        .from('sponsorships')
-        .delete()
-        .eq('id', existingSponsorship.id);
-
-      if (error) throw error;
-
-      toast({
-        title: "Éxito",
-        description: "Apadrinamiento eliminado correctamente",
-      });
-
-      // Invalidate queries to refresh the data
-      queryClient.invalidateQueries({ queryKey: ["sponsorships"] });
-      queryClient.invalidateQueries({ queryKey: ["sponsors"] });
-      queryClient.invalidateQueries({ queryKey: ["children"] });
-      queryClient.invalidateQueries({ queryKey: ["available-sponsors"] });
-      queryClient.invalidateQueries({ queryKey: ["available-children"] });
-
-      onClose();
-    } catch (error) {
-      console.error('Error deleting sponsorship:', error);
-      toast({
-        title: "Error",
-        description: "No se pudo eliminar el apadrinamiento",
-        variant: "destructive",
-      });
-    }
-  };
-
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>
-          {existingSponsorship ? 'Gestionar Apadrinamiento' : 'Nuevo Apadrinamiento'}
-        </CardTitle>
-        <CardDescription>
-          {existingSponsorship 
-            ? 'Modifica o elimina el apadrinamiento existente'
-            : 'Crea un nuevo apadrinamiento'}
-        </CardDescription>
-      </CardHeader>
+      <SponsorshipFormHeader existingSponsorship={existingSponsorship} />
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <ChildSelect
@@ -302,40 +143,14 @@ export const SponsorshipForm = ({
             onNotesChange={setNotes}
           />
 
-          <div className="flex justify-end gap-2">
-            {existingSponsorship && (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive" type="button">
-                    Eliminar Apadrinamiento
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Esta acción eliminará permanentemente el apadrinamiento entre {selectedChild?.name} y {selectedSponsor?.name}.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={handleDeleteSponsorship}
-                      className="bg-red-500 hover:bg-red-600"
-                    >
-                      Eliminar
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            )}
-            <Button variant="outline" onClick={onClose} type="button">
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Guardando..." : (existingSponsorship ? "Actualizar" : "Guardar")}
-            </Button>
-          </div>
+          <FormActions
+            existingSponsorship={existingSponsorship}
+            isSubmitting={isSubmitting}
+            onClose={onClose}
+            onDelete={handleDeleteSponsorship}
+            selectedChild={selectedChild}
+            selectedSponsor={selectedSponsor}
+          />
         </form>
       </CardContent>
     </Card>
