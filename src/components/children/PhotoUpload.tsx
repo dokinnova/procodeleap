@@ -17,7 +17,6 @@ export const PhotoUpload = ({ currentPhotoUrl, onPhotoUploaded }: PhotoUploadPro
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       toast({
         title: "Error",
@@ -27,7 +26,6 @@ export const PhotoUpload = ({ currentPhotoUrl, onPhotoUploaded }: PhotoUploadPro
       return;
     }
 
-    // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       toast({
         title: "Error",
@@ -77,7 +75,7 @@ export const PhotoUpload = ({ currentPhotoUrl, onPhotoUploaded }: PhotoUploadPro
   return (
     <div className="space-y-4">
       {currentPhotoUrl && (
-        <div className="relative w-32 h-32">
+        <div className="relative w-48 h-48">
           <img
             src={currentPhotoUrl}
             alt="Foto del niño"
