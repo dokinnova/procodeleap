@@ -15,26 +15,17 @@ import {
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Plus, Search } from "lucide-react";
-
-interface Child {
-  id: string;
-  name: string;
-  age: number;
-  school_id: string | null;
-}
-
-interface Sponsor {
-  id: string;
-  name: string;
-}
+import { Child, Sponsor } from "@/types";
+import { SponsorshipForm } from "@/components/management/SponsorshipForm";
 
 const Management = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedChild, setSelectedChild] = useState<Child | null>(null);
+  const [selectedSponsor, setSelectedSponsor] = useState<Sponsor | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const { toast } = useToast();
 
   const { data: children = [], isLoading: isLoadingChildren } = useQuery({
@@ -49,9 +40,31 @@ const Management = () => {
     },
   });
 
+  const { data: sponsors = [], isLoading: isLoadingSponsors } = useQuery({
+    queryKey: ["sponsors"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("sponsors")
+        .select("*");
+      
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
   const filteredChildren = children.filter((child: Child) =>
     child.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const handleChildSelect = (child: Child) => {
+    setSelectedChild(child);
+    setIsFormOpen(true);
+  };
+
+  const handleSponsorSelect = (sponsor: Sponsor) => {
+    setSelectedSponsor(sponsor);
+    setIsFormOpen(true);
+  };
 
   return (
     <div className="container mx-auto py-8">
@@ -62,78 +75,133 @@ const Management = () => {
             Administra las relaciones entre padrinos y niños
           </p>
         </div>
-        <Dialog>
+        <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
           <DialogTrigger asChild>
             <Button className="bg-primary hover:bg-primary/90">
               <Plus className="w-4 h-4 mr-2" />
               Nuevo Apadrinamiento
             </Button>
           </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Crear Nuevo Apadrinamiento</DialogTitle>
-            </DialogHeader>
-            <div className="py-4">
-              <p>Formulario de creación (en desarrollo)</p>
-            </div>
+          <DialogContent className="sm:max-w-[600px]">
+            <SponsorshipForm
+              child={selectedChild}
+              sponsor={selectedSponsor}
+              onClose={() => {
+                setIsFormOpen(false);
+                setSelectedChild(null);
+                setSelectedSponsor(null);
+              }}
+            />
           </DialogContent>
         </Dialog>
       </div>
 
-      <div className="bg-white rounded-lg shadow">
-        <div className="p-4 border-b">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            <Input
-              placeholder="Buscar por nombre..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
+      <div className="grid md:grid-cols-2 gap-6">
+        {/* Lista de Niños */}
+        <div className="bg-white rounded-lg shadow">
+          <div className="p-4 border-b">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <Input
+                placeholder="Buscar por nombre..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+          </div>
+
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nombre del Niño</TableHead>
+                  <TableHead>Edad</TableHead>
+                  <TableHead>Estado</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {isLoadingChildren ? (
+                  <TableRow>
+                    <TableCell colSpan={3} className="text-center py-8">
+                      Cargando...
+                    </TableCell>
+                  </TableRow>
+                ) : filteredChildren.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={3} className="text-center py-8">
+                      No se encontraron resultados
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredChildren.map((child: Child) => (
+                    <TableRow 
+                      key={child.id}
+                      className="cursor-pointer hover:bg-gray-50"
+                      onClick={() => handleChildSelect(child)}
+                    >
+                      <TableCell>{child.name}</TableCell>
+                      <TableCell>{child.age} años</TableCell>
+                      <TableCell>
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                          Pendiente
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nombre del Niño</TableHead>
-                <TableHead>Edad</TableHead>
-                <TableHead>Escuela</TableHead>
-                <TableHead>Estado</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoadingChildren ? (
+        {/* Lista de Padrinos */}
+        <div className="bg-white rounded-lg shadow">
+          <div className="p-4 border-b">
+            <h2 className="text-lg font-semibold text-gray-900">Padrinos Disponibles</h2>
+          </div>
+
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center py-8">
-                    Cargando...
-                  </TableCell>
+                  <TableHead>Nombre</TableHead>
+                  <TableHead>Contribución</TableHead>
                 </TableRow>
-              ) : filteredChildren.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center py-8">
-                    No se encontraron resultados
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredChildren.map((child: Child) => (
-                  <TableRow key={child.id}>
-                    <TableCell>{child.name}</TableCell>
-                    <TableCell>{child.age} años</TableCell>
-                    <TableCell>
-                      {child.school_id ? "Asignada" : "Sin asignar"}
-                    </TableCell>
-                    <TableCell>
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                        Pendiente
-                      </span>
+              </TableHeader>
+              <TableBody>
+                {isLoadingSponsors ? (
+                  <TableRow>
+                    <TableCell colSpan={2} className="text-center py-8">
+                      Cargando...
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ) : sponsors.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={2} className="text-center py-8">
+                      No hay padrinos disponibles
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  sponsors.map((sponsor: Sponsor) => (
+                    <TableRow 
+                      key={sponsor.id}
+                      className="cursor-pointer hover:bg-gray-50"
+                      onClick={() => handleSponsorSelect(sponsor)}
+                    >
+                      <TableCell>{sponsor.name}</TableCell>
+                      <TableCell className="font-mono">
+                        ${sponsor.contribution.toLocaleString('en-US', { 
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2 
+                        })}/mes
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       </div>
     </div>
