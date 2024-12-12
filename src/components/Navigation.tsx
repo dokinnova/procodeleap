@@ -21,15 +21,15 @@ const Navigation = () => {
 
   return (
     <div className="flex h-screen">
-      <div className="w-64 bg-white border-r border-gray-100 fixed h-full shadow-sm transition-all duration-300 ease-in-out">
-        <div className="p-6 border-b border-gray-100">
+      <div className="w-64 bg-[#F1F0FB] fixed h-full shadow-sm transition-all duration-300 ease-in-out">
+        <div className="p-6 border-b border-purple-100/30 bg-white/50 backdrop-blur-sm">
           <Link to="/" className="text-xl font-semibold text-gray-900 hover:opacity-80 transition-opacity flex items-center gap-3">
             PROCODELI
             {siteSettings?.logo_url && (
               <img 
                 src={siteSettings.logo_url} 
                 alt="Logo" 
-                className="w-8 h-8 object-contain rounded-full"
+                className="w-8 h-8 object-contain rounded-full shadow-sm"
               />
             )}
           </Link>
@@ -40,7 +40,7 @@ const Navigation = () => {
             className={`flex items-center px-4 py-3 mb-2 rounded-lg transition-colors ${
               isActive("/children") 
                 ? "bg-primary/10 text-primary" 
-                : "text-gray-600 hover:bg-gray-50"
+                : "text-gray-600 hover:bg-white/50"
             }`}
           >
             <Users className="w-5 h-5 mr-3" />
@@ -51,7 +51,7 @@ const Navigation = () => {
             className={`flex items-center px-4 py-3 mb-2 rounded-lg transition-colors ${
               isActive("/sponsors") 
                 ? "bg-primary/10 text-primary" 
-                : "text-gray-600 hover:bg-gray-50"
+                : "text-gray-600 hover:bg-white/50"
             }`}
           >
             <UserPlus className="w-5 h-5 mr-3" />
@@ -62,7 +62,7 @@ const Navigation = () => {
             className={`flex items-center px-4 py-3 mb-2 rounded-lg transition-colors ${
               isActive("/schools") 
                 ? "bg-primary/10 text-primary" 
-                : "text-gray-600 hover:bg-gray-50"
+                : "text-gray-600 hover:bg-white/50"
             }`}
           >
             <School className="w-5 h-5 mr-3" />
@@ -73,7 +73,7 @@ const Navigation = () => {
             className={`flex items-center px-4 py-3 mb-2 rounded-lg transition-colors ${
               isActive("/management") 
                 ? "bg-primary/10 text-primary" 
-                : "text-gray-600 hover:bg-gray-50"
+                : "text-gray-600 hover:bg-white/50"
             }`}
           >
             <Settings className="w-5 h-5 mr-3" />
@@ -84,7 +84,7 @@ const Navigation = () => {
             className={`flex items-center px-4 py-3 mb-2 rounded-lg transition-colors ${
               isActive("/configuration") 
                 ? "bg-primary/10 text-primary" 
-                : "text-gray-600 hover:bg-gray-50"
+                : "text-gray-600 hover:bg-white/50"
             }`}
           >
             <Settings className="w-5 h-5 mr-3" />
