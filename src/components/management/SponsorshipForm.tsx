@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -9,17 +7,13 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Child, Sponsor } from "@/types";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { ChildSelect } from "./sponsorship-form/ChildSelect";
+import { SponsorSelect } from "./sponsorship-form/SponsorSelect";
+import { SponsorshipFormFields } from "./sponsorship-form/SponsorshipFormFields";
 
 interface SponsorshipFormProps {
   child: Child | null;
@@ -27,7 +21,11 @@ interface SponsorshipFormProps {
   onClose: () => void;
 }
 
-export const SponsorshipForm = ({ child: initialChild, sponsor: initialSponsor, onClose }: SponsorshipFormProps) => {
+export const SponsorshipForm = ({ 
+  child: initialChild, 
+  sponsor: initialSponsor, 
+  onClose 
+}: SponsorshipFormProps) => {
   const [selectedChild, setSelectedChild] = useState<Child | null>(initialChild);
   const [selectedSponsor, setSelectedSponsor] = useState<Sponsor | null>(initialSponsor);
   const [startDate, setStartDate] = useState("");
@@ -73,6 +71,16 @@ export const SponsorshipForm = ({ child: initialChild, sponsor: initialSponsor, 
       return sponsors || [];
     },
   });
+
+  const handleChildSelect = (childId: string) => {
+    const child = availableChildren.find(c => c.id === childId);
+    setSelectedChild(child || null);
+  };
+
+  const handleSponsorSelect = (sponsorId: string) => {
+    const sponsor = availableSponsors.find(s => s.id === sponsorId);
+    setSelectedSponsor(sponsor || null);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -137,80 +145,24 @@ export const SponsorshipForm = ({ child: initialChild, sponsor: initialSponsor, 
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label>Niño *</Label>
-            <Select
-              value={selectedChild?.id}
-              onValueChange={(value) => {
-                const child = availableChildren.find(c => c.id === value);
-                setSelectedChild(child || null);
-              }}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Selecciona un niño" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableChildren.map((child) => (
-                  <SelectItem key={child.id} value={child.id}>
-                    {child.name} - {child.age} años
-                  </SelectItem>
-                ))}
-                {availableChildren.length === 0 && (
-                  <SelectItem value="none" disabled>
-                    No hay niños disponibles
-                  </SelectItem>
-                )}
-              </SelectContent>
-            </Select>
-          </div>
+          <ChildSelect
+            availableChildren={availableChildren}
+            selectedChild={selectedChild}
+            onChildSelect={handleChildSelect}
+          />
 
-          <div className="space-y-2">
-            <Label>Padrino *</Label>
-            <Select
-              value={selectedSponsor?.id}
-              onValueChange={(value) => {
-                const sponsor = availableSponsors.find(s => s.id === value);
-                setSelectedSponsor(sponsor || null);
-              }}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Selecciona un padrino" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableSponsors.map((sponsor) => (
-                  <SelectItem key={sponsor.id} value={sponsor.id}>
-                    {sponsor.name} - ${sponsor.contribution}/mes
-                  </SelectItem>
-                ))}
-                {availableSponsors.length === 0 && (
-                  <SelectItem value="none" disabled>
-                    No hay padrinos disponibles
-                  </SelectItem>
-                )}
-              </SelectContent>
-            </Select>
-          </div>
+          <SponsorSelect
+            availableSponsors={availableSponsors}
+            selectedSponsor={selectedSponsor}
+            onSponsorSelect={handleSponsorSelect}
+          />
 
-          <div className="space-y-2">
-            <Label htmlFor="startDate">Fecha de inicio *</Label>
-            <Input
-              id="startDate"
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notas</Label>
-            <Input
-              id="notes"
-              placeholder="Notas adicionales"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-            />
-          </div>
+          <SponsorshipFormFields
+            startDate={startDate}
+            notes={notes}
+            onStartDateChange={setStartDate}
+            onNotesChange={setNotes}
+          />
 
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={onClose} type="button">
