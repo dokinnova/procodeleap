@@ -1,21 +1,13 @@
 import { useState } from "react";
-import { Baby } from "lucide-react";
+import { Baby, Printer } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { ChildForm } from "@/components/children/ChildForm";
 import { ChildrenTable } from "@/components/children/ChildrenTable";
-
-interface Child {
-  id: string;
-  name: string;
-  age: number;
-  location: string;
-  story: string | null;
-  image_url: string | null;
-  school_id: string | null;
-}
+import { PrintableChildrenList } from "@/components/children/PrintableChildrenList";
+import { Child } from "@/types";
 
 const Children = () => {
   const [search, setSearch] = useState("");
@@ -38,6 +30,14 @@ const Children = () => {
       return data as Child[];
     }
   });
+
+  const handlePrint = () => {
+    window.print();
+    toast({
+      title: "Preparando impresión",
+      description: "Se abrirá el diálogo de impresión automáticamente.",
+    });
+  };
 
   if (isLoading) {
     return (
@@ -63,9 +63,19 @@ const Children = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <Baby className="h-8 w-8 text-primary" />
-        <h1 className="text-2xl font-bold text-gray-900">Niños Registrados</h1>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Baby className="h-8 w-8 text-primary" />
+          <h1 className="text-2xl font-bold text-gray-900">Niños Registrados</h1>
+        </div>
+        <Button
+          onClick={handlePrint}
+          variant="outline"
+          className="print:hidden"
+        >
+          <Printer className="h-4 w-4 mr-2" />
+          Imprimir Listado
+        </Button>
       </div>
 
       <ChildForm 
@@ -79,6 +89,8 @@ const Children = () => {
         setSearch={setSearch}
         setSelectedChild={setSelectedChild}
       />
+
+      <PrintableChildrenList children={children} />
     </div>
   );
 };
