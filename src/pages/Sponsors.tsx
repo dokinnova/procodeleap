@@ -42,10 +42,29 @@ const Sponsors = () => {
   });
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    if (field === 'contribution') {
+      // Remove any non-digit characters except decimal point
+      const cleanValue = value.replace(/[^\d.]/g, '');
+      // Ensure only one decimal point
+      const parts = cleanValue.split('.');
+      let formattedValue = parts[0];
+      if (parts.length > 1) {
+        formattedValue += '.' + parts[1];
+      }
+      // Limit to 9 digits before decimal point
+      if (parts[0].length > 9) {
+        return;
+      }
+      setFormData(prev => ({
+        ...prev,
+        [field]: formattedValue
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [field]: value
+      }));
+    }
   };
 
   const loadSponsors = async () => {
@@ -187,10 +206,12 @@ const Sponsors = () => {
               <Label htmlFor="contribution">Contribución mensual</Label>
               <Input
                 id="contribution"
-                type="number"
+                type="text"
+                inputMode="decimal"
                 placeholder="Contribución mensual"
                 value={formData.contribution}
                 onChange={(e) => handleInputChange('contribution', e.target.value)}
+                className="font-mono"
               />
             </div>
 
