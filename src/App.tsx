@@ -18,9 +18,9 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <div className="h-screen bg-gray-100">
+        <div className="flex min-h-screen bg-gray-100">
           <Navigation />
-          <main className="ml-64 p-6 bg-gray-100 min-h-screen">
+          <main className="flex-1 ml-64 p-6">
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/children" element={<Children />} />

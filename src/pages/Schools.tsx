@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { School, Plus, Pencil, Trash } from "lucide-react";
+import { School, Plus, Search } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -19,188 +19,154 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
+
+interface School {
+  id: string;
+  name: string;
+  address: string | null;
+}
 
 const Schools = () => {
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [newSchoolName, setNewSchoolName] = useState("");
-  const [newSchoolAddress, setNewSchoolAddress] = useState("");
+  const [selectedSchool, setSelectedSchool] = useState<School | null>(null);
+  const [search, setSearch] = useState("");
 
   // Fetch schools data
-  const { data: schools, refetch } = useQuery({
+  const { data: schools = [], isLoading, error, refetch } = useQuery({
     queryKey: ["schools"],
     queryFn: async () => {
       const { data, error } = await supabase.from("schools").select("*");
       if (error) throw error;
-      return data;
+      return data as School[];
     },
   });
 
-  // Add new school
-  const handleAddSchool = async () => {
-    try {
-      const { error } = await supabase.from("schools").insert([
-        {
-          name: newSchoolName,
-          address: newSchoolAddress,
-        },
-      ]);
+  const filteredSchools = schools.filter(school =>
+    school.name.toLowerCase().includes(search.toLowerCase())
+  );
 
-      if (error) throw error;
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-[80vh]">
+        <div className="animate-pulse text-lg text-gray-600">Cargando datos...</div>
+      </div>
+    );
+  }
 
-      toast.success("Colegio añadido correctamente");
-      setIsAddDialogOpen(false);
-      setNewSchoolName("");
-      setNewSchoolAddress("");
-      refetch();
-    } catch (error) {
-      console.error("Error adding school:", error);
-      toast.error("Error al añadir el colegio");
-    }
-  };
-
-  // Delete school
-  const handleDeleteSchool = async (id: string) => {
-    try {
-      const { error } = await supabase.from("schools").delete().eq("id", id);
-
-      if (error) throw error;
-
-      toast.success("Colegio eliminado correctamente");
-      refetch();
-    } catch (error) {
-      console.error("Error deleting school:", error);
-      toast.error("Error al eliminar el colegio");
-    }
-  };
+  if (error) {
+    return (
+      <div className="flex flex-col justify-center items-center min-h-[80vh] gap-4">
+        <p className="text-lg text-red-500">Error al cargar los datos</p>
+        <Button 
+          variant="outline"
+          onClick={() => window.location.reload()}
+        >
+          Reintentar
+        </Button>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6 animate-fadeIn">
-      {/* Breadcrumbs */}
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/">Inicio</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>Gestión de Colegios</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
-
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Gestión de Colegios</h1>
-          <p className="text-muted-foreground">
-            Administra los colegios registrados en el sistema
-          </p>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Lista de colegios */}
+      <div className="space-y-6">
+        <div className="flex items-center gap-3">
+          <School className="h-8 w-8 text-primary" />
+          <h1 className="text-2xl font-bold text-gray-900">Colegios Registrados</h1>
         </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Añadir Colegio
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Añadir Nuevo Colegio</DialogTitle>
-              <DialogDescription>
-                Ingresa los datos del nuevo colegio
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="name">Nombre</Label>
-                <Input
-                  id="name"
-                  value={newSchoolName}
-                  onChange={(e) => setNewSchoolName(e.target.value)}
-                  placeholder="Nombre del colegio"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="address">Dirección</Label>
-                <Input
-                  id="address"
-                  value={newSchoolAddress}
-                  onChange={(e) => setNewSchoolAddress(e.target.value)}
-                  placeholder="Dirección del colegio"
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                Cancelar
-              </Button>
-              <Button onClick={handleAddSchool}>Guardar</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
 
-      {/* Schools Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Colegios Registrados</CardTitle>
-          <CardDescription>
-            Lista de todos los colegios en el sistema
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Input
+            className="pl-10 bg-white"
+            placeholder="Buscar por nombre..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+
+        <div className="bg-white rounded-lg shadow overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Nombre</TableHead>
                 <TableHead>Dirección</TableHead>
-                <TableHead>Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {schools?.map((school) => (
-                <TableRow key={school.id}>
+              {filteredSchools.map((school) => (
+                <TableRow 
+                  key={school.id} 
+                  className="hover:bg-gray-50 cursor-pointer"
+                  onClick={() => setSelectedSchool(school)}
+                >
                   <TableCell className="font-medium">{school.name}</TableCell>
-                  <TableCell>{school.address}</TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="icon">
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="icon"
-                        onClick={() => handleDeleteSchool(school.id)}
-                      >
-                        <Trash className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
+                  <TableCell>{school.address || "No disponible"}</TableCell>
                 </TableRow>
               ))}
+              {filteredSchools.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={2} className="text-center py-8 text-gray-500">
+                    No se encontraron colegios
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
+
+      {/* Formulario de mantenimiento */}
+      <div>
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              {selectedSchool ? 'Editar Colegio' : 'Registrar Nuevo Colegio'}
+            </CardTitle>
+            <CardDescription>
+              {selectedSchool 
+                ? 'Modifica los datos del colegio seleccionado' 
+                : 'Ingresa los datos para registrar un nuevo colegio'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Nombre del colegio</Label>
+                <Input
+                  id="name"
+                  placeholder="Nombre del colegio"
+                  value={selectedSchool?.name || ''}
+                  onChange={() => {}}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="address">Dirección</Label>
+                <Input
+                  id="address"
+                  placeholder="Dirección del colegio"
+                  value={selectedSchool?.address || ''}
+                  onChange={() => {}}
+                />
+              </div>
+
+              <div className="flex justify-end gap-2">
+                {selectedSchool && (
+                  <Button variant="outline" onClick={() => setSelectedSchool(null)}>
+                    Cancelar
+                  </Button>
+                )}
+                <Button type="submit">
+                  {selectedSchool ? 'Actualizar' : 'Registrar'}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };

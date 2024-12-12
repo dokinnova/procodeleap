@@ -8,7 +8,7 @@ const Navigation = () => {
   return (
     <div className="flex h-screen">
       {/* Sidebar */}
-      <div className="w-64 bg-gray-900 text-white">
+      <div className="w-64 bg-gray-900 text-white fixed h-full">
         <div className="p-4 border-b border-gray-800">
           <Link to="/" className="text-xl font-bold text-primary hover:opacity-80 transition-opacity">
             PROCODELI
@@ -52,15 +52,6 @@ const Navigation = () => {
             <span>Gestión</span>
           </Link>
         </nav>
-      </div>
-
-      {/* Main content */}
-      <div className="flex-1">
-        <div className="h-16 bg-white border-b border-gray-200 flex items-center px-6">
-          <h1 className="text-xl font-semibold text-gray-800">
-            Sistema de Gestión PROCODELI
-          </h1>
-        </div>
       </div>
     </div>
   );

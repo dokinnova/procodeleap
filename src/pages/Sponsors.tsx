@@ -1,11 +1,23 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { Plus, Search } from "lucide-react";
+import { UserPlus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface Sponsor {
   id: string;
@@ -16,99 +28,136 @@ interface Sponsor {
 }
 
 const Sponsors = () => {
-  const [sponsors, setSponsors] = useState<Sponsor[]>([]);
+  const [sponsors] = useState<Sponsor[]>([]);
   const [search, setSearch] = useState("");
-  const { toast } = useToast();
-
-  const handleAddSponsor = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    const newSponsor: Sponsor = {
-      id: Date.now().toString(),
-      name: formData.get("name") as string,
-      email: formData.get("email") as string,
-      phone: formData.get("phone") as string,
-      contribution: parseFloat(formData.get("contribution") as string),
-    };
-    
-    setSponsors([...sponsors, newSponsor]);
-    toast({
-      title: "Padrino registrado",
-      description: `${newSponsor.name} ha sido registrado exitosamente.`,
-    });
-  };
+  const [selectedSponsor, setSelectedSponsor] = useState<Sponsor | null>(null);
 
   const filteredSponsors = sponsors.filter(sponsor =>
     sponsor.name.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold">Padrinos</h1>
-          <p className="text-gray-600 mt-2">Gestiona los registros de los padrinos</p>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Lista de padrinos */}
+      <div className="space-y-6">
+        <div className="flex items-center gap-3">
+          <UserPlus className="h-8 w-8 text-primary" />
+          <h1 className="text-2xl font-bold text-gray-900">Padrinos Registrados</h1>
         </div>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button className="bg-primary hover:bg-primary/90">
-              <Plus className="mr-2 h-4 w-4" /> Registrar padrino
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Registrar nuevo padrino</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleAddSponsor} className="space-y-4">
-              <div>
+
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Input
+            className="pl-10 bg-white"
+            placeholder="Buscar por nombre..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nombre</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Contribución</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredSponsors.map((sponsor) => (
+                <TableRow 
+                  key={sponsor.id} 
+                  className="hover:bg-gray-50 cursor-pointer"
+                  onClick={() => setSelectedSponsor(sponsor)}
+                >
+                  <TableCell className="font-medium">{sponsor.name}</TableCell>
+                  <TableCell>{sponsor.email}</TableCell>
+                  <TableCell>${sponsor.contribution}/mes</TableCell>
+                </TableRow>
+              ))}
+              {filteredSponsors.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={3} className="text-center py-8 text-gray-500">
+                    No se encontraron padrinos
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+
+      {/* Formulario de mantenimiento */}
+      <div>
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              {selectedSponsor ? 'Editar Padrino' : 'Registrar Nuevo Padrino'}
+            </CardTitle>
+            <CardDescription>
+              {selectedSponsor 
+                ? 'Modifica los datos del padrino seleccionado' 
+                : 'Ingresa los datos para registrar un nuevo padrino'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form className="space-y-4">
+              <div className="space-y-2">
                 <Label htmlFor="name">Nombre completo</Label>
-                <Input id="name" name="name" required />
+                <Input
+                  id="name"
+                  placeholder="Nombre del padrino"
+                  value={selectedSponsor?.name || ''}
+                  onChange={() => {}}
+                />
               </div>
-              <div>
+              
+              <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" name="email" type="email" required />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Email"
+                  value={selectedSponsor?.email || ''}
+                  onChange={() => {}}
+                />
               </div>
-              <div>
+
+              <div className="space-y-2">
                 <Label htmlFor="phone">Teléfono</Label>
-                <Input id="phone" name="phone" required />
+                <Input
+                  id="phone"
+                  placeholder="Teléfono"
+                  value={selectedSponsor?.phone || ''}
+                  onChange={() => {}}
+                />
               </div>
-              <div>
+
+              <div className="space-y-2">
                 <Label htmlFor="contribution">Contribución mensual</Label>
-                <Input id="contribution" name="contribution" type="number" required />
+                <Input
+                  id="contribution"
+                  type="number"
+                  placeholder="Contribución mensual"
+                  value={selectedSponsor?.contribution || ''}
+                  onChange={() => {}}
+                />
               </div>
-              <Button type="submit" className="w-full">Guardar</Button>
+
+              <div className="flex justify-end gap-2">
+                {selectedSponsor && (
+                  <Button variant="outline" onClick={() => setSelectedSponsor(null)}>
+                    Cancelar
+                  </Button>
+                )}
+                <Button type="submit">
+                  {selectedSponsor ? 'Actualizar' : 'Registrar'}
+                </Button>
+              </div>
             </form>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      <div className="relative mb-6">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-        <Input
-          className="pl-10"
-          placeholder="Buscar padrinos..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredSponsors.map((sponsor, index) => (
-          <motion.div
-            key={sponsor.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-            className="bg-white rounded-xl shadow-sm border border-gray-100 p-6"
-          >
-            <h3 className="text-xl font-semibold mb-2">{sponsor.name}</h3>
-            <p className="text-gray-600 mb-1">{sponsor.email}</p>
-            <p className="text-gray-600 mb-1">{sponsor.phone}</p>
-            <p className="text-primary font-semibold">
-              ${sponsor.contribution}/mes
-            </p>
-          </motion.div>
-        ))}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
