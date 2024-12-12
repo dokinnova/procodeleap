@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -46,105 +45,34 @@ const Children = () => {
     }
   });
 
-  const handleAddChild = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    
-    const newChild = {
-      name: formData.get("name") as string,
-      age: parseInt(formData.get("age") as string),
-      location: formData.get("location") as string,
-      story: formData.get("story") as string,
-      image_url: formData.get("image_url") as string,
-    };
-    
-    const { error } = await supabase
-      .from('children')
-      .insert([newChild]);
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <p className="text-lg">Cargando...</p>
+      </div>
+    );
+  }
 
-    if (error) {
-      toast({
-        title: "Error",
-        description: "No se pudo registrar al niño. Por favor, inténtalo de nuevo.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    toast({
-      title: "Éxito",
-      description: `${newChild.name} ha sido registrado exitosamente.`,
-    });
-  };
+  if (error) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <p className="text-lg text-red-500">Error al cargar los datos</p>
+      </div>
+    );
+  }
 
   const filteredChildren = children.filter(child =>
     child.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  if (isLoading) {
-    return <div className="flex justify-center items-center h-full">Cargando...</div>;
-  }
-
-  if (error) {
-    return (
-      <div className="flex justify-center items-center h-full text-red-500">
-        Error al cargar los datos
-      </div>
-    );
-  }
-
   return (
-    <div className="container mx-auto p-6">
+    <div className="container mx-auto py-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Niños Registrados</h1>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Registrar Niño
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Registrar Nuevo Niño</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleAddChild} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Nombre completo
-                </label>
-                <Input name="name" required />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Edad
-                </label>
-                <Input name="age" type="number" required />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Ubicación
-                </label>
-                <Input name="location" required />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Historia
-                </label>
-                <Input name="story" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  URL de la imagen
-                </label>
-                <Input name="image_url" type="url" />
-              </div>
-              <Button type="submit" className="w-full">
-                Guardar
-              </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <Button>
+          <Plus className="mr-2 h-4 w-4" />
+          Registrar Niño
+        </Button>
       </div>
 
       <div className="mb-4">
