@@ -10,60 +10,36 @@ export const useDeleteSchool = () => {
 
   const handleDelete = async (schoolId: string) => {
     try {
-      console.log("Iniciando proceso de eliminación para el colegio:", schoolId);
-      
       // Primero verificamos si hay niños asociados
       const { data: children, error: checkError } = await supabase
         .from('children')
         .select('id')
         .eq('school_id', schoolId);
 
-      if (checkError) {
-        console.error('Error al verificar niños asociados:', checkError);
-        throw checkError;
-      }
+      if (checkError) throw checkError;
 
       if (children && children.length > 0) {
-        console.log('No se puede eliminar: hay niños asociados', children.length);
         toast.error('No se puede eliminar el colegio porque tiene niños asociados');
         setSchoolToDelete(null);
         return;
       }
 
       // Procedemos con la eliminación
-      console.log('Ejecutando eliminación en Supabase...');
       const { error: deleteError } = await supabase
         .from('schools')
         .delete()
-        .match({ id: schoolId }); // Usamos match para ser más específicos
+        .eq('id', schoolId);
 
-      if (deleteError) {
-        console.error('Error en la eliminación:', deleteError);
-        throw deleteError;
-      }
+      if (deleteError) throw deleteError;
 
-      // Verificamos que el registro se haya eliminado
-      const { data: checkDeleted } = await supabase
-        .from('schools')
-        .select()
-        .eq('id', schoolId)
-        .single();
-
-      if (checkDeleted) {
-        console.error('El registro sigue existiendo después de la eliminación');
-        throw new Error('No se pudo eliminar el registro');
-      }
-
-      // Forzamos la actualización de la caché
+      // Invalidamos la caché y actualizamos la UI
       await queryClient.invalidateQueries({ queryKey: ["schools"] });
-      queryClient.removeQueries({ queryKey: ["schools"] });
       
-      console.log('Registro eliminado y caché actualizada');
       toast.success('Colegio eliminado exitosamente');
-      setSchoolToDelete(null);
     } catch (error) {
-      console.error('Error en el proceso de eliminación:', error);
+      console.error('Error al eliminar:', error);
       toast.error('Error al eliminar el colegio');
+    } finally {
       setSchoolToDelete(null);
     }
   };
