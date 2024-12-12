@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Sponsor } from "@/types";
-import { PaymentMethodsForm } from "./PaymentMethodsForm";
+import { PaymentMethodsManager } from "./payment-methods/PaymentMethodsManager";
 
 interface SponsorFormProps {
   selectedSponsor: Sponsor | null;
@@ -146,7 +146,7 @@ export const SponsorForm = ({ selectedSponsor, onSubmit, onCancel }: SponsorForm
           {selectedSponsor && (
             <div className="pt-6 border-t">
               <h3 className="text-lg font-medium mb-4">Métodos de pago</h3>
-              <PaymentMethodsForm sponsorId={selectedSponsor.id} />
+              <PaymentMethodsManager sponsorId={selectedSponsor.id} />
             </div>
           )}
         </div>
