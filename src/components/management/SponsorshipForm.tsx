@@ -48,6 +48,7 @@ export const SponsorshipForm = ({
               id,
               name,
               email,
+              phone,
               contribution
             )
           `)
