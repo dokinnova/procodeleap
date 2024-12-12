@@ -22,14 +22,10 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useState } from "react";
+import { Database } from "@/integrations/supabase/types";
+
+type AppUser = Database['public']['Tables']['app_users']['Row'];
 
 export const AppUsersTable = () => {
   const queryClient = useQueryClient();
@@ -42,24 +38,7 @@ export const AppUsersTable = () => {
         .from("app_users")
         .select("*");
       if (error) throw error;
-      return data;
-    },
-  });
-
-  const updateRoleMutation = useMutation({
-    mutationFn: async ({ userId, role }: { userId: string; role: 'admin' | 'editor' | 'viewer' }) => {
-      const { error } = await supabase
-        .from("app_users")
-        .update({ role })
-        .eq("user_id", userId);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("Rol actualizado correctamente");
-      queryClient.invalidateQueries({ queryKey: ["app-users"] });
-    },
-    onError: (error) => {
-      toast.error("Error al actualizar rol: " + error.message);
+      return data as AppUser[];
     },
   });
 
@@ -99,23 +78,7 @@ export const AppUsersTable = () => {
         {appUsers?.map((user) => (
           <TableRow key={user.id}>
             <TableCell>{user.email}</TableCell>
-            <TableCell>
-              <Select
-                value={user.role}
-                onValueChange={(newRole: 'admin' | 'editor' | 'viewer') => 
-                  updateRoleMutation.mutate({ userId: user.user_id, role: newRole })
-                }
-              >
-                <SelectTrigger className="w-32">
-                  <SelectValue placeholder="Seleccionar rol" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="admin">Administrador</SelectItem>
-                  <SelectItem value="editor">Editor</SelectItem>
-                  <SelectItem value="viewer">Visualizador</SelectItem>
-                </SelectContent>
-              </Select>
-            </TableCell>
+            <TableCell>{user.role}</TableCell>
             <TableCell>
               <AlertDialog open={userToDelete === user.user_id} onOpenChange={(isOpen) => !isOpen && setUserToDelete(null)}>
                 <AlertDialogTrigger asChild>
