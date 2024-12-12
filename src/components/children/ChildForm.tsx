@@ -7,6 +7,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { PhotoUpload } from "./PhotoUpload";
 
 interface School {
   id: string;
@@ -33,22 +34,22 @@ export const ChildForm = ({ selectedChild, setSelectedChild }: ChildFormProps) =
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  // Local state for form fields
   const [formData, setFormData] = useState<{
     name: string;
     age: number;
     location: string;
     story: string;
     school_id: string;
+    image_url: string | null;
   }>({
     name: selectedChild?.name || '',
     age: selectedChild?.age || 0,
     location: selectedChild?.location || '',
     story: selectedChild?.story || '',
     school_id: selectedChild?.school_id || '',
+    image_url: selectedChild?.image_url || null,
   });
 
-  // Fetch schools data
   const { data: schools = [] } = useQuery({
     queryKey: ['schools'],
     queryFn: async () => {
@@ -72,7 +73,6 @@ export const ChildForm = ({ selectedChild, setSelectedChild }: ChildFormProps) =
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate required fields
     if (!formData.name || !formData.age || !formData.location) {
       toast({
         title: "Error",
@@ -84,7 +84,6 @@ export const ChildForm = ({ selectedChild, setSelectedChild }: ChildFormProps) =
 
     try {
       if (selectedChild) {
-        // Update existing child
         const { error } = await supabase
           .from('children')
           .update({
@@ -93,6 +92,7 @@ export const ChildForm = ({ selectedChild, setSelectedChild }: ChildFormProps) =
             location: formData.location,
             story: formData.story || null,
             school_id: formData.school_id || null,
+            image_url: formData.image_url,
           })
           .eq('id', selectedChild.id);
 
@@ -103,7 +103,6 @@ export const ChildForm = ({ selectedChild, setSelectedChild }: ChildFormProps) =
           description: "Los datos se han actualizado correctamente",
         });
       } else {
-        // Create new child
         const { error } = await supabase
           .from('children')
           .insert([{
@@ -112,6 +111,7 @@ export const ChildForm = ({ selectedChild, setSelectedChild }: ChildFormProps) =
             location: formData.location,
             story: formData.story || null,
             school_id: formData.school_id || null,
+            image_url: formData.image_url,
           }]);
 
         if (error) throw error;
@@ -121,20 +121,18 @@ export const ChildForm = ({ selectedChild, setSelectedChild }: ChildFormProps) =
           description: "El niño se ha registrado correctamente",
         });
 
-        // Reset form
         setFormData({
           name: '',
           age: 0,
           location: '',
           story: '',
           school_id: '',
+          image_url: null,
         });
       }
 
-      // Refresh children data
       queryClient.invalidateQueries({ queryKey: ['children'] });
       
-      // Reset selected child if we were editing
       if (selectedChild) {
         setSelectedChild(null);
       }
@@ -162,6 +160,14 @@ export const ChildForm = ({ selectedChild, setSelectedChild }: ChildFormProps) =
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label>Foto</Label>
+            <PhotoUpload
+              currentPhotoUrl={formData.image_url}
+              onPhotoUploaded={(url) => handleInputChange('image_url', url)}
+            />
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="name">Nombre completo</Label>
             <Input
