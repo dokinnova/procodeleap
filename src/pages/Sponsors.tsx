@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { UserPlus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -30,6 +30,10 @@ const Sponsors = () => {
       });
     }
   };
+
+  useEffect(() => {
+    loadSponsors();
+  }, []);
 
   const handleSubmit = async (formData: any) => {
     if (!formData.name || !formData.email || !formData.contribution) {
