@@ -34,7 +34,13 @@ export const ChildForm = ({ selectedChild, setSelectedChild }: ChildFormProps) =
   const queryClient = useQueryClient();
   
   // Local state for form fields
-  const [formData, setFormData] = useState<Partial<Child>>({
+  const [formData, setFormData] = useState<{
+    name: string;
+    age: number;
+    location: string;
+    story: string;
+    school_id: string;
+  }>({
     name: selectedChild?.name || '',
     age: selectedChild?.age || 0,
     location: selectedChild?.location || '',
@@ -56,7 +62,7 @@ export const ChildForm = ({ selectedChild, setSelectedChild }: ChildFormProps) =
     }
   });
 
-  const handleInputChange = (field: keyof Child, value: any) => {
+  const handleInputChange = (field: keyof typeof formData, value: any) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -66,12 +72,28 @@ export const ChildForm = ({ selectedChild, setSelectedChild }: ChildFormProps) =
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validate required fields
+    if (!formData.name || !formData.age || !formData.location) {
+      toast({
+        title: "Error",
+        description: "Por favor complete todos los campos requeridos",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       if (selectedChild) {
         // Update existing child
         const { error } = await supabase
           .from('children')
-          .update(formData)
+          .update({
+            name: formData.name,
+            age: formData.age,
+            location: formData.location,
+            story: formData.story || null,
+            school_id: formData.school_id || null,
+          })
           .eq('id', selectedChild.id);
 
         if (error) throw error;
@@ -84,7 +106,13 @@ export const ChildForm = ({ selectedChild, setSelectedChild }: ChildFormProps) =
         // Create new child
         const { error } = await supabase
           .from('children')
-          .insert([formData]);
+          .insert([{
+            name: formData.name,
+            age: formData.age,
+            location: formData.location,
+            story: formData.story || null,
+            school_id: formData.school_id || null,
+          }]);
 
         if (error) throw error;
 
@@ -174,7 +202,7 @@ export const ChildForm = ({ selectedChild, setSelectedChild }: ChildFormProps) =
           <div className="space-y-2">
             <Label htmlFor="school">Colegio</Label>
             <Select 
-              value={formData.school_id || ''} 
+              value={formData.school_id} 
               onValueChange={(value) => handleInputChange('school_id', value)}
             >
               <SelectTrigger>
@@ -195,7 +223,7 @@ export const ChildForm = ({ selectedChild, setSelectedChild }: ChildFormProps) =
             <Input
               id="story"
               placeholder="Historia del niño"
-              value={formData.story || ''}
+              value={formData.story}
               onChange={(e) => handleInputChange('story', e.target.value)}
             />
           </div>
