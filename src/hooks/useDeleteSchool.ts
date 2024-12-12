@@ -10,39 +10,49 @@ export const useDeleteSchool = () => {
 
   const handleDelete = async (schoolId: string) => {
     try {
-      console.log("Attempting to delete school with ID:", schoolId);
+      console.log("Iniciando proceso de eliminación para el colegio:", schoolId);
       
+      // Primero verificamos si hay niños asociados
       const { data: children, error: checkError } = await supabase
         .from('children')
         .select('id')
         .eq('school_id', schoolId);
 
       if (checkError) {
-        console.error('Error checking children:', checkError);
+        console.error('Error al verificar niños asociados:', checkError);
         throw checkError;
       }
 
       if (children && children.length > 0) {
+        console.log('No se puede eliminar: hay niños asociados', children.length);
         toast.error('No se puede eliminar el colegio porque tiene niños asociados');
         setSchoolToDelete(null);
         return;
       }
 
-      const { error: deleteError } = await supabase
+      // Procedemos con la eliminación
+      console.log('Ejecutando eliminación en Supabase...');
+      const { error: deleteError, data } = await supabase
         .from('schools')
         .delete()
-        .eq('id', schoolId);
+        .eq('id', schoolId)
+        .select();
 
       if (deleteError) {
-        console.error('Error deleting school:', deleteError);
+        console.error('Error en la eliminación:', deleteError);
         throw deleteError;
       }
 
+      console.log('Respuesta de eliminación:', data);
+
+      // Invalidamos la caché y actualizamos la UI
       await queryClient.invalidateQueries({ queryKey: ["schools"] });
+      console.log('Cache invalidada');
+      
       toast.success('Colegio eliminado exitosamente');
       setSchoolToDelete(null);
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error en el proceso de eliminación:', error);
       toast.error('Error al eliminar el colegio');
     }
   };

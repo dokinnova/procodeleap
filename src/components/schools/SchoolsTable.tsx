@@ -60,6 +60,7 @@ export const SchoolsTable = ({
                     size="icon"
                     onClick={(e) => {
                       e.stopPropagation();
+                      console.log('Iniciando eliminación para:', school);
                       setSchoolToDelete(school);
                     }}
                     className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
