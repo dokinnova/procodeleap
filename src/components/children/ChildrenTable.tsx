@@ -1,6 +1,9 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search } from "lucide-react";
+import { Search, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Child {
   id: string;
@@ -24,6 +27,25 @@ export const ChildrenTable = ({ children, search, setSearch, setSelectedChild }:
     child.name.toLowerCase().includes(search.toLowerCase())
   );
 
+  const handleDelete = async (e: React.MouseEvent, childId: string) => {
+    e.stopPropagation(); // Previene que se active el onClick de la fila
+    
+    try {
+      const { error } = await supabase
+        .from('children')
+        .delete()
+        .eq('id', childId);
+
+      if (error) throw error;
+      
+      toast.success('Niño eliminado exitosamente');
+      // La tabla se actualizará automáticamente gracias a React Query
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('Error al eliminar el registro');
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="relative">
@@ -43,6 +65,7 @@ export const ChildrenTable = ({ children, search, setSearch, setSelectedChild }:
               <TableHead>Nombre</TableHead>
               <TableHead>Edad</TableHead>
               <TableHead>Ubicación</TableHead>
+              <TableHead className="w-[100px]">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -55,11 +78,21 @@ export const ChildrenTable = ({ children, search, setSearch, setSelectedChild }:
                 <TableCell className="font-medium">{child.name}</TableCell>
                 <TableCell>{child.age} años</TableCell>
                 <TableCell>{child.location}</TableCell>
+                <TableCell>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={(e) => handleDelete(e, child.id)}
+                    className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </TableCell>
               </TableRow>
             ))}
             {filteredChildren.length === 0 && (
               <TableRow>
-                <TableCell colSpan={3} className="text-center py-8 text-gray-500">
+                <TableCell colSpan={4} className="text-center py-8 text-gray-500">
                   No se encontraron niños
                 </TableCell>
               </TableRow>
