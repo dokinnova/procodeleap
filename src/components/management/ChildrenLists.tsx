@@ -15,7 +15,12 @@ export const ChildrenLists = ({
   onChildSelect,
   sponsorships,
 }: ChildrenListsProps) => {
-  const renderChildrenTable = (childrenList: Child[], title: string, emptyMessage: string) => (
+  const getSponsorName = (childId: string) => {
+    const sponsorship = sponsorships.find(s => s.child_id === childId);
+    return sponsorship?.sponsor?.name || 'No disponible';
+  };
+
+  const renderChildrenTable = (childrenList: Child[], title: string, emptyMessage: string, showSponsor: boolean = false) => (
     <div className="bg-white rounded-lg shadow">
       <div className="p-4 border-b">
         <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
@@ -27,13 +32,14 @@ export const ChildrenLists = ({
               <TableHead>Nombre</TableHead>
               <TableHead>Edad</TableHead>
               <TableHead>Ubicación</TableHead>
+              {showSponsor && <TableHead>Padrino</TableHead>}
               <TableHead>Estado</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {childrenList.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center py-8 text-gray-500">
+                <TableCell colSpan={showSponsor ? 5 : 4} className="text-center py-8 text-gray-500">
                   {emptyMessage}
                 </TableCell>
               </TableRow>
@@ -47,6 +53,7 @@ export const ChildrenLists = ({
                   <TableCell>{child.name}</TableCell>
                   <TableCell>{child.age} años</TableCell>
                   <TableCell>{child.location}</TableCell>
+                  {showSponsor && <TableCell>{getSponsorName(child.id)}</TableCell>}
                   <TableCell>
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                       sponsorships.some(s => s.child_id === child.id)
@@ -91,7 +98,8 @@ export const ChildrenLists = ({
         {renderChildrenTable(
           childrenWithSponsorship,
           "Niños con Padrinos",
-          "No hay niños con padrinos asignados"
+          "No hay niños con padrinos asignados",
+          true // showSponsor parameter
         )}
       </div>
     </>
