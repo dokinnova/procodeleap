@@ -44,10 +44,19 @@ export const SponsorshipForm = ({
 
       const sponsoredChildIds = sponsorships?.map(s => s.child_id) || [];
 
+      // If there are no sponsorships, fetch all children
+      if (sponsoredChildIds.length === 0) {
+        const { data: allChildren } = await supabase
+          .from("children")
+          .select("*");
+        return allChildren || [];
+      }
+
+      // Otherwise, fetch children not in the sponsored list
       const { data: children } = await supabase
         .from("children")
         .select("*")
-        .not("id", "in", `(${sponsoredChildIds.length > 0 ? sponsoredChildIds.join(",") : "''"})`);
+        .not("id", "in", `(${sponsoredChildIds.join(",")})`);
 
       return children || [];
     },
@@ -63,10 +72,19 @@ export const SponsorshipForm = ({
 
       const sponsoringIds = sponsorships?.map(s => s.sponsor_id) || [];
 
+      // If there are no sponsorships, fetch all sponsors
+      if (sponsoringIds.length === 0) {
+        const { data: allSponsors } = await supabase
+          .from("sponsors")
+          .select("*");
+        return allSponsors || [];
+      }
+
+      // Otherwise, fetch sponsors not in the sponsoring list
       const { data: sponsors } = await supabase
         .from("sponsors")
         .select("*")
-        .not("id", "in", `(${sponsoringIds.length > 0 ? sponsoringIds.join(",") : "''"})`);
+        .not("id", "in", `(${sponsoringIds.join(",")})`);
 
       return sponsors || [];
     },
