@@ -3,9 +3,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 interface School {
   id: string;
@@ -29,6 +30,9 @@ interface ChildFormProps {
 }
 
 export const ChildForm = ({ selectedChild, setSelectedChild }: ChildFormProps) => {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
   // Local state for form fields
   const [formData, setFormData] = useState<Partial<Child>>({
     name: selectedChild?.name || '',
@@ -59,6 +63,63 @@ export const ChildForm = ({ selectedChild, setSelectedChild }: ChildFormProps) =
     }));
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      if (selectedChild) {
+        // Update existing child
+        const { error } = await supabase
+          .from('children')
+          .update(formData)
+          .eq('id', selectedChild.id);
+
+        if (error) throw error;
+
+        toast({
+          title: "Niño actualizado",
+          description: "Los datos se han actualizado correctamente",
+        });
+      } else {
+        // Create new child
+        const { error } = await supabase
+          .from('children')
+          .insert([formData]);
+
+        if (error) throw error;
+
+        toast({
+          title: "Niño registrado",
+          description: "El niño se ha registrado correctamente",
+        });
+
+        // Reset form
+        setFormData({
+          name: '',
+          age: 0,
+          location: '',
+          story: '',
+          school_id: '',
+        });
+      }
+
+      // Refresh children data
+      queryClient.invalidateQueries({ queryKey: ['children'] });
+      
+      // Reset selected child if we were editing
+      if (selectedChild) {
+        setSelectedChild(null);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: "Hubo un error al procesar la solicitud",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -72,7 +133,7 @@ export const ChildForm = ({ selectedChild, setSelectedChild }: ChildFormProps) =
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="name">Nombre completo</Label>
             <Input
@@ -80,6 +141,7 @@ export const ChildForm = ({ selectedChild, setSelectedChild }: ChildFormProps) =
               placeholder="Nombre del niño"
               value={formData.name}
               onChange={(e) => handleInputChange('name', e.target.value)}
+              required
             />
           </div>
           
@@ -91,9 +153,10 @@ export const ChildForm = ({ selectedChild, setSelectedChild }: ChildFormProps) =
               placeholder="Edad"
               value={formData.age}
               onChange={(e) => handleInputChange('age', parseInt(e.target.value) || 0)}
-              className="w-20" // Changed this line to make the input shorter
+              className="w-20"
               min="0"
               max="999"
+              required
             />
           </div>
 
@@ -104,6 +167,7 @@ export const ChildForm = ({ selectedChild, setSelectedChild }: ChildFormProps) =
               placeholder="Ubicación"
               value={formData.location}
               onChange={(e) => handleInputChange('location', e.target.value)}
+              required
             />
           </div>
 
