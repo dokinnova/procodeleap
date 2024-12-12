@@ -2,8 +2,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Search, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,8 +12,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useDeleteChild } from "@/hooks/useDeleteChild";
 
 interface Child {
   id: string;
@@ -35,32 +32,11 @@ interface ChildrenTableProps {
 }
 
 export const ChildrenTable = ({ children, search, setSearch, setSelectedChild }: ChildrenTableProps) => {
-  const [childToDelete, setChildToDelete] = useState<Child | null>(null);
-  const queryClient = useQueryClient();
+  const { childToDelete, setChildToDelete, handleDelete } = useDeleteChild();
 
   const filteredChildren = children.filter(child =>
     child.name.toLowerCase().includes(search.toLowerCase())
   );
-
-  const handleDelete = async (childId: string) => {
-    try {
-      const { error } = await supabase
-        .from('children')
-        .delete()
-        .eq('id', childId);
-
-      if (error) throw error;
-      
-      // Invalidate and refetch children query after successful deletion
-      await queryClient.invalidateQueries({ queryKey: ["children"] });
-      
-      toast.success('Niño eliminado exitosamente');
-      setChildToDelete(null);
-    } catch (error) {
-      console.error('Error:', error);
-      toast.error('Error al eliminar el registro');
-    }
-  };
 
   return (
     <div className="space-y-4">
