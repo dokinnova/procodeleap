@@ -42,6 +42,7 @@ const Configuration = () => {
         .insert({
           email,
           user_id: user.id,
+          role: 'admin'
         });
 
       if (adminError) throw adminError;
