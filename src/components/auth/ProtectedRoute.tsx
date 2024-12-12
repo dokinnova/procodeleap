@@ -2,20 +2,30 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthForm } from "./AuthForm";
+import { useToast } from "@/hooks/use-toast";
 
 export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
-    // Verificar sesión actual
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // Check current session
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.error('Error checking session:', error);
+        toast({
+          title: "Error de autenticación",
+          description: "Hubo un problema al verificar tu sesión. Por favor intenta de nuevo.",
+          variant: "destructive",
+        });
+      }
       setSession(session);
       setLoading(false);
     });
 
-    // Escuchar cambios en la autenticación
+    // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -24,7 +34,7 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [toast]);
 
   if (loading) {
     return (
