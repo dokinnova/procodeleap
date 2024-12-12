@@ -9,10 +9,17 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Child, Sponsor } from "@/types";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface SponsorshipFormProps {
   child: Child | null;
@@ -20,17 +27,57 @@ interface SponsorshipFormProps {
   onClose: () => void;
 }
 
-export const SponsorshipForm = ({ child, sponsor, onClose }: SponsorshipFormProps) => {
+export const SponsorshipForm = ({ child: initialChild, sponsor: initialSponsor, onClose }: SponsorshipFormProps) => {
+  const [selectedChild, setSelectedChild] = useState<Child | null>(initialChild);
+  const [selectedSponsor, setSelectedSponsor] = useState<Sponsor | null>(initialSponsor);
   const [startDate, setStartDate] = useState("");
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Fetch available children (those without sponsorships)
+  const { data: availableChildren = [] } = useQuery({
+    queryKey: ["available-children"],
+    queryFn: async () => {
+      const { data: sponsorships } = await supabase
+        .from("sponsorships")
+        .select("child_id");
+
+      const sponsoredChildIds = sponsorships?.map(s => s.child_id) || [];
+
+      const { data: children } = await supabase
+        .from("children")
+        .select("*")
+        .not("id", "in", `(${sponsoredChildIds.length > 0 ? sponsoredChildIds.join(",") : "''"})`);
+
+      return children || [];
+    },
+  });
+
+  // Fetch available sponsors (those without active sponsorships)
+  const { data: availableSponsors = [] } = useQuery({
+    queryKey: ["available-sponsors"],
+    queryFn: async () => {
+      const { data: sponsorships } = await supabase
+        .from("sponsorships")
+        .select("sponsor_id");
+
+      const sponsoringIds = sponsorships?.map(s => s.sponsor_id) || [];
+
+      const { data: sponsors } = await supabase
+        .from("sponsors")
+        .select("*")
+        .not("id", "in", `(${sponsoringIds.length > 0 ? sponsoringIds.join(",") : "''"})`);
+
+      return sponsors || [];
+    },
+  });
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!child || !sponsor || !startDate) {
+    if (!selectedChild || !selectedSponsor || !startDate) {
       toast({
         title: "Error",
         description: "Por favor completa todos los campos requeridos",
@@ -46,8 +93,8 @@ export const SponsorshipForm = ({ child, sponsor, onClose }: SponsorshipFormProp
         .from('sponsorships')
         .insert([
           {
-            child_id: child.id,
-            sponsor_id: sponsor.id,
+            child_id: selectedChild.id,
+            sponsor_id: selectedSponsor.id,
             start_date: startDate,
             notes: notes || null,
           }
@@ -64,6 +111,8 @@ export const SponsorshipForm = ({ child, sponsor, onClose }: SponsorshipFormProp
       queryClient.invalidateQueries({ queryKey: ["sponsorships"] });
       queryClient.invalidateQueries({ queryKey: ["sponsors"] });
       queryClient.invalidateQueries({ queryKey: ["children"] });
+      queryClient.invalidateQueries({ queryKey: ["available-sponsors"] });
+      queryClient.invalidateQueries({ queryKey: ["available-children"] });
 
       onClose();
     } catch (error) {
@@ -89,23 +138,57 @@ export const SponsorshipForm = ({ child, sponsor, onClose }: SponsorshipFormProp
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label>Niño</Label>
-            <Input
-              value={child?.name || ""}
-              placeholder="Selecciona un niño"
-              disabled
-              className="bg-gray-50"
-            />
+            <Label>Niño *</Label>
+            <Select
+              value={selectedChild?.id}
+              onValueChange={(value) => {
+                const child = availableChildren.find(c => c.id === value);
+                setSelectedChild(child || null);
+              }}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Selecciona un niño" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableChildren.map((child) => (
+                  <SelectItem key={child.id} value={child.id}>
+                    {child.name} - {child.age} años
+                  </SelectItem>
+                ))}
+                {availableChildren.length === 0 && (
+                  <SelectItem value="none" disabled>
+                    No hay niños disponibles
+                  </SelectItem>
+                )}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
-            <Label>Padrino</Label>
-            <Input
-              value={sponsor?.name || ""}
-              placeholder="Selecciona un padrino"
-              disabled
-              className="bg-gray-50"
-            />
+            <Label>Padrino *</Label>
+            <Select
+              value={selectedSponsor?.id}
+              onValueChange={(value) => {
+                const sponsor = availableSponsors.find(s => s.id === value);
+                setSelectedSponsor(sponsor || null);
+              }}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Selecciona un padrino" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableSponsors.map((sponsor) => (
+                  <SelectItem key={sponsor.id} value={sponsor.id}>
+                    {sponsor.name} - ${sponsor.contribution}/mes
+                  </SelectItem>
+                ))}
+                {availableSponsors.length === 0 && (
+                  <SelectItem value="none" disabled>
+                    No hay padrinos disponibles
+                  </SelectItem>
+                )}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
