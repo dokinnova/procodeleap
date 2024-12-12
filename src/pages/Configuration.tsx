@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Settings, Upload, UserPlus, Users } from "lucide-react";
+import { Settings, UserPlus } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,12 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AdminUsersTable } from "@/components/configuration/AdminUsersTable";
+import { AppUsersTable } from "@/components/configuration/AppUsersTable";
 import { LogoUploader } from "@/components/configuration/LogoUploader";
 
 const Configuration = () => {
   const queryClient = useQueryClient();
-  const [newAdminEmail, setNewAdminEmail] = useState("");
+  const [newUserEmail, setNewUserEmail] = useState("");
 
   const { data: settings } = useQuery({
     queryKey: ["site-settings"],
@@ -26,7 +26,7 @@ const Configuration = () => {
     },
   });
 
-  const addAdminMutation = useMutation({
+  const addUserMutation = useMutation({
     mutationFn: async (email: string) => {
       const { data: { user }, error: authError } = await supabase.auth.admin.createUser({
         email,
@@ -37,33 +37,33 @@ const Configuration = () => {
       if (authError) throw authError;
       if (!user) throw new Error("No se pudo crear el usuario");
 
-      const { error: adminError } = await supabase
-        .from("admin_users")
+      const { error: userError } = await supabase
+        .from("app_users")
         .insert({
           email,
           user_id: user.id,
-          role: 'admin'
+          role: 'viewer'
         });
 
-      if (adminError) throw adminError;
+      if (userError) throw userError;
     },
     onSuccess: () => {
-      toast.success("Administrador añadido correctamente");
-      setNewAdminEmail("");
-      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      toast.success("Usuario añadido correctamente");
+      setNewUserEmail("");
+      queryClient.invalidateQueries({ queryKey: ["app-users"] });
     },
     onError: (error) => {
-      toast.error("Error al añadir administrador: " + error.message);
+      toast.error("Error al añadir usuario: " + error.message);
     },
   });
 
-  const handleAddAdmin = async (e: React.FormEvent) => {
+  const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newAdminEmail) {
+    if (!newUserEmail) {
       toast.error("Por favor, introduce un email");
       return;
     }
-    addAdminMutation.mutate(newAdminEmail);
+    addUserMutation.mutate(newUserEmail);
   };
 
   return (
@@ -88,13 +88,13 @@ const Configuration = () => {
 
         <TabsContent value="users" className="space-y-4">
           <Card className="p-6">
-            <h2 className="text-xl font-semibold mb-4">Añadir Administrador</h2>
-            <form onSubmit={handleAddAdmin} className="flex gap-2">
+            <h2 className="text-xl font-semibold mb-4">Añadir Usuario</h2>
+            <form onSubmit={handleAddUser} className="flex gap-2">
               <Input
                 type="email"
-                placeholder="Email del nuevo administrador"
-                value={newAdminEmail}
-                onChange={(e) => setNewAdminEmail(e.target.value)}
+                placeholder="Email del nuevo usuario"
+                value={newUserEmail}
+                onChange={(e) => setNewUserEmail(e.target.value)}
               />
               <Button type="submit">
                 <UserPlus className="w-4 h-4 mr-2" />
@@ -104,8 +104,8 @@ const Configuration = () => {
           </Card>
 
           <Card className="p-6">
-            <h2 className="text-xl font-semibold mb-4">Administradores</h2>
-            <AdminUsersTable />
+            <h2 className="text-xl font-semibold mb-4">Usuarios</h2>
+            <AppUsersTable />
           </Card>
         </TabsContent>
       </Tabs>
