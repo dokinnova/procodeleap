@@ -15,6 +15,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface Child {
   id: string;
@@ -35,6 +36,7 @@ interface ChildrenTableProps {
 
 export const ChildrenTable = ({ children, search, setSearch, setSelectedChild }: ChildrenTableProps) => {
   const [childToDelete, setChildToDelete] = useState<Child | null>(null);
+  const queryClient = useQueryClient();
 
   const filteredChildren = children.filter(child =>
     child.name.toLowerCase().includes(search.toLowerCase())
@@ -49,9 +51,11 @@ export const ChildrenTable = ({ children, search, setSearch, setSelectedChild }:
 
       if (error) throw error;
       
+      // Invalidate and refetch children query after successful deletion
+      await queryClient.invalidateQueries({ queryKey: ["children"] });
+      
       toast.success('Niño eliminado exitosamente');
       setChildToDelete(null);
-      // La tabla se actualizará automáticamente gracias a React Query
     } catch (error) {
       console.error('Error:', error);
       toast.error('Error al eliminar el registro');
