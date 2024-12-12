@@ -29,7 +29,13 @@ const Management = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("sponsorships")
-        .select("*");
+        .select(`
+          *,
+          sponsor:sponsors (
+            id,
+            name
+          )
+        `);
       
       if (error) throw error;
       return data || [];
