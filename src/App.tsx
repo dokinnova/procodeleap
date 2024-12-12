@@ -17,15 +17,17 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Navigation />
-        <main className="pt-16 min-h-screen bg-gradient-to-b from-white to-secondary/20">
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/children" element={<Children />} />
-            <Route path="/sponsors" element={<Sponsors />} />
-            <Route path="/management" element={<Management />} />
-          </Routes>
-        </main>
+        <div className="h-screen bg-gray-100">
+          <Navigation />
+          <main className="ml-64 p-6 bg-gray-100 min-h-screen">
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/children" element={<Children />} />
+              <Route path="/sponsors" element={<Sponsors />} />
+              <Route path="/management" element={<Management />} />
+            </Routes>
+          </main>
+        </div>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

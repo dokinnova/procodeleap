@@ -1,45 +1,59 @@
 import { Link, useLocation } from "react-router-dom";
+import { Users, UserPlus, Settings } from "lucide-react";
 
 const Navigation = () => {
   const location = useLocation();
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-md z-50 border-b border-gray-100">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          <Link to="/" className="text-2xl font-bold text-primary hover:opacity-80 transition-opacity">
+    <div className="flex h-screen">
+      {/* Sidebar */}
+      <div className="w-64 bg-gray-900 text-white">
+        <div className="p-4 border-b border-gray-800">
+          <Link to="/" className="text-xl font-bold text-primary hover:opacity-80 transition-opacity">
             PROCODELI
           </Link>
-          <div className="flex space-x-8">
-            <Link
-              to="/children"
-              className={`transition-colors hover:text-primary ${
-                isActive("/children") ? "text-primary font-semibold" : "text-gray-600"
-              }`}
-            >
-              Niños
-            </Link>
-            <Link
-              to="/sponsors"
-              className={`transition-colors hover:text-primary ${
-                isActive("/sponsors") ? "text-primary font-semibold" : "text-gray-600"
-              }`}
-            >
-              Padrinos
-            </Link>
-            <Link
-              to="/management"
-              className={`transition-colors hover:text-primary ${
-                isActive("/management") ? "text-primary font-semibold" : "text-gray-600"
-              }`}
-            >
-              Gestión
-            </Link>
-          </div>
+        </div>
+        <nav className="mt-6">
+          <Link
+            to="/children"
+            className={`flex items-center px-6 py-3 hover:bg-gray-800 transition-colors ${
+              isActive("/children") ? "bg-gray-800 border-l-4 border-primary" : ""
+            }`}
+          >
+            <Users className="w-5 h-5 mr-3" />
+            <span>Niños</span>
+          </Link>
+          <Link
+            to="/sponsors"
+            className={`flex items-center px-6 py-3 hover:bg-gray-800 transition-colors ${
+              isActive("/sponsors") ? "bg-gray-800 border-l-4 border-primary" : ""
+            }`}
+          >
+            <UserPlus className="w-5 h-5 mr-3" />
+            <span>Padrinos</span>
+          </Link>
+          <Link
+            to="/management"
+            className={`flex items-center px-6 py-3 hover:bg-gray-800 transition-colors ${
+              isActive("/management") ? "bg-gray-800 border-l-4 border-primary" : ""
+            }`}
+          >
+            <Settings className="w-5 h-5 mr-3" />
+            <span>Gestión</span>
+          </Link>
+        </nav>
+      </div>
+
+      {/* Main content */}
+      <div className="flex-1">
+        <div className="h-16 bg-white border-b border-gray-200 flex items-center px-6">
+          <h1 className="text-xl font-semibold text-gray-800">
+            Sistema de Gestión PROCODELI
+          </h1>
         </div>
       </div>
-    </nav>
+    </div>
   );
 };
 
