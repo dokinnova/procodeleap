@@ -29,7 +29,7 @@ const Children = () => {
   const [search, setSearch] = useState("");
   const { toast } = useToast();
 
-  const { data: children, refetch } = useQuery({
+  const { data: children = [], isLoading, error } = useQuery({
     queryKey: ['children'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -68,128 +68,125 @@ const Children = () => {
         description: "No se pudo registrar al niño. Por favor, inténtalo de nuevo.",
         variant: "destructive",
       });
-      console.error('Error adding child:', error);
       return;
     }
 
     toast({
-      title: "Niño registrado",
+      title: "Éxito",
       description: `${newChild.name} ha sido registrado exitosamente.`,
     });
-    
-    refetch();
   };
 
-  const filteredChildren = children?.filter(child =>
+  const filteredChildren = children.filter(child =>
     child.name.toLowerCase().includes(search.toLowerCase())
-  ) || [];
+  );
+
+  if (isLoading) {
+    return <div className="flex justify-center items-center h-full">Cargando...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-full text-red-500">
+        Error al cargar los datos
+      </div>
+    );
+  }
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header section */}
-      <div className="flex flex-col space-y-2">
-        <nav className="flex" aria-label="Breadcrumb">
-          <ol className="inline-flex items-center space-x-1 text-sm text-gray-500">
-            <li>
-              <a href="/" className="hover:text-gray-700">Inicio</a>
-            </li>
-            <li className="flex items-center space-x-1">
-              <span>/</span>
-              <span className="text-gray-900">Niños</span>
-            </li>
-          </ol>
-        </nav>
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Gestión de Niños</h1>
-            <p className="text-muted-foreground">
-              Administra los registros y la información de los niños
-            </p>
-          </div>
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button className="bg-primary hover:bg-primary/90">
-                <Plus className="mr-2 h-4 w-4" /> Registrar niño
+    <div className="container mx-auto p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Niños Registrados</h1>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              Registrar Niño
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Registrar Nuevo Niño</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleAddChild} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Nombre completo
+                </label>
+                <Input name="name" required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Edad
+                </label>
+                <Input name="age" type="number" required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Ubicación
+                </label>
+                <Input name="location" required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Historia
+                </label>
+                <Input name="story" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  URL de la imagen
+                </label>
+                <Input name="image_url" type="url" />
+              </div>
+              <Button type="submit" className="w-full">
+                Guardar
               </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>Registrar nuevo niño</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleAddChild} className="space-y-4">
-                <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                    Nombre completo
-                  </label>
-                  <Input id="name" name="name" required />
-                </div>
-                <div>
-                  <label htmlFor="age" className="block text-sm font-medium text-gray-700">
-                    Edad
-                  </label>
-                  <Input id="age" name="age" type="number" required />
-                </div>
-                <div>
-                  <label htmlFor="location" className="block text-sm font-medium text-gray-700">
-                    Ubicación
-                  </label>
-                  <Input id="location" name="location" required />
-                </div>
-                <div>
-                  <label htmlFor="story" className="block text-sm font-medium text-gray-700">
-                    Historia
-                  </label>
-                  <Input id="story" name="story" />
-                </div>
-                <div>
-                  <label htmlFor="image_url" className="block text-sm font-medium text-gray-700">
-                    URL de la imagen
-                  </label>
-                  <Input id="image_url" name="image_url" type="url" />
-                </div>
-                <Button type="submit" className="w-full">Guardar</Button>
-              </form>
-            </DialogContent>
-          </Dialog>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      <div className="mb-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Input
+            className="pl-10"
+            placeholder="Buscar niños..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
         </div>
       </div>
 
-      {/* Search and Table */}
-      <div className="space-y-4">
-        <div className="flex items-center space-x-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              className="pl-10"
-              placeholder="Buscar niños..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
-        </div>
-
-        <div className="border rounded-lg bg-white">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nombre</TableHead>
-                <TableHead>Edad</TableHead>
-                <TableHead>Ubicación</TableHead>
-                <TableHead>Historia</TableHead>
+      <div className="bg-white rounded-lg shadow">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Nombre</TableHead>
+              <TableHead>Edad</TableHead>
+              <TableHead>Ubicación</TableHead>
+              <TableHead>Historia</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredChildren.map((child) => (
+              <TableRow key={child.id}>
+                <TableCell className="font-medium">{child.name}</TableCell>
+                <TableCell>{child.age}</TableCell>
+                <TableCell>{child.location}</TableCell>
+                <TableCell>{child.story || "No disponible"}</TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredChildren.map((child) => (
-                <TableRow key={child.id}>
-                  <TableCell className="font-medium">{child.name}</TableCell>
-                  <TableCell>{child.age}</TableCell>
-                  <TableCell>{child.location}</TableCell>
-                  <TableCell>{child.story || "No disponible"}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+            ))}
+            {filteredChildren.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={4} className="text-center py-4">
+                  No se encontraron niños
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
       </div>
     </div>
   );
