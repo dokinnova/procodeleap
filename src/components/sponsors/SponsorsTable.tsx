@@ -36,6 +36,17 @@ export const SponsorsTable = ({
     onSponsorSelect(sponsor);
   };
 
+  const handleDeleteClick = async (sponsor: Sponsor, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSponsorToDelete(sponsor);
+  };
+
+  const onConfirmDelete = async () => {
+    if (sponsorToDelete) {
+      await handleDelete(sponsorToDelete.id);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="relative">
@@ -86,10 +97,7 @@ export const SponsorsTable = ({
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSponsorToDelete(sponsor);
-                    }}
+                    onClick={(e) => handleDeleteClick(sponsor, e)}
                     className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -111,7 +119,7 @@ export const SponsorsTable = ({
       <DeleteConfirmationDialog
         isOpen={!!sponsorToDelete}
         onClose={() => setSponsorToDelete(null)}
-        onConfirm={() => sponsorToDelete && handleDelete(sponsorToDelete.id)}
+        onConfirm={onConfirmDelete}
         title="¿Estás seguro?"
         description={`Esta acción no se puede deshacer. Se eliminará permanentemente el padrino ${sponsorToDelete?.name}.`}
       />
