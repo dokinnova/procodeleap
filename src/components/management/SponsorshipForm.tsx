@@ -92,6 +92,7 @@ export const SponsorshipForm = ({ child, sponsor, onClose }: SponsorshipFormProp
             <Label>Niño</Label>
             <Input
               value={child?.name || ""}
+              placeholder="Selecciona un niño"
               disabled
               className="bg-gray-50"
             />
@@ -101,6 +102,7 @@ export const SponsorshipForm = ({ child, sponsor, onClose }: SponsorshipFormProp
             <Label>Padrino</Label>
             <Input
               value={sponsor?.name || ""}
+              placeholder="Selecciona un padrino"
               disabled
               className="bg-gray-50"
             />
