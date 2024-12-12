@@ -1,29 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { PhotoUpload } from "./PhotoUpload";
-
-interface School {
-  id: string;
-  name: string;
-  address: string | null;
-}
-
-interface Child {
-  id: string;
-  name: string;
-  age: number;
-  location: string;
-  story: string | null;
-  image_url: string | null;
-  school_id: string | null;
-}
+import { ChildFormFields } from "./form/ChildFormFields";
+import { Child } from "@/types";
 
 interface ChildFormProps {
   selectedChild: Child | null;
@@ -59,7 +41,7 @@ export const ChildForm = ({ selectedChild, setSelectedChild }: ChildFormProps) =
         .order('name');
       
       if (error) throw error;
-      return data as School[];
+      return data;
     }
   });
 
@@ -160,79 +142,11 @@ export const ChildForm = ({ selectedChild, setSelectedChild }: ChildFormProps) =
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label>Foto</Label>
-            <PhotoUpload
-              currentPhotoUrl={formData.image_url}
-              onPhotoUploaded={(url) => handleInputChange('image_url', url)}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="name">Nombre completo</Label>
-            <Input
-              id="name"
-              placeholder="Nombre del niño"
-              value={formData.name}
-              onChange={(e) => handleInputChange('name', e.target.value)}
-              required
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="age">Edad</Label>
-            <Input
-              id="age"
-              type="number"
-              placeholder="Edad"
-              value={formData.age}
-              onChange={(e) => handleInputChange('age', parseInt(e.target.value) || 0)}
-              className="w-20"
-              min="0"
-              max="999"
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="location">Ubicación</Label>
-            <Input
-              id="location"
-              placeholder="Ubicación"
-              value={formData.location}
-              onChange={(e) => handleInputChange('location', e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="school">Colegio</Label>
-            <Select 
-              value={formData.school_id} 
-              onValueChange={(value) => handleInputChange('school_id', value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecciona un colegio" />
-              </SelectTrigger>
-              <SelectContent>
-                {schools.map((school) => (
-                  <SelectItem key={school.id} value={school.id}>
-                    {school.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="story">Historia</Label>
-            <Input
-              id="story"
-              placeholder="Historia del niño"
-              value={formData.story}
-              onChange={(e) => handleInputChange('story', e.target.value)}
-            />
-          </div>
+          <ChildFormFields
+            formData={formData}
+            schools={schools}
+            onInputChange={handleInputChange}
+          />
 
           <div className="flex justify-end gap-2">
             {selectedChild && (
