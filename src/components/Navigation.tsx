@@ -29,7 +29,7 @@ const Navigation = () => {
               <img 
                 src={siteSettings.logo_url} 
                 alt="Logo" 
-                className="w-8 h-8 object-contain"
+                className="w-12 h-12 object-contain"
               />
             )}
           </Link>
