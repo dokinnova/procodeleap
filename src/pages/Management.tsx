@@ -1,132 +1,140 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Plus, Search } from "lucide-react";
 
-interface Sponsorship {
+interface Child {
   id: string;
-  childId: string;
-  sponsorId: string;
-  startDate: string;
+  name: string;
+  age: number;
+  school_id: string | null;
+}
+
+interface Sponsor {
+  id: string;
+  name: string;
 }
 
 const Management = () => {
-  const [sponsorships, setSponsorships] = useState<Sponsorship[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
 
-  // In a real app, these would come from your backend
-  const children = [
-    { id: "1", name: "Ana García" },
-    { id: "2", name: "Juan Pérez" },
-  ];
+  const { data: children = [], isLoading: isLoadingChildren } = useQuery({
+    queryKey: ["children"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("children")
+        .select("*");
+      
+      if (error) throw error;
+      return data || [];
+    },
+  });
 
-  const sponsors = [
-    { id: "1", name: "María López" },
-    { id: "2", name: "Carlos Rodríguez" },
-  ];
-
-  const handleCreateSponsorship = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    const newSponsorship: Sponsorship = {
-      id: Date.now().toString(),
-      childId: formData.get("childId") as string,
-      sponsorId: formData.get("sponsorId") as string,
-      startDate: new Date().toISOString(),
-    };
-    
-    setSponsorships([...sponsorships, newSponsorship]);
-    toast({
-      title: "Apadrinamiento creado",
-      description: "La relación de apadrinamiento ha sido registrada exitosamente.",
-    });
-  };
+  const filteredChildren = children.filter((child: Child) =>
+    child.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto py-8">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold">Gestión de Apadrinamientos</h1>
-          <p className="text-gray-600 mt-2">Administra las relaciones entre padrinos y niños</p>
+          <h1 className="text-3xl font-bold text-gray-900">Gestión de Apadrinamientos</h1>
+          <p className="text-gray-600 mt-2">
+            Administra las relaciones entre padrinos y niños
+          </p>
         </div>
         <Dialog>
           <DialogTrigger asChild>
             <Button className="bg-primary hover:bg-primary/90">
-              Crear apadrinamiento
+              <Plus className="w-4 h-4 mr-2" />
+              Nuevo Apadrinamiento
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent>
             <DialogHeader>
-              <DialogTitle>Crear nuevo apadrinamiento</DialogTitle>
+              <DialogTitle>Crear Nuevo Apadrinamiento</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleCreateSponsorship} className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Seleccionar niño</label>
-                <Select name="childId" required>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecciona un niño" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {children.map(child => (
-                      <SelectItem key={child.id} value={child.id}>
-                        {child.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Seleccionar padrino</label>
-                <Select name="sponsorId" required>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecciona un padrino" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {sponsors.map(sponsor => (
-                      <SelectItem key={sponsor.id} value={sponsor.id}>
-                        {sponsor.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <Button type="submit" className="w-full">Crear apadrinamiento</Button>
-            </form>
+            <div className="py-4">
+              <p>Formulario de creación (en desarrollo)</p>
+            </div>
           </DialogContent>
         </Dialog>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {sponsorships.map((sponsorship, index) => {
-          const child = children.find(c => c.id === sponsorship.childId);
-          const sponsor = sponsors.find(s => s.id === sponsorship.sponsorId);
-          
-          return (
-            <motion.div
-              key={sponsorship.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className="bg-white rounded-xl shadow-sm border border-gray-100 p-6"
-            >
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h3 className="text-xl font-semibold">
-                    {child?.name}
-                  </h3>
-                  <p className="text-gray-600">
-                    Apadrinado por: {sponsor?.name}
-                  </p>
-                </div>
-              </div>
-              <p className="text-sm text-gray-500">
-                Inicio: {new Date(sponsorship.startDate).toLocaleDateString()}
-              </p>
-            </motion.div>
-          );
-        })}
+      <div className="bg-white rounded-lg shadow">
+        <div className="p-4 border-b">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <Input
+              placeholder="Buscar por nombre..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nombre del Niño</TableHead>
+                <TableHead>Edad</TableHead>
+                <TableHead>Escuela</TableHead>
+                <TableHead>Estado</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoadingChildren ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center py-8">
+                    Cargando...
+                  </TableCell>
+                </TableRow>
+              ) : filteredChildren.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center py-8">
+                    No se encontraron resultados
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredChildren.map((child: Child) => (
+                  <TableRow key={child.id}>
+                    <TableCell>{child.name}</TableCell>
+                    <TableCell>{child.age} años</TableCell>
+                    <TableCell>
+                      {child.school_id ? "Asignada" : "Sin asignar"}
+                    </TableCell>
+                    <TableCell>
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                        Pendiente
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </div>
     </div>
   );
