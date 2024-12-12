@@ -3,8 +3,6 @@ import { Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
 import {
   Table,
   TableBody,
@@ -13,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 
@@ -39,7 +38,7 @@ const Children = () => {
         .order('name');
       
       if (error) {
-        console.error('Error al obtener niños:', error);
+        console.error('Error fetching children:', error);
         throw error;
       }
       
@@ -69,7 +68,7 @@ const Children = () => {
         description: "No se pudo registrar al niño. Por favor, inténtalo de nuevo.",
         variant: "destructive",
       });
-      console.error('Error al agregar niño:', error);
+      console.error('Error adding child:', error);
       return;
     }
 
@@ -87,7 +86,7 @@ const Children = () => {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Sección del encabezado */}
+      {/* Header section */}
       <div className="flex flex-col space-y-2">
         <nav className="flex" aria-label="Breadcrumb">
           <ol className="inline-flex items-center space-x-1 text-sm text-gray-500">
@@ -119,23 +118,33 @@ const Children = () => {
               </DialogHeader>
               <form onSubmit={handleAddChild} className="space-y-4">
                 <div>
-                  <Label htmlFor="name">Nombre completo</Label>
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                    Nombre completo
+                  </label>
                   <Input id="name" name="name" required />
                 </div>
                 <div>
-                  <Label htmlFor="age">Edad</Label>
+                  <label htmlFor="age" className="block text-sm font-medium text-gray-700">
+                    Edad
+                  </label>
                   <Input id="age" name="age" type="number" required />
                 </div>
                 <div>
-                  <Label htmlFor="location">Ubicación</Label>
+                  <label htmlFor="location" className="block text-sm font-medium text-gray-700">
+                    Ubicación
+                  </label>
                   <Input id="location" name="location" required />
                 </div>
                 <div>
-                  <Label htmlFor="story">Historia</Label>
+                  <label htmlFor="story" className="block text-sm font-medium text-gray-700">
+                    Historia
+                  </label>
                   <Input id="story" name="story" />
                 </div>
                 <div>
-                  <Label htmlFor="image_url">URL de la imagen</Label>
+                  <label htmlFor="image_url" className="block text-sm font-medium text-gray-700">
+                    URL de la imagen
+                  </label>
                   <Input id="image_url" name="image_url" type="url" />
                 </div>
                 <Button type="submit" className="w-full">Guardar</Button>
@@ -145,7 +154,7 @@ const Children = () => {
         </div>
       </div>
 
-      {/* Búsqueda y Tabla */}
+      {/* Search and Table */}
       <div className="space-y-4">
         <div className="flex items-center space-x-4">
           <div className="relative flex-1">
