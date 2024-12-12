@@ -2,7 +2,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
-import { School } from "@/pages/Schools";
+import { School } from "@/types";
 
 export const useDeleteSchool = () => {
   const [schoolToDelete, setSchoolToDelete] = useState<School | null>(null);
@@ -10,7 +10,7 @@ export const useDeleteSchool = () => {
 
   const handleDelete = async (schoolId: string) => {
     try {
-      // Primero verificamos si hay niños asociados
+      // Verificamos si hay niños asociados
       const { data: children, error: checkError } = await supabase
         .from('children')
         .select('id')
@@ -24,7 +24,6 @@ export const useDeleteSchool = () => {
         return;
       }
 
-      // Procedemos con la eliminación
       const { error: deleteError } = await supabase
         .from('schools')
         .delete()
@@ -32,9 +31,7 @@ export const useDeleteSchool = () => {
 
       if (deleteError) throw deleteError;
 
-      // Invalidamos la caché y actualizamos la UI
       await queryClient.invalidateQueries({ queryKey: ["schools"] });
-      
       toast.success('Colegio eliminado exitosamente');
     } catch (error) {
       console.error('Error al eliminar:', error);

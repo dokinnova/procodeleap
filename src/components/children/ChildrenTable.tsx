@@ -2,27 +2,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Search, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { useDeleteChild } from "@/hooks/useDeleteChild";
-
-interface Child {
-  id: string;
-  name: string;
-  age: number;
-  location: string;
-  story: string | null;
-  image_url: string | null;
-  school_id: string | null;
-}
+import { DeleteConfirmationDialog } from "@/components/shared/DeleteConfirmationDialog";
+import { Child } from "@/types";
 
 interface ChildrenTableProps {
   children: Child[];
@@ -96,25 +78,13 @@ export const ChildrenTable = ({ children, search, setSearch, setSelectedChild }:
         </Table>
       </div>
 
-      <AlertDialog open={!!childToDelete} onOpenChange={() => setChildToDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta acción no se puede deshacer. Se eliminará permanentemente el registro de {childToDelete?.name}.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-red-500 hover:bg-red-600"
-              onClick={() => childToDelete && handleDelete(childToDelete.id)}
-            >
-              Eliminar
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteConfirmationDialog
+        isOpen={!!childToDelete}
+        onClose={() => setChildToDelete(null)}
+        onConfirm={() => childToDelete && handleDelete(childToDelete.id)}
+        title="¿Estás seguro?"
+        description={`Esta acción no se puede deshacer. Se eliminará permanentemente el registro de ${childToDelete?.name}.`}
+      />
     </div>
   );
 };

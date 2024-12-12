@@ -8,10 +8,10 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
-import { School } from "@/pages/Schools";
 import { SchoolSearchBar } from "./SchoolSearchBar";
-import { DeleteSchoolDialog } from "./DeleteSchoolDialog";
 import { useDeleteSchool } from "@/hooks/useDeleteSchool";
+import { DeleteConfirmationDialog } from "@/components/shared/DeleteConfirmationDialog";
+import { School } from "@/types";
 
 interface SchoolsTableProps {
   schools: School[];
@@ -60,7 +60,6 @@ export const SchoolsTable = ({
                     size="icon"
                     onClick={(e) => {
                       e.stopPropagation();
-                      console.log('Iniciando eliminación para:', school);
                       setSchoolToDelete(school);
                     }}
                     className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
@@ -81,10 +80,12 @@ export const SchoolsTable = ({
         </Table>
       </div>
 
-      <DeleteSchoolDialog
-        school={schoolToDelete}
-        onOpenChange={() => setSchoolToDelete(null)}
-        onConfirmDelete={handleDelete}
+      <DeleteConfirmationDialog
+        isOpen={!!schoolToDelete}
+        onClose={() => setSchoolToDelete(null)}
+        onConfirm={() => schoolToDelete && handleDelete(schoolToDelete.id)}
+        title="¿Estás seguro?"
+        description={`Esta acción no se puede deshacer. Se eliminará permanentemente el colegio ${schoolToDelete?.name}.`}
       />
     </div>
   );
