@@ -47,13 +47,35 @@ export const SchoolsTable = ({
 
   const handleDelete = async (schoolId: string) => {
     try {
-      const { error } = await supabase
+      console.log("Attempting to delete school with ID:", schoolId);
+      
+      // First check if there are any children associated with this school
+      const { data: children, error: checkError } = await supabase
+        .from('children')
+        .select('id')
+        .eq('school_id', schoolId);
+
+      if (checkError) {
+        console.error('Error checking children:', checkError);
+        throw checkError;
+      }
+
+      if (children && children.length > 0) {
+        toast.error('No se puede eliminar el colegio porque tiene niños asociados');
+        setSchoolToDelete(null);
+        return;
+      }
+
+      const { error: deleteError } = await supabase
         .from('schools')
         .delete()
         .eq('id', schoolId);
 
-      if (error) throw error;
-      
+      if (deleteError) {
+        console.error('Error deleting school:', deleteError);
+        throw deleteError;
+      }
+
       // Invalidate and refetch schools query after successful deletion
       await queryClient.invalidateQueries({ queryKey: ["schools"] });
       
