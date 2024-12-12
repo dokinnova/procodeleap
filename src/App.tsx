@@ -10,6 +10,10 @@ import Sponsors from "./pages/Sponsors";
 import Management from "./pages/Management";
 import Schools from "./pages/Schools";
 import Configuration from "./pages/Configuration";
+import ChildrenReport from "./pages/reports/ChildrenReport";
+import SponsorsReport from "./pages/reports/SponsorsReport";
+import SchoolsReport from "./pages/reports/SchoolsReport";
+import SponsorshipsReport from "./pages/reports/SponsorshipsReport";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -32,6 +36,10 @@ const App = () => (
                   <Route path="/management" element={<Management />} />
                   <Route path="/schools" element={<Schools />} />
                   <Route path="/configuration" element={<Configuration />} />
+                  <Route path="/reports/children" element={<ChildrenReport />} />
+                  <Route path="/reports/sponsors" element={<SponsorsReport />} />
+                  <Route path="/reports/schools" element={<SchoolsReport />} />
+                  <Route path="/reports/sponsorships" element={<SponsorshipsReport />} />
                 </Routes>
               </div>
             </main>
