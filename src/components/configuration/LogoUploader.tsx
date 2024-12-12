@@ -61,7 +61,7 @@ export const LogoUploader = ({ currentLogo }: LogoUploaderProps) => {
   return (
     <div className="space-y-4">
       {currentLogo && (
-        <div className="w-32 h-32">
+        <div className="w-32 h-32 bg-gray-900 rounded-lg flex items-center justify-center p-4">
           <img
             src={currentLogo}
             alt="Logo actual"
