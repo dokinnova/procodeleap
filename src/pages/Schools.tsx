@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { School, Search } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,6 +29,7 @@ interface School {
 }
 
 const Schools = () => {
+  const queryClient = useQueryClient();
   const [selectedSchool, setSelectedSchool] = useState<School | null>(null);
   const [search, setSearch] = useState("");
   const [formData, setFormData] = useState({
@@ -44,7 +45,7 @@ const Schools = () => {
   };
 
   // Fetch schools data
-  const { data: schools = [], isLoading, error, refetch } = useQuery({
+  const { data: schools = [], isLoading, error } = useQuery({
     queryKey: ["schools"],
     queryFn: async () => {
       const { data, error } = await supabase.from("schools").select("*");
@@ -52,6 +53,50 @@ const Schools = () => {
       return data as School[];
     },
   });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.name.trim()) {
+      toast.error("El nombre del colegio es requerido");
+      return;
+    }
+
+    try {
+      if (selectedSchool) {
+        // Actualizar colegio existente
+        const { error } = await supabase
+          .from("schools")
+          .update({
+            name: formData.name,
+            address: formData.address
+          })
+          .eq('id', selectedSchool.id);
+
+        if (error) throw error;
+        toast.success("Colegio actualizado exitosamente");
+      } else {
+        // Insertar nuevo colegio
+        const { error } = await supabase
+          .from("schools")
+          .insert([{
+            name: formData.name,
+            address: formData.address
+          }]);
+
+        if (error) throw error;
+        toast.success("Colegio registrado exitosamente");
+      }
+
+      // Limpiar formulario y actualizar datos
+      setFormData({ name: '', address: '' });
+      setSelectedSchool(null);
+      queryClient.invalidateQueries({ queryKey: ["schools"] });
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("Error al procesar la operación");
+    }
+  };
 
   const filteredSchools = schools.filter(school =>
     school.name.toLowerCase().includes(search.toLowerCase())
@@ -98,7 +143,7 @@ const Schools = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Nombre del colegio</Label>
               <Input
@@ -121,7 +166,14 @@ const Schools = () => {
 
             <div className="flex justify-end gap-2">
               {selectedSchool && (
-                <Button variant="outline" onClick={() => setSelectedSchool(null)}>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => {
+                    setSelectedSchool(null);
+                    setFormData({ name: '', address: '' });
+                  }}
+                >
                   Cancelar
                 </Button>
               )}
@@ -157,7 +209,13 @@ const Schools = () => {
                 <TableRow 
                   key={school.id} 
                   className="hover:bg-gray-50 cursor-pointer"
-                  onClick={() => setSelectedSchool(school)}
+                  onClick={() => {
+                    setSelectedSchool(school);
+                    setFormData({
+                      name: school.name,
+                      address: school.address || ''
+                    });
+                  }}
                 >
                   <TableCell className="font-medium">{school.name}</TableCell>
                   <TableCell>{school.address || "No disponible"}</TableCell>
