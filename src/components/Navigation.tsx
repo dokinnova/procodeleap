@@ -1,16 +1,37 @@
 import { Link, useLocation } from "react-router-dom";
 import { Users, UserPlus, Settings, School } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const Navigation = () => {
   const location = useLocation();
   const isActive = (path: string) => location.pathname === path;
 
+  const { data: siteSettings } = useQuery({
+    queryKey: ["site-settings"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("site_settings")
+        .select("*")
+        .single();
+      if (error) throw error;
+      return data;
+    },
+  });
+
   return (
     <div className="flex h-screen">
       <div className="w-64 bg-gray-900 text-white fixed h-full">
-        <div className="p-4 border-b border-gray-800">
-          <Link to="/" className="text-xl font-bold text-primary hover:opacity-80 transition-opacity">
+        <div className="p-4 border-b border-gray-800 flex items-center gap-2">
+          <Link to="/" className="text-xl font-bold text-primary hover:opacity-80 transition-opacity flex items-center gap-2">
             PROCODELI
+            {siteSettings?.logo_url && (
+              <img 
+                src={siteSettings.logo_url} 
+                alt="Logo" 
+                className="w-8 h-8 object-contain"
+              />
+            )}
           </Link>
         </div>
         <nav className="mt-6">
