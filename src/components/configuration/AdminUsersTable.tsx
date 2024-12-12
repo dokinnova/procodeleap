@@ -76,7 +76,7 @@ export const AdminUsersTable = () => {
               </Button>
             </TableCell>
           </TableRow>
-        )TableBody>
+        ))}
       </TableBody>
     </Table>
   );
