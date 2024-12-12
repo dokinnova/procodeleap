@@ -11,21 +11,29 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useState } from "react";
 
 export const AdminUsersTable = () => {
   const queryClient = useQueryClient();
+  const [userToDelete, setUserToDelete] = useState<string | null>(null);
 
   const { data: adminUsers, isLoading } = useQuery({
     queryKey: ["admin-users"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("admin_users")
-        .select(`
-          *,
-          user:user_id (
-            email
-          )
-        `);
+        .select("*");
       if (error) throw error;
       return data;
     },
@@ -42,9 +50,11 @@ export const AdminUsersTable = () => {
     onSuccess: () => {
       toast.success("Administrador eliminado correctamente");
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      setUserToDelete(null);
     },
     onError: (error) => {
       toast.error("Error al eliminar administrador: " + error.message);
+      setUserToDelete(null);
     },
   });
 
@@ -64,16 +74,34 @@ export const AdminUsersTable = () => {
       <TableBody>
         {adminUsers?.map((admin) => (
           <TableRow key={admin.id}>
-            <TableCell>{admin.user?.email}</TableCell>
+            <TableCell>{admin.email}</TableCell>
             <TableCell>{admin.role}</TableCell>
             <TableCell>
-              <Button
-                variant="destructive"
-                size="icon"
-                onClick={() => deleteAdminMutation.mutate(admin.user_id)}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              <AlertDialog open={userToDelete === admin.user_id} onOpenChange={(isOpen) => !isOpen && setUserToDelete(null)}>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="destructive"
+                    size="icon"
+                    onClick={() => setUserToDelete(admin.user_id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Esta acción no se puede deshacer. Se eliminará el administrador permanentemente.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => deleteAdminMutation.mutate(admin.user_id)}>
+                      Eliminar
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </TableCell>
           </TableRow>
         ))}
