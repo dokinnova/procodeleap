@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { CreditCard, Banknote, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 
 interface PaymentMethod {
   id: string;
@@ -7,6 +7,7 @@ interface PaymentMethod {
   bank_name?: string;
   account_number?: string;
   card_last_four?: string;
+  paypal_email?: string;
   is_default?: boolean;
 }
 
@@ -25,19 +26,11 @@ export const PaymentMethodsList = ({ paymentMethods, onDelete }: PaymentMethodsL
           className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
         >
           <div>
-            <p className="font-medium flex items-center gap-2">
-              {method.method === "bank_transfer" && (
-                <>
-                  <Banknote className="h-4 w-4" />
-                  <span>Transferencia bancaria</span>
-                </>
-              )}
-              {method.method === "credit_card" && (
-                <>
-                  <CreditCard className="h-4 w-4" />
-                  <span>Tarjeta de crédito</span>
-                </>
-              )}
+            <p className="font-medium">
+              {method.method === "bank_transfer" && "Transferencia bancaria"}
+              {method.method === "credit_card" && "Tarjeta de crédito"}
+              {method.method === "paypal" && "PayPal"}
+              {method.method === "cash" && "Efectivo"}
               {method.is_default && (
                 <span className="ml-2 text-sm text-primary">(Principal)</span>
               )}
@@ -55,6 +48,11 @@ export const PaymentMethodsList = ({ paymentMethods, onDelete }: PaymentMethodsL
             {method.card_last_four && (
               <p className="text-sm text-gray-600">
                 Tarjeta: ****{method.card_last_four}
+              </p>
+            )}
+            {method.paypal_email && (
+              <p className="text-sm text-gray-600">
+                Email: {method.paypal_email}
               </p>
             )}
           </div>

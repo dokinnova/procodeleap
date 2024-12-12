@@ -9,14 +9,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CreditCard, Banknote } from "lucide-react";
 
 interface PaymentMethodFormProps {
-  onSubmit: (data: {
+  onSubmit: (formData: {
     method: string;
     bankName?: string;
     accountNumber?: string;
     cardLastFour?: string;
+    paypalEmail?: string;
   }) => void;
 }
 
@@ -25,6 +25,7 @@ export const PaymentMethodForm = ({ onSubmit }: PaymentMethodFormProps) => {
   const [bankName, setBankName] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const [cardLastFour, setCardLastFour] = useState("");
+  const [paypalEmail, setPaypalEmail] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,6 +34,7 @@ export const PaymentMethodForm = ({ onSubmit }: PaymentMethodFormProps) => {
       bankName: selectedMethod === "bank_transfer" ? bankName : undefined,
       accountNumber: selectedMethod === "bank_transfer" ? accountNumber : undefined,
       cardLastFour: selectedMethod === "credit_card" ? cardLastFour : undefined,
+      paypalEmail: selectedMethod === "paypal" ? paypalEmail : undefined,
     });
 
     // Reset form
@@ -40,6 +42,59 @@ export const PaymentMethodForm = ({ onSubmit }: PaymentMethodFormProps) => {
     setBankName("");
     setAccountNumber("");
     setCardLastFour("");
+    setPaypalEmail("");
+  };
+
+  const renderPaymentMethodFields = () => {
+    switch (selectedMethod) {
+      case "bank_transfer":
+        return (
+          <>
+            <div className="space-y-2">
+              <Label>Nombre del banco</Label>
+              <Input
+                value={bankName}
+                onChange={(e) => setBankName(e.target.value)}
+                placeholder="Nombre del banco"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Número de cuenta</Label>
+              <Input
+                value={accountNumber}
+                onChange={(e) => setAccountNumber(e.target.value)}
+                placeholder="Número de cuenta"
+              />
+            </div>
+          </>
+        );
+      case "credit_card":
+        return (
+          <div className="space-y-2">
+            <Label>Últimos 4 dígitos</Label>
+            <Input
+              value={cardLastFour}
+              onChange={(e) => setCardLastFour(e.target.value)}
+              placeholder="Últimos 4 dígitos"
+              maxLength={4}
+            />
+          </div>
+        );
+      case "paypal":
+        return (
+          <div className="space-y-2">
+            <Label>Email de PayPal</Label>
+            <Input
+              type="email"
+              value={paypalEmail}
+              onChange={(e) => setPaypalEmail(e.target.value)}
+              placeholder="Email de PayPal"
+            />
+          </div>
+        );
+      default:
+        return null;
+    }
   };
 
   return (
@@ -51,54 +106,15 @@ export const PaymentMethodForm = ({ onSubmit }: PaymentMethodFormProps) => {
             <SelectValue placeholder="Selecciona un método de pago" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="bank_transfer" className="flex items-center gap-2">
-              <div className="flex items-center gap-2">
-                <Banknote className="h-4 w-4" />
-                <span>Transferencia bancaria</span>
-              </div>
-            </SelectItem>
-            <SelectItem value="credit_card" className="flex items-center gap-2">
-              <div className="flex items-center gap-2">
-                <CreditCard className="h-4 w-4" />
-                <span>Tarjeta de crédito</span>
-              </div>
-            </SelectItem>
+            <SelectItem value="bank_transfer">Transferencia bancaria</SelectItem>
+            <SelectItem value="credit_card">Tarjeta de crédito</SelectItem>
+            <SelectItem value="paypal">PayPal</SelectItem>
+            <SelectItem value="cash">Efectivo</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
-      {selectedMethod === "bank_transfer" && (
-        <>
-          <div className="space-y-2">
-            <Label>Nombre del banco</Label>
-            <Input
-              value={bankName}
-              onChange={(e) => setBankName(e.target.value)}
-              placeholder="Nombre del banco"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Número de cuenta</Label>
-            <Input
-              value={accountNumber}
-              onChange={(e) => setAccountNumber(e.target.value)}
-              placeholder="Número de cuenta"
-            />
-          </div>
-        </>
-      )}
-
-      {selectedMethod === "credit_card" && (
-        <div className="space-y-2">
-          <Label>Últimos 4 dígitos</Label>
-          <Input
-            value={cardLastFour}
-            onChange={(e) => setCardLastFour(e.target.value)}
-            placeholder="Últimos 4 dígitos"
-            maxLength={4}
-          />
-        </div>
-      )}
+      {renderPaymentMethodFields()}
 
       <Button type="submit" className="w-full">
         Agregar método de pago
