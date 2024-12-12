@@ -32,28 +32,39 @@ export const useDeleteSchool = () => {
 
       // Procedemos con la eliminación
       console.log('Ejecutando eliminación en Supabase...');
-      const { error: deleteError, data } = await supabase
+      const { error: deleteError } = await supabase
         .from('schools')
         .delete()
-        .eq('id', schoolId)
-        .select();
+        .match({ id: schoolId }); // Usamos match para ser más específicos
 
       if (deleteError) {
         console.error('Error en la eliminación:', deleteError);
         throw deleteError;
       }
 
-      console.log('Respuesta de eliminación:', data);
+      // Verificamos que el registro se haya eliminado
+      const { data: checkDeleted } = await supabase
+        .from('schools')
+        .select()
+        .eq('id', schoolId)
+        .single();
 
-      // Invalidamos la caché y actualizamos la UI
+      if (checkDeleted) {
+        console.error('El registro sigue existiendo después de la eliminación');
+        throw new Error('No se pudo eliminar el registro');
+      }
+
+      // Forzamos la actualización de la caché
       await queryClient.invalidateQueries({ queryKey: ["schools"] });
-      console.log('Cache invalidada');
+      queryClient.removeQueries({ queryKey: ["schools"] });
       
+      console.log('Registro eliminado y caché actualizada');
       toast.success('Colegio eliminado exitosamente');
       setSchoolToDelete(null);
     } catch (error) {
       console.error('Error en el proceso de eliminación:', error);
       toast.error('Error al eliminar el colegio');
+      setSchoolToDelete(null);
     }
   };
 
