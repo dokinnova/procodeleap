@@ -2,6 +2,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+
+interface School {
+  id: string;
+  name: string;
+  address: string | null;
+}
 
 interface Child {
   id: string;
@@ -19,6 +28,20 @@ interface ChildFormProps {
 }
 
 export const ChildForm = ({ selectedChild, setSelectedChild }: ChildFormProps) => {
+  // Fetch schools data
+  const { data: schools = [] } = useQuery({
+    queryKey: ['schools'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('schools')
+        .select('*')
+        .order('name');
+      
+      if (error) throw error;
+      return data as School[];
+    }
+  });
+
   return (
     <Card>
       <CardHeader>
@@ -62,6 +85,22 @@ export const ChildForm = ({ selectedChild, setSelectedChild }: ChildFormProps) =
               value={selectedChild?.location || ''}
               onChange={() => {}}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="school">Colegio</Label>
+            <Select value={selectedChild?.school_id || ''} onValueChange={() => {}}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecciona un colegio" />
+              </SelectTrigger>
+              <SelectContent>
+                {schools.map((school) => (
+                  <SelectItem key={school.id} value={school.id}>
+                    {school.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
