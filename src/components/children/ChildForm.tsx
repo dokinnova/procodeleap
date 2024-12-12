@@ -91,6 +91,9 @@ export const ChildForm = ({ selectedChild, setSelectedChild }: ChildFormProps) =
               placeholder="Edad"
               value={formData.age}
               onChange={(e) => handleInputChange('age', parseInt(e.target.value) || 0)}
+              className="w-20" // Changed this line to make the input shorter
+              min="0"
+              max="999"
             />
           </div>
 
