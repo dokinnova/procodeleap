@@ -9,6 +9,7 @@ import Children from "./pages/Children";
 import Sponsors from "./pages/Sponsors";
 import Management from "./pages/Management";
 import Schools from "./pages/Schools";
+import Configuration from "./pages/Configuration";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ const App = () => (
                 <Route path="/sponsors" element={<Sponsors />} />
                 <Route path="/management" element={<Management />} />
                 <Route path="/schools" element={<Schools />} />
+                <Route path="/configuration" element={<Configuration />} />
               </Routes>
             </main>
           </div>

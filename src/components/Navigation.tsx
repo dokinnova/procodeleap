@@ -7,7 +7,6 @@ const Navigation = () => {
 
   return (
     <div className="flex h-screen">
-      {/* Sidebar */}
       <div className="w-64 bg-gray-900 text-white fixed h-full">
         <div className="p-4 border-b border-gray-800">
           <Link to="/" className="text-xl font-bold text-primary hover:opacity-80 transition-opacity">
@@ -50,6 +49,15 @@ const Navigation = () => {
           >
             <Settings className="w-5 h-5 mr-3" />
             <span>Gestión</span>
+          </Link>
+          <Link
+            to="/configuration"
+            className={`flex items-center px-6 py-3 hover:bg-gray-800 transition-colors ${
+              isActive("/configuration") ? "bg-gray-800 border-l-4 border-primary" : ""
+            }`}
+          >
+            <Settings className="w-5 h-5 mr-3" />
+            <span>Configuración</span>
           </Link>
         </nav>
       </div>
