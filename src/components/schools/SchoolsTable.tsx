@@ -23,6 +23,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface SchoolsTableProps {
   schools: School[];
@@ -38,6 +39,7 @@ export const SchoolsTable = ({
   onSelectSchool,
 }: SchoolsTableProps) => {
   const [schoolToDelete, setSchoolToDelete] = useState<School | null>(null);
+  const queryClient = useQueryClient();
 
   const filteredSchools = schools.filter(school =>
     school.name.toLowerCase().includes(search.toLowerCase())
@@ -52,9 +54,11 @@ export const SchoolsTable = ({
 
       if (error) throw error;
       
+      // Invalidate and refetch schools query after successful deletion
+      await queryClient.invalidateQueries({ queryKey: ["schools"] });
+      
       toast.success('Colegio eliminado exitosamente');
       setSchoolToDelete(null);
-      // La tabla se actualizará automáticamente gracias a React Query
     } catch (error) {
       console.error('Error:', error);
       toast.error('Error al eliminar el colegio');
