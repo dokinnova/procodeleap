@@ -118,6 +118,47 @@ export type Database = {
           },
         ]
       }
+      receipts: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          month: number
+          payment_date: string | null
+          sponsorship_id: string
+          status: Database["public"]["Enums"]["receipt_status"] | null
+          year: number
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          month: number
+          payment_date?: string | null
+          sponsorship_id: string
+          status?: Database["public"]["Enums"]["receipt_status"] | null
+          year: number
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          month?: number
+          payment_date?: string | null
+          sponsorship_id?: string
+          status?: Database["public"]["Enums"]["receipt_status"] | null
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "receipts_sponsorship_id_fkey"
+            columns: ["sponsorship_id"]
+            isOneToOne: false
+            referencedRelation: "sponsorships"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       schools: {
         Row: {
           address: string | null
@@ -235,6 +276,7 @@ export type Database = {
     }
     Enums: {
       payment_method: "bank_transfer" | "credit_card" | "paypal" | "cash"
+      receipt_status: "pending" | "paid" | "cancelled"
       user_role: "admin" | "editor" | "viewer"
     }
     CompositeTypes: {

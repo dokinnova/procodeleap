@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { DeleteSponsorshipButton } from "./DeleteSponsorshipButton";
+import { GenerateReceiptButton } from "./GenerateReceiptButton";
 import { Child, Sponsor } from "@/types";
 
 interface FormActionsProps {
@@ -21,11 +22,18 @@ export const FormActions = ({
 }: FormActionsProps) => (
   <div className="flex justify-end gap-2">
     {existingSponsorship && (
-      <DeleteSponsorshipButton
-        selectedChild={selectedChild}
-        selectedSponsor={selectedSponsor}
-        onDelete={onDelete}
-      />
+      <>
+        <DeleteSponsorshipButton
+          selectedChild={selectedChild}
+          selectedSponsor={selectedSponsor}
+          onDelete={onDelete}
+        />
+        <GenerateReceiptButton
+          selectedChild={selectedChild}
+          selectedSponsor={selectedSponsor}
+          existingSponsorship={existingSponsorship}
+        />
+      </>
     )}
     <Button variant="outline" onClick={onClose} type="button">
       Cancelar
