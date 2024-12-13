@@ -51,15 +51,16 @@ const Receipts = () => {
       setIsGenerating(true);
       
       // Check if a receipt already exists for this month and year
-      const { data: existingReceipt } = await supabase
+      const { data: existingReceipts, error: queryError } = await supabase
         .from("receipts")
         .select("*")
         .eq("sponsorship_id", sponsorship.id)
         .eq("month", currentMonth)
-        .eq("year", currentYear)
-        .single();
+        .eq("year", currentYear);
 
-      if (existingReceipt) {
+      if (queryError) throw queryError;
+
+      if (existingReceipts && existingReceipts.length > 0) {
         toast({
           title: "Aviso",
           description: "Ya existe un recibo generado para este mes",
@@ -68,7 +69,7 @@ const Receipts = () => {
       }
 
       // Create new receipt
-      const { error } = await supabase
+      const { error: insertError } = await supabase
         .from("receipts")
         .insert([
           {
@@ -79,7 +80,7 @@ const Receipts = () => {
           },
         ]);
 
-      if (error) throw error;
+      if (insertError) throw insertError;
 
       toast({
         title: "Éxito",
