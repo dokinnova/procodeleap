@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Users, UserPlus, School, Link } from "lucide-react";
+import { Users, UserPlus, School, Link, Receipt } from "lucide-react";
 import { Link as RouterLink } from "react-router-dom";
 
 const Index = () => {
@@ -83,6 +83,25 @@ const Index = () => {
                 <h3 className="text-lg font-semibold">Gestión de Apadrinamientos</h3>
                 <p className="text-sm text-muted-foreground mt-1">
                   Administra los vínculos entre padrinos y niños
+                </p>
+              </div>
+            </div>
+          </Button>
+        </RouterLink>
+
+        <RouterLink to="/receipts" className="w-full">
+          <Button
+            variant="outline"
+            className="w-full h-auto p-6 hover:shadow-lg transition-all duration-200 hover:-translate-y-1"
+          >
+            <div className="flex flex-col items-center space-y-4">
+              <div className="p-3 bg-secondary/20 rounded-full">
+                <Receipt className="w-8 h-8 text-secondary-foreground" />
+              </div>
+              <div className="text-center">
+                <h3 className="text-lg font-semibold">Gestión de Recibos</h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Administra los recibos y pagos
                 </p>
               </div>
             </div>
