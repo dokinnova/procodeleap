@@ -1,15 +1,38 @@
 import { Card } from "@/components/ui/card";
-import { Users, UserPlus, School } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Users, UserPlus, School, Plus, FileText, Settings } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Index = () => {
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight">Panel de Control</h2>
-        <p className="text-muted-foreground">
-          Bienvenido al sistema de gestión de PROCODELI
-        </p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Panel de Control</h2>
+          <p className="text-muted-foreground">
+            Bienvenido al sistema de gestión de PROCODELI
+          </p>
+        </div>
+        <div className="flex gap-3">
+          <Link to="/management">
+            <Button className="bg-primary hover:bg-primary/90">
+              <Plus className="w-4 h-4 mr-2" />
+              Nuevo Apadrinamiento
+            </Button>
+          </Link>
+          <Link to="/receipts">
+            <Button variant="secondary">
+              <FileText className="w-4 h-4 mr-2" />
+              Generar Recibos
+            </Button>
+          </Link>
+          <Link to="/configuration">
+            <Button variant="outline">
+              <Settings className="w-4 h-4 mr-2" />
+              Configuración
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
