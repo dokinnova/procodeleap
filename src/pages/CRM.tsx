@@ -13,6 +13,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 
@@ -20,6 +26,11 @@ const CRM = () => {
   const [emailSubject, setEmailSubject] = useState("");
   const [emailContent, setEmailContent] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const [selectedEmail, setSelectedEmail] = useState<null | {
+    subject: string;
+    content: string;
+    sent_at: string;
+  }>(null);
   const { toast } = useToast();
 
   const { data: emailBatches, refetch: refetchEmailBatches } = useQuery({
@@ -155,7 +166,15 @@ const CRM = () => {
             </TableHeader>
             <TableBody>
               {emailBatches?.map((batch, index) => (
-                <TableRow key={batch.id}>
+                <TableRow 
+                  key={batch.id}
+                  className="cursor-pointer hover:bg-gray-50"
+                  onClick={() => setSelectedEmail({
+                    subject: batch.subject,
+                    content: batch.content,
+                    sent_at: batch.sent_at || batch.created_at,
+                  })}
+                >
                   <TableCell>{emailBatches.length - index}</TableCell>
                   <TableCell>
                     {format(new Date(batch.created_at), "dd/MM/yyyy HH:mm")}
@@ -187,6 +206,22 @@ const CRM = () => {
           </Table>
         </div>
       </div>
+
+      <Dialog open={!!selectedEmail} onOpenChange={() => setSelectedEmail(null)}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl">
+              {selectedEmail?.subject}
+            </DialogTitle>
+            <div className="text-sm text-muted-foreground mt-1">
+              Enviado el {selectedEmail && format(new Date(selectedEmail.sent_at), "dd/MM/yyyy HH:mm")}
+            </div>
+          </DialogHeader>
+          <div className="mt-4 whitespace-pre-wrap">
+            {selectedEmail?.content}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
