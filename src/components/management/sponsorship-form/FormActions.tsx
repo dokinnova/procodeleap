@@ -6,7 +6,7 @@ interface FormActionsProps {
   existingSponsorship: any;
   isSubmitting: boolean;
   onClose: () => void;
-  onDelete: () => void;
+  onDelete: () => Promise<void>;
   selectedChild: Child | null;
   selectedSponsor: Sponsor | null;
 }
