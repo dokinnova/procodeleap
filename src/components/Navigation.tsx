@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Users, UserPlus, Settings, School, FileText, BarChart2 } from "lucide-react";
+import { Users, UserPlus, Settings, School, FileText, BarChart2, Receipt } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -78,6 +78,17 @@ const Navigation = () => {
           >
             <Settings className="w-5 h-5 mr-3" />
             <span className="font-medium">Gestión</span>
+          </Link>
+          <Link
+            to="/receipts"
+            className={`flex items-center px-4 py-3 mb-2 rounded-lg transition-colors ${
+              isActive("/receipts") 
+                ? "bg-primary/10 text-primary" 
+                : "text-gray-600 hover:bg-white/50"
+            }`}
+          >
+            <Receipt className="w-5 h-5 mr-3" />
+            <span className="font-medium">Recibos</span>
           </Link>
 
           {/* Reports Section */}
