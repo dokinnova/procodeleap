@@ -15,6 +15,8 @@ export const PaymentMethodsManager = ({ sponsorId }: PaymentMethodsManagerProps)
   const { data: paymentMethods = [] } = useQuery({
     queryKey: ["payment-methods", sponsorId],
     queryFn: async () => {
+      if (!sponsorId) return [];
+      
       const { data } = await supabase
         .from("payment_methods")
         .select("*")
@@ -22,6 +24,7 @@ export const PaymentMethodsManager = ({ sponsorId }: PaymentMethodsManagerProps)
         .order("created_at", { ascending: false });
       return data || [];
     },
+    enabled: Boolean(sponsorId), // Only run query when sponsorId exists
   });
 
   const handleSubmit = async (formData: {
@@ -30,6 +33,15 @@ export const PaymentMethodsManager = ({ sponsorId }: PaymentMethodsManagerProps)
     accountNumber?: string;
     cardLastFour?: string;
   }) => {
+    if (!sponsorId) {
+      toast({
+        title: "Error",
+        description: "Por favor selecciona un padrino primero",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!formData.method) {
       toast({
         title: "Error",
@@ -76,6 +88,8 @@ export const PaymentMethodsManager = ({ sponsorId }: PaymentMethodsManagerProps)
   };
 
   const handleDelete = async (id: string) => {
+    if (!sponsorId) return;
+
     try {
       const { error } = await supabase
         .from("payment_methods")
@@ -99,6 +113,16 @@ export const PaymentMethodsManager = ({ sponsorId }: PaymentMethodsManagerProps)
       });
     }
   };
+
+  if (!sponsorId) {
+    return (
+      <div className="space-y-6">
+        <div className="p-4 text-center text-gray-500 bg-gray-50 rounded-lg">
+          Selecciona un padrino para gestionar sus métodos de pago
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
