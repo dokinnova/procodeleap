@@ -9,7 +9,7 @@ import { useState } from "react";
 
 const SponsorsReport = () => {
   const [search, setSearch] = useState("");
-  const [contributionFilter, setContributionFilter] = useState("");
+  const [contributionFilter, setContributionFilter] = useState("all");
 
   const { data: sponsors = [], isLoading } = useQuery({
     queryKey: ["sponsors-report"],
@@ -35,7 +35,7 @@ const SponsorsReport = () => {
     const matchesSearch = sponsor.name.toLowerCase().includes(search.toLowerCase()) ||
                          sponsor.email.toLowerCase().includes(search.toLowerCase());
     
-    if (!contributionFilter) return matchesSearch;
+    if (contributionFilter === "all") return matchesSearch;
     
     const range = contributionRanges.find(r => r.label === contributionFilter);
     const matchesContribution = range && 
@@ -85,7 +85,7 @@ const SponsorsReport = () => {
               <SelectValue placeholder="Filtrar por contribución" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todas las contribuciones</SelectItem>
+              <SelectItem value="all">Todas las contribuciones</SelectItem>
               {contributionRanges.map((range) => (
                 <SelectItem key={range.label} value={range.label}>
                   {range.label}
