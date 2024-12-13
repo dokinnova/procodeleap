@@ -11,6 +11,7 @@ import Management from "./pages/Management";
 import Schools from "./pages/Schools";
 import Configuration from "./pages/Configuration";
 import Receipts from "./pages/Receipts";
+import CRM from "./pages/CRM";
 import ChildrenReport from "./pages/reports/ChildrenReport";
 import SponsorsReport from "./pages/reports/SponsorsReport";
 import SchoolsReport from "./pages/reports/SchoolsReport";
@@ -48,6 +49,7 @@ const App = () => {
                     <Route path="/schools" element={<Schools />} />
                     <Route path="/configuration" element={<Configuration />} />
                     <Route path="/receipts" element={<Receipts />} />
+                    <Route path="/crm" element={<CRM />} />
                     <Route path="/reports/children" element={<ChildrenReport />} />
                     <Route path="/reports/sponsors" element={<SponsorsReport />} />
                     <Route path="/reports/schools" element={<SchoolsReport />} />
