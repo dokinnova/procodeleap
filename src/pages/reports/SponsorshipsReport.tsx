@@ -9,7 +9,7 @@ import { useState } from "react";
 
 const SponsorshipsReport = () => {
   const [search, setSearch] = useState("");
-  const [dateFilter, setDateFilter] = useState("");
+  const [dateFilter, setDateFilter] = useState("all");
 
   const { data: sponsorships = [], isLoading } = useQuery({
     queryKey: ["sponsorships-report"],
@@ -47,7 +47,7 @@ const SponsorshipsReport = () => {
       sponsorship.child?.name.toLowerCase().includes(search.toLowerCase()) ||
       sponsorship.sponsor?.name.toLowerCase().includes(search.toLowerCase());
 
-    if (!dateFilter) return matchesSearch;
+    if (dateFilter === "all") return matchesSearch;
 
     const range = dateRanges.find(r => r.label === dateFilter);
     if (!range) return matchesSearch;
@@ -97,7 +97,7 @@ const SponsorshipsReport = () => {
               <SelectValue placeholder="Filtrar por fecha" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todas las fechas</SelectItem>
+              <SelectItem value="all">Todas las fechas</SelectItem>
               {dateRanges.map((range) => (
                 <SelectItem key={range.label} value={range.label}>
                   {range.label}
