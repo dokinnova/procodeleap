@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { SponsorForm } from "@/components/sponsors/SponsorForm";
 import { SponsorsTable } from "@/components/sponsors/SponsorsTable";
+import { PaymentMethodsManager } from "@/components/sponsors/payment-methods/PaymentMethodsManager";
 import { Sponsor } from "@/types";
 
 const Sponsors = () => {
@@ -11,6 +12,7 @@ const Sponsors = () => {
   const [sponsors, setSponsors] = useState<Sponsor[]>([]);
   const [search, setSearch] = useState("");
   const [selectedSponsor, setSelectedSponsor] = useState<Sponsor | null>(null);
+  const [showPaymentMethods, setShowPaymentMethods] = useState(false);
 
   const loadSponsors = async () => {
     try {
@@ -88,6 +90,11 @@ const Sponsors = () => {
     }
   };
 
+  const handleSponsorSelect = (sponsor: Sponsor) => {
+    setSelectedSponsor(sponsor);
+    setShowPaymentMethods(true);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
@@ -98,14 +105,23 @@ const Sponsors = () => {
       <SponsorForm
         selectedSponsor={selectedSponsor}
         onSubmit={handleSubmit}
-        onCancel={() => setSelectedSponsor(null)}
+        onCancel={() => {
+          setSelectedSponsor(null);
+          setShowPaymentMethods(false);
+        }}
       />
+
+      {showPaymentMethods && selectedSponsor && (
+        <div className="mt-6">
+          <PaymentMethodsManager sponsorId={selectedSponsor.id} />
+        </div>
+      )}
 
       <SponsorsTable
         sponsors={sponsors}
         search={search}
         onSearchChange={setSearch}
-        onSponsorSelect={setSelectedSponsor}
+        onSponsorSelect={handleSponsorSelect}
       />
     </div>
   );
