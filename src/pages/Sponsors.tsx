@@ -118,11 +118,9 @@ const Sponsors = () => {
           </div>
         </div>
 
-        {selectedSponsor && (
-          <div className="lg:col-span-4">
-            <PaymentMethodsManager sponsorId={selectedSponsor.id} />
-          </div>
-        )}
+        <div className="lg:col-span-4">
+          <PaymentMethodsManager sponsorId={selectedSponsor?.id || ""} />
+        </div>
       </div>
     </div>
   );
