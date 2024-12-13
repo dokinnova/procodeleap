@@ -77,6 +77,36 @@ export type Database = {
           },
         ]
       }
+      email_batches: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          recipients_count: number
+          sent_at: string | null
+          status: Database["public"]["Enums"]["email_batch_status"] | null
+          subject: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          recipients_count: number
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["email_batch_status"] | null
+          subject: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          recipients_count?: number
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["email_batch_status"] | null
+          subject?: string
+        }
+        Relationships: []
+      }
       payment_methods: {
         Row: {
           account_number: string | null
@@ -278,6 +308,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      email_batch_status: "pending" | "sent" | "failed"
       payment_method: "bank_transfer" | "credit_card" | "paypal" | "cash"
       receipt_status: "pending" | "paid" | "cancelled"
       user_role: "admin" | "editor" | "viewer"
