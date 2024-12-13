@@ -12,7 +12,6 @@ const Sponsors = () => {
   const [sponsors, setSponsors] = useState<Sponsor[]>([]);
   const [search, setSearch] = useState("");
   const [selectedSponsor, setSelectedSponsor] = useState<Sponsor | null>(null);
-  const [showPaymentMethods, setShowPaymentMethods] = useState(false);
 
   const loadSponsors = async () => {
     try {
@@ -92,7 +91,6 @@ const Sponsors = () => {
 
   const handleSponsorSelect = (sponsor: Sponsor) => {
     setSelectedSponsor(sponsor);
-    setShowPaymentMethods(true);
   };
 
   return (
@@ -102,27 +100,30 @@ const Sponsors = () => {
         <h1 className="text-2xl font-bold text-gray-900">Padrinos Registrados</h1>
       </div>
 
-      <SponsorForm
-        selectedSponsor={selectedSponsor}
-        onSubmit={handleSubmit}
-        onCancel={() => {
-          setSelectedSponsor(null);
-          setShowPaymentMethods(false);
-        }}
-      />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="md:col-span-2">
+          <SponsorForm
+            selectedSponsor={selectedSponsor}
+            onSubmit={handleSubmit}
+            onCancel={() => setSelectedSponsor(null)}
+          />
 
-      {showPaymentMethods && selectedSponsor && (
-        <div className="mt-6">
-          <PaymentMethodsManager sponsorId={selectedSponsor.id} />
+          <div className="mt-6">
+            <SponsorsTable
+              sponsors={sponsors}
+              search={search}
+              onSearchChange={setSearch}
+              onSponsorSelect={handleSponsorSelect}
+            />
+          </div>
         </div>
-      )}
 
-      <SponsorsTable
-        sponsors={sponsors}
-        search={search}
-        onSearchChange={setSearch}
-        onSponsorSelect={handleSponsorSelect}
-      />
+        {selectedSponsor && (
+          <div className="md:col-span-1">
+            <PaymentMethodsManager sponsorId={selectedSponsor.id} />
+          </div>
+        )}
+      </div>
     </div>
   );
 };
