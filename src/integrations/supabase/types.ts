@@ -36,6 +36,7 @@ export type Database = {
       children: {
         Row: {
           age: number
+          birth_date: string
           created_at: string
           id: string
           image_url: string | null
@@ -46,6 +47,7 @@ export type Database = {
         }
         Insert: {
           age: number
+          birth_date: string
           created_at?: string
           id?: string
           image_url?: string | null
@@ -56,6 +58,7 @@ export type Database = {
         }
         Update: {
           age?: number
+          birth_date?: string
           created_at?: string
           id?: string
           image_url?: string | null

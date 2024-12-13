@@ -3,10 +3,12 @@ import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Child } from "@/types";
+import { format } from "date-fns";
 
 interface ChildFormData {
   name: string;
   age: number;
+  birth_date: string;
   location: string;
   story: string;
   school_id: string;
@@ -23,6 +25,7 @@ export const useChildForm = (
   const [formData, setFormData] = useState<ChildFormData>({
     name: '',
     age: 0,
+    birth_date: format(new Date(), 'yyyy-MM-dd'),
     location: '',
     story: '',
     school_id: '',
@@ -34,6 +37,7 @@ export const useChildForm = (
       setFormData({
         name: selectedChild.name,
         age: selectedChild.age,
+        birth_date: selectedChild.birth_date || format(new Date(), 'yyyy-MM-dd'),
         location: selectedChild.location,
         story: selectedChild.story || '',
         school_id: selectedChild.school_id || '',
@@ -43,6 +47,7 @@ export const useChildForm = (
       setFormData({
         name: '',
         age: 0,
+        birth_date: format(new Date(), 'yyyy-MM-dd'),
         location: '',
         story: '',
         school_id: '',
@@ -61,7 +66,7 @@ export const useChildForm = (
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.age || !formData.location) {
+    if (!formData.name || !formData.birth_date || !formData.location) {
       toast({
         title: "Error",
         description: "Por favor complete todos los campos requeridos",
@@ -77,6 +82,7 @@ export const useChildForm = (
           .update({
             name: formData.name,
             age: formData.age,
+            birth_date: formData.birth_date,
             location: formData.location,
             story: formData.story || null,
             school_id: formData.school_id || null,
@@ -96,6 +102,7 @@ export const useChildForm = (
           .insert([{
             name: formData.name,
             age: formData.age,
+            birth_date: formData.birth_date,
             location: formData.location,
             story: formData.story || null,
             school_id: formData.school_id || null,
@@ -112,6 +119,7 @@ export const useChildForm = (
         setFormData({
           name: '',
           age: 0,
+          birth_date: format(new Date(), 'yyyy-MM-dd'),
           location: '',
           story: '',
           school_id: '',

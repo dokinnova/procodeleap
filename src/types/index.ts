@@ -2,6 +2,7 @@ export interface Child {
   id: string;
   name: string;
   age: number;
+  birth_date: string;
   location: string;
   story: string | null;
   image_url: string | null;

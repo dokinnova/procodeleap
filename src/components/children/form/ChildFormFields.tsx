@@ -3,10 +3,12 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { School } from "@/types";
 import { PhotoUpload } from "../PhotoUpload";
+import { differenceInYears, parseISO } from "date-fns";
 
 interface ChildFormData {
   name: string;
   age: number;
+  birth_date: string;
   location: string;
   story: string;
   school_id: string;
@@ -20,6 +22,16 @@ interface ChildFormFieldsProps {
 }
 
 export const ChildFormFields = ({ formData, schools, onInputChange }: ChildFormFieldsProps) => {
+  const handleBirthDateChange = (value: string) => {
+    onInputChange('birth_date', value);
+    // Calculate age automatically when birth date changes
+    if (value) {
+      const birthDate = parseISO(value);
+      const age = differenceInYears(new Date(), birthDate);
+      onInputChange('age', age);
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div className="md:col-span-2">
@@ -44,31 +56,38 @@ export const ChildFormFields = ({ formData, schools, onInputChange }: ChildFormF
       </div>
       
       <div className="flex gap-4 items-start">
+        <div className="space-y-2 flex-1">
+          <Label htmlFor="birth_date">Fecha de nacimiento</Label>
+          <Input
+            id="birth_date"
+            type="date"
+            value={formData.birth_date}
+            onChange={(e) => handleBirthDateChange(e.target.value)}
+            required
+          />
+        </div>
+
         <div className="space-y-2 w-24">
           <Label htmlFor="age">Edad</Label>
           <Input
             id="age"
             type="number"
-            placeholder="Edad"
             value={formData.age}
-            onChange={(e) => onInputChange('age', parseInt(e.target.value) || 0)}
-            min="0"
-            max="999"
-            required
+            readOnly
+            className="bg-gray-100"
           />
         </div>
+      </div>
 
-        <div className="space-y-2 flex-1">
-          <Label htmlFor="location">Ubicación</Label>
-          <Input
-            id="location"
-            placeholder="Ubicación"
-            value={formData.location}
-            onChange={(e) => onInputChange('location', e.target.value)}
-            className="w-40"
-            required
-          />
-        </div>
+      <div className="space-y-2">
+        <Label htmlFor="location">Ubicación</Label>
+        <Input
+          id="location"
+          placeholder="Ubicación"
+          value={formData.location}
+          onChange={(e) => onInputChange('location', e.target.value)}
+          required
+        />
       </div>
 
       <div className="space-y-2">
