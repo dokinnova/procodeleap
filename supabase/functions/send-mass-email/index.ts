@@ -15,6 +15,7 @@ interface Recipient {
 
 interface EmailRequest {
   recipients: Recipient[];
+  subject: string;
   content: string;
 }
 
@@ -25,7 +26,7 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { recipients, content }: EmailRequest = await req.json();
+    const { recipients, subject, content }: EmailRequest = await req.json();
     
     // Send emails in parallel
     const emailPromises = recipients.map(recipient => 
@@ -38,7 +39,7 @@ const handler = async (req: Request): Promise<Response> => {
         body: JSON.stringify({
           from: "PROCODELI <no-reply@resend.dev>",
           to: [recipient.email],
-          subject: "Mensaje de PROCODELI",
+          subject: subject,
           html: `
             <div>
               <p>Hola ${recipient.name},</p>
