@@ -236,7 +236,7 @@ const Receipts = () => {
       </Card>
 
       <div className="grid gap-4">
-        <h3 className="text-lg font-semibold">Generar Nuevos Recibos</h3>
+        <h3 className="text-lg font-semibold">Generar recibos de padrinos activos</h3>
         {sponsorships.map((sponsorship: any) => (
           <Card key={sponsorship.id}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
