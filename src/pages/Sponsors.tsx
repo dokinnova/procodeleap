@@ -94,14 +94,14 @@ const Sponsors = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 container mx-auto px-4">
       <div className="flex items-center gap-3">
         <UserPlus className="h-8 w-8 text-primary" />
         <h1 className="text-2xl font-bold text-gray-900">Padrinos Registrados</h1>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-2">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="lg:col-span-8">
           <SponsorForm
             selectedSponsor={selectedSponsor}
             onSubmit={handleSubmit}
@@ -119,7 +119,7 @@ const Sponsors = () => {
         </div>
 
         {selectedSponsor && (
-          <div className="md:col-span-1">
+          <div className="lg:col-span-4">
             <PaymentMethodsManager sponsorId={selectedSponsor.id} />
           </div>
         )}
