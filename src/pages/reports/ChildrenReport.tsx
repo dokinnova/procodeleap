@@ -9,7 +9,7 @@ import { useState } from "react";
 
 const ChildrenReport = () => {
   const [search, setSearch] = useState("");
-  const [locationFilter, setLocationFilter] = useState("");
+  const [locationFilter, setLocationFilter] = useState("all");
 
   const { data: children = [], isLoading } = useQuery({
     queryKey: ["children-report"],
@@ -33,7 +33,7 @@ const ChildrenReport = () => {
 
   const filteredChildren = children.filter(child => {
     const matchesSearch = child.name.toLowerCase().includes(search.toLowerCase());
-    const matchesLocation = !locationFilter || child.location === locationFilter;
+    const matchesLocation = locationFilter === "all" || child.location === locationFilter;
     return matchesSearch && matchesLocation;
   });
 
@@ -77,7 +77,7 @@ const ChildrenReport = () => {
               <SelectValue placeholder="Filtrar por ubicación" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todas las ubicaciones</SelectItem>
+              <SelectItem value="all">Todas las ubicaciones</SelectItem>
               {uniqueLocations.map((location) => (
                 <SelectItem key={location} value={location}>
                   {location}
