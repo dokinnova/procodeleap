@@ -1,10 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
-import { FileText } from "lucide-react";
+import { FileText, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
 
 const SchoolsReport = () => {
+  const [search, setSearch] = useState("");
+
   const { data: schools = [], isLoading } = useQuery({
     queryKey: ["schools-report"],
     queryFn: async () => {
@@ -17,6 +21,11 @@ const SchoolsReport = () => {
       return data;
     },
   });
+
+  const filteredSchools = schools.filter(school => 
+    school.name.toLowerCase().includes(search.toLowerCase()) ||
+    (school.address && school.address.toLowerCase().includes(search.toLowerCase()))
+  );
 
   const handlePrint = () => {
     window.print();
@@ -42,6 +51,16 @@ const SchoolsReport = () => {
         </Button>
       </div>
 
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+        <Input
+          className="pl-10 bg-white"
+          placeholder="Buscar por nombre o dirección..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </div>
+
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <Table>
           <TableHeader>
@@ -51,12 +70,19 @@ const SchoolsReport = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {schools.map((school) => (
+            {filteredSchools.map((school) => (
               <TableRow key={school.id}>
                 <TableCell className="font-medium">{school.name}</TableCell>
                 <TableCell>{school.address || "No disponible"}</TableCell>
               </TableRow>
             ))}
+            {filteredSchools.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={2} className="text-center py-8 text-gray-500">
+                  No se encontraron colegios con los filtros seleccionados
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </div>
