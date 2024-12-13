@@ -51,6 +51,7 @@ export const EmailForm = ({ onEmailSent }: EmailFormProps) => {
 
       if (batchError) throw batchError;
 
+      // Invoke the Edge Function with the correct function name
       const { error } = await supabase.functions.invoke("send-mass-email", {
         body: {
           recipients: sponsors.map((s) => ({ email: s.email, name: s.name })),
@@ -82,6 +83,13 @@ export const EmailForm = ({ onEmailSent }: EmailFormProps) => {
         description: "No se pudieron enviar los emails",
         variant: "destructive",
       });
+
+      // Update batch status to failed if there was an error
+      await supabase
+        .from("email_batches")
+        .update({ status: "failed" })
+        .eq("subject", emailSubject)
+        .eq("content", emailContent);
     } finally {
       setIsSending(false);
     }
