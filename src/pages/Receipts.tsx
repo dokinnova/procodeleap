@@ -5,10 +5,31 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Receipt } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 const Receipts = () => {
   const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState<string>(
+    (new Date().getMonth() + 1).toString()
+  );
+  const [selectedYear, setSelectedYear] = useState<string>(
+    new Date().getFullYear().toString()
+  );
 
   const { data: sponsorships = [], isLoading: isLoadingSponsors } = useQuery({
     queryKey: ["sponsorships-with-details"],
@@ -32,6 +53,32 @@ const Receipts = () => {
       return data || [];
     },
   });
+
+  const { data: receipts = [] } = useQuery({
+    queryKey: ["receipts", selectedMonth, selectedYear],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("receipts")
+        .select(`
+          *,
+          sponsorship:sponsorships (
+            sponsor:sponsors (
+              name
+            ),
+            child:children (
+              name
+            )
+          )
+        `)
+        .eq("month", parseInt(selectedMonth))
+        .eq("year", parseInt(selectedYear));
+
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const totalAmount = receipts.reduce((sum, receipt) => sum + Number(receipt.amount), 0);
 
   const handleGenerateReceipt = async (sponsorship: any) => {
     if (!sponsorship.sponsor) {
@@ -98,6 +145,26 @@ const Receipts = () => {
     }
   };
 
+  const months = [
+    { value: "1", label: "Enero" },
+    { value: "2", label: "Febrero" },
+    { value: "3", label: "Marzo" },
+    { value: "4", label: "Abril" },
+    { value: "5", label: "Mayo" },
+    { value: "6", label: "Junio" },
+    { value: "7", label: "Julio" },
+    { value: "8", label: "Agosto" },
+    { value: "9", label: "Septiembre" },
+    { value: "10", label: "Octubre" },
+    { value: "11", label: "Noviembre" },
+    { value: "12", label: "Diciembre" },
+  ];
+
+  const years = Array.from({ length: 5 }, (_, i) => {
+    const year = new Date().getFullYear() - 2 + i;
+    return { value: year.toString(), label: year.toString() };
+  });
+
   return (
     <div className="space-y-6">
       <div>
@@ -107,7 +174,69 @@ const Receipts = () => {
         </p>
       </div>
 
+      <div className="flex gap-4">
+        <div className="w-[200px]">
+          <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+            <SelectTrigger>
+              <SelectValue placeholder="Selecciona mes" />
+            </SelectTrigger>
+            <SelectContent>
+              {months.map((month) => (
+                <SelectItem key={month.value} value={month.value}>
+                  {month.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="w-[200px]">
+          <Select value={selectedYear} onValueChange={setSelectedYear}>
+            <SelectTrigger>
+              <SelectValue placeholder="Selecciona año" />
+            </SelectTrigger>
+            <SelectContent>
+              {years.map((year) => (
+                <SelectItem key={year.value} value={year.value}>
+                  {year.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Recibos Emitidos</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Padrino</TableHead>
+                <TableHead>Niño</TableHead>
+                <TableHead className="text-right">Importe</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {receipts.map((receipt) => (
+                <TableRow key={receipt.id}>
+                  <TableCell>{receipt.sponsorship.sponsor.name}</TableCell>
+                  <TableCell>{receipt.sponsorship.child.name}</TableCell>
+                  <TableCell className="text-right">${receipt.amount}</TableCell>
+                </TableRow>
+              ))}
+              <TableRow>
+                <TableCell colSpan={2} className="font-bold">Total</TableCell>
+                <TableCell className="text-right font-bold">${totalAmount}</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
       <div className="grid gap-4">
+        <h3 className="text-lg font-semibold">Generar Nuevos Recibos</h3>
         {sponsorships.map((sponsorship: any) => (
           <Card key={sponsorship.id}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
