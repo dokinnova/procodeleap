@@ -37,7 +37,7 @@ const Sponsors = () => {
   }, []);
 
   const handleSubmit = async (formData: any) => {
-    if (!formData.name || !formData.email || !formData.contribution) {
+    if (!formData.name || !formData.email || !formData.contribution || !formData.status) {
       toast({
         variant: "destructive",
         title: "Error",
@@ -52,6 +52,7 @@ const Sponsors = () => {
         email: formData.email,
         phone: formData.phone,
         contribution: Number(formData.contribution),
+        status: formData.status,
       };
 
       let error;

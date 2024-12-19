@@ -22,4 +22,5 @@ export interface Sponsor {
   email: string;
   phone: string | null;
   contribution: number;
+  status: 'active' | 'inactive' | 'pending';
 }

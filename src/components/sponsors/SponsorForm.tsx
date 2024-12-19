@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sponsor } from "@/types";
 
 interface SponsorFormProps {
@@ -13,14 +14,17 @@ interface SponsorFormProps {
 }
 
 export const SponsorForm = ({ selectedSponsor, onSubmit, onCancel }: SponsorFormProps) => {
-  const { register, handleSubmit, reset } = useForm({
+  const { register, handleSubmit, reset, setValue, watch } = useForm({
     defaultValues: {
       name: "",
       email: "",
       phone: "",
       contribution: "",
+      status: "pending",
     },
   });
+
+  const status = watch("status");
 
   useEffect(() => {
     if (selectedSponsor) {
@@ -29,6 +33,7 @@ export const SponsorForm = ({ selectedSponsor, onSubmit, onCancel }: SponsorForm
         email: selectedSponsor.email,
         phone: selectedSponsor.phone || "",
         contribution: selectedSponsor.contribution.toString(),
+        status: selectedSponsor.status,
       });
     } else {
       reset({
@@ -36,6 +41,7 @@ export const SponsorForm = ({ selectedSponsor, onSubmit, onCancel }: SponsorForm
         email: "",
         phone: "",
         contribution: "",
+        status: "pending",
       });
     }
   }, [selectedSponsor, reset]);
@@ -87,6 +93,23 @@ export const SponsorForm = ({ selectedSponsor, onSubmit, onCancel }: SponsorForm
                 {...register("contribution")}
                 placeholder="0.00"
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="status">Estado</Label>
+              <Select
+                value={status}
+                onValueChange={(value) => setValue("status", value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar estado" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Activo</SelectItem>
+                  <SelectItem value="inactive">Inactivo</SelectItem>
+                  <SelectItem value="pending">Pendiente</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 

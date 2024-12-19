@@ -1,6 +1,7 @@
 import { Search, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -41,6 +42,28 @@ export const SponsorsTable = ({
     setSponsorToDelete(sponsor);
   };
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active':
+        return 'bg-green-100 text-green-800';
+      case 'inactive':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-yellow-100 text-yellow-800';
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'active':
+        return 'Activo';
+      case 'inactive':
+        return 'Inactivo';
+      default:
+        return 'Pendiente';
+    }
+  };
+
   const onConfirmDelete = async () => {
     if (sponsorToDelete) {
       await handleDelete(sponsorToDelete.id);
@@ -66,6 +89,7 @@ export const SponsorsTable = ({
               <TableHead>Nombre</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Contribución</TableHead>
+              <TableHead>Estado</TableHead>
               <TableHead className="w-[100px]">Acciones</TableHead>
             </TableRow>
           </TableHeader>
@@ -86,6 +110,11 @@ export const SponsorsTable = ({
                   ${sponsor.contribution.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mes
                 </TableCell>
                 <TableCell>
+                  <Badge className={getStatusColor(sponsor.status)} variant="secondary">
+                    {getStatusText(sponsor.status)}
+                  </Badge>
+                </TableCell>
+                <TableCell>
                   <Button
                     variant="ghost"
                     size="icon"
@@ -99,7 +128,7 @@ export const SponsorsTable = ({
             ))}
             {filteredSponsors.length === 0 && (
               <TableRow>
-                <TableCell colSpan={4} className="text-center py-8 text-gray-500">
+                <TableCell colSpan={5} className="text-center py-8 text-gray-500">
                   No se encontraron padrinos
                 </TableCell>
               </TableRow>

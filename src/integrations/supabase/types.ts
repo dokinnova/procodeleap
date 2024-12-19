@@ -242,6 +242,7 @@ export type Database = {
           id: string
           name: string
           phone: string | null
+          status: Database["public"]["Enums"]["sponsor_status"]
         }
         Insert: {
           contribution?: number
@@ -250,6 +251,7 @@ export type Database = {
           id?: string
           name: string
           phone?: string | null
+          status?: Database["public"]["Enums"]["sponsor_status"]
         }
         Update: {
           contribution?: number
@@ -258,6 +260,7 @@ export type Database = {
           id?: string
           name?: string
           phone?: string | null
+          status?: Database["public"]["Enums"]["sponsor_status"]
         }
         Relationships: []
       }
@@ -315,6 +318,7 @@ export type Database = {
       email_batch_status: "pending" | "sent" | "failed"
       payment_method: "bank_transfer" | "credit_card" | "paypal" | "cash"
       receipt_status: "pending" | "paid" | "cancelled"
+      sponsor_status: "active" | "inactive" | "pending"
       user_role: "admin" | "editor" | "viewer"
     }
     CompositeTypes: {
