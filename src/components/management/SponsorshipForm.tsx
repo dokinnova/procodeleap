@@ -47,7 +47,8 @@ export const SponsorshipForm = ({
       if (sponsoredChildIds.length === 0) {
         const { data: allChildren } = await supabase
           .from("children")
-          .select("*");
+          .select("*")
+          .neq('status', 'baja');
         return allChildren || [];
       }
 
@@ -56,7 +57,8 @@ export const SponsorshipForm = ({
         if (filteredIds.length === 0) {
           const { data: allChildren } = await supabase
             .from("children")
-            .select("*");
+            .select("*")
+            .neq('status', 'baja');
           return allChildren || [];
         }
         sponsoredChildIds.length = 0;
@@ -66,7 +68,8 @@ export const SponsorshipForm = ({
       const { data: children } = await supabase
         .from("children")
         .select("*")
-        .not("id", "in", `(${sponsoredChildIds.join(",")})`);
+        .not("id", "in", `(${sponsoredChildIds.join(",")})`)
+        .neq('status', 'baja');
 
       return children || [];
     },
@@ -84,7 +87,8 @@ export const SponsorshipForm = ({
       if (sponsoringIds.length === 0) {
         const { data: allSponsors } = await supabase
           .from("sponsors")
-          .select("*");
+          .select("*")
+          .neq('status', 'baja');
         return allSponsors || [];
       }
 
@@ -93,7 +97,8 @@ export const SponsorshipForm = ({
         if (filteredIds.length === 0) {
           const { data: allSponsors } = await supabase
             .from("sponsors")
-            .select("*");
+            .select("*")
+            .neq('status', 'baja');
           return allSponsors || [];
         }
         sponsoringIds.length = 0;
@@ -103,7 +108,8 @@ export const SponsorshipForm = ({
       const { data: sponsors } = await supabase
         .from("sponsors")
         .select("*")
-        .not("id", "in", `(${sponsoringIds.join(",")})`);
+        .not("id", "in", `(${sponsoringIds.join(",")})`)
+        .neq('status', 'baja');
 
       return sponsors || [];
     },
