@@ -108,6 +108,7 @@ export const SponsorForm = ({ selectedSponsor, onSubmit, onCancel }: SponsorForm
                   <SelectItem value="active">Activo</SelectItem>
                   <SelectItem value="inactive">Inactivo</SelectItem>
                   <SelectItem value="pending">Pendiente</SelectItem>
+                  <SelectItem value="baja">Baja</SelectItem>
                 </SelectContent>
               </Select>
             </div>
