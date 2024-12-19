@@ -43,6 +43,7 @@ export type Database = {
           location: string
           name: string
           school_id: string | null
+          status: Database["public"]["Enums"]["child_status"]
           story: string | null
         }
         Insert: {
@@ -54,6 +55,7 @@ export type Database = {
           location: string
           name: string
           school_id?: string | null
+          status?: Database["public"]["Enums"]["child_status"]
           story?: string | null
         }
         Update: {
@@ -65,6 +67,7 @@ export type Database = {
           location?: string
           name?: string
           school_id?: string | null
+          status?: Database["public"]["Enums"]["child_status"]
           story?: string | null
         }
         Relationships: [
@@ -308,6 +311,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      child_status: "assigned" | "assignable" | "inactive" | "pending"
       email_batch_status: "pending" | "sent" | "failed"
       payment_method: "bank_transfer" | "credit_card" | "paypal" | "cash"
       receipt_status: "pending" | "paid" | "cancelled"

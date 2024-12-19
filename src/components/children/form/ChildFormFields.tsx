@@ -13,6 +13,7 @@ interface ChildFormData {
   story: string;
   school_id: string;
   image_url: string | null;
+  status: 'assigned' | 'assignable' | 'inactive' | 'pending';
 }
 
 interface ChildFormFieldsProps {
@@ -88,6 +89,26 @@ export const ChildFormFields = ({ formData, schools, onInputChange }: ChildFormF
           onChange={(e) => onInputChange('location', e.target.value)}
           required
         />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="status">Estado</Label>
+        <Select 
+          value={formData.status} 
+          onValueChange={(value: 'assigned' | 'assignable' | 'inactive' | 'pending') => 
+            onInputChange('status', value)
+          }
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Selecciona un estado" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="assignable">Asignable</SelectItem>
+            <SelectItem value="assigned">Asignado</SelectItem>
+            <SelectItem value="inactive">Baja</SelectItem>
+            <SelectItem value="pending">Pendiente</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="space-y-2">

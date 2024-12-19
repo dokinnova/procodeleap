@@ -7,6 +7,7 @@ export interface Child {
   story: string | null;
   image_url: string | null;
   school_id: string | null;
+  status: 'assigned' | 'assignable' | 'inactive' | 'pending';
 }
 
 export interface School {

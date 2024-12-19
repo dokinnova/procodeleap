@@ -13,6 +13,7 @@ interface ChildFormData {
   story: string;
   school_id: string;
   image_url: string | null;
+  status: 'assigned' | 'assignable' | 'inactive' | 'pending';
 }
 
 export const useChildForm = (
@@ -30,6 +31,7 @@ export const useChildForm = (
     story: '',
     school_id: '',
     image_url: null,
+    status: 'pending',
   });
 
   useEffect(() => {
@@ -42,6 +44,7 @@ export const useChildForm = (
         story: selectedChild.story || '',
         school_id: selectedChild.school_id || '',
         image_url: selectedChild.image_url,
+        status: selectedChild.status,
       });
     } else {
       setFormData({
@@ -52,6 +55,7 @@ export const useChildForm = (
         story: '',
         school_id: '',
         image_url: null,
+        status: 'pending',
       });
     }
   }, [selectedChild]);
@@ -87,6 +91,7 @@ export const useChildForm = (
             story: formData.story || null,
             school_id: formData.school_id || null,
             image_url: formData.image_url,
+            status: formData.status,
           })
           .eq('id', selectedChild.id);
 
@@ -107,6 +112,7 @@ export const useChildForm = (
             story: formData.story || null,
             school_id: formData.school_id || null,
             image_url: formData.image_url,
+            status: formData.status,
           }]);
 
         if (error) throw error;
@@ -124,6 +130,7 @@ export const useChildForm = (
           story: '',
           school_id: '',
           image_url: null,
+          status: 'pending',
         });
       }
 
