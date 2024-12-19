@@ -51,8 +51,8 @@ const Index = () => {
             className="w-full h-auto p-4 sm:p-6 hover:shadow-lg transition-all duration-200 hover:-translate-y-1"
           >
             <div className="flex flex-col items-center space-y-4">
-              <div className="p-3 bg-primary/20 rounded-full">
-                <Users className="w-6 sm:w-8 h-6 sm:h-8 text-primary" />
+              <div className="p-3 bg-primary/20 rounded-full flex items-center justify-center w-12 h-12">
+                <Users className="w-6 h-6 text-primary" />
               </div>
               <div className="text-center">
                 <h3 className="text-base sm:text-lg font-semibold">Gestión de Niños</h3>
@@ -70,8 +70,8 @@ const Index = () => {
             className="w-full h-auto p-4 sm:p-6 hover:shadow-lg transition-all duration-200 hover:-translate-y-1"
           >
             <div className="flex flex-col items-center space-y-4">
-              <div className="p-3 bg-secondary/20 rounded-full">
-                <UserPlus className="w-6 sm:w-8 h-6 sm:h-8 text-secondary-foreground" />
+              <div className="p-3 bg-secondary/20 rounded-full flex items-center justify-center w-12 h-12">
+                <UserPlus className="w-6 h-6 text-secondary-foreground" />
               </div>
               <div className="text-center">
                 <h3 className="text-base sm:text-lg font-semibold">Gestión de Padrinos</h3>
@@ -89,8 +89,8 @@ const Index = () => {
             className="w-full h-auto p-4 sm:p-6 hover:shadow-lg transition-all duration-200 hover:-translate-y-1"
           >
             <div className="flex flex-col items-center space-y-4">
-              <div className="p-3 bg-accent/20 rounded-full">
-                <School className="w-6 sm:w-8 h-6 sm:h-8 text-accent-foreground" />
+              <div className="p-3 bg-accent/20 rounded-full flex items-center justify-center w-12 h-12">
+                <School className="w-6 h-6 text-accent-foreground" />
               </div>
               <div className="text-center">
                 <h3 className="text-base sm:text-lg font-semibold">Gestión de Colegios</h3>
@@ -108,8 +108,8 @@ const Index = () => {
             className="w-full h-auto p-4 sm:p-6 hover:shadow-lg transition-all duration-200 hover:-translate-y-1"
           >
             <div className="flex flex-col items-center space-y-4">
-              <div className="p-3 bg-primary/20 rounded-full">
-                <LinkIcon className="w-6 sm:w-8 h-6 sm:h-8 text-primary" />
+              <div className="p-3 bg-primary/20 rounded-full flex items-center justify-center w-12 h-12">
+                <LinkIcon className="w-6 h-6 text-primary" />
               </div>
               <div className="text-center">
                 <h3 className="text-base sm:text-lg font-semibold">Gestión de Apadrinamientos</h3>
@@ -127,8 +127,8 @@ const Index = () => {
             className="w-full h-auto p-4 sm:p-6 hover:shadow-lg transition-all duration-200 hover:-translate-y-1"
           >
             <div className="flex flex-col items-center space-y-4">
-              <div className="p-3 bg-secondary/20 rounded-full">
-                <Receipt className="w-6 sm:w-8 h-6 sm:h-8 text-secondary-foreground" />
+              <div className="p-3 bg-secondary/20 rounded-full flex items-center justify-center w-12 h-12">
+                <Receipt className="w-6 h-6 text-secondary-foreground" />
               </div>
               <div className="text-center">
                 <h3 className="text-base sm:text-lg font-semibold">Gestión de Recibos</h3>
