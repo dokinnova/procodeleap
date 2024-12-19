@@ -30,7 +30,8 @@ export const useSponsorshipForm = (
               name,
               email,
               phone,
-              contribution
+              contribution,
+              status
             )
           `)
           .eq('child_id', selectedChild.id)
