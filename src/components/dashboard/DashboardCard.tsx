@@ -35,9 +35,9 @@ export const DashboardCard = ({
       case "primary":
         return "text-primary";
       case "secondary":
-        return "text-secondary-foreground";
+        return "text-primary";
       case "accent":
-        return "text-accent-foreground";
+        return "text-primary";
       default:
         return "text-primary";
     }
@@ -51,7 +51,7 @@ export const DashboardCard = ({
       >
         <div className="flex flex-col items-center space-y-4">
           <div className={`p-3 ${getBackgroundColor(variant)} rounded-full flex items-center justify-center w-12 h-12`}>
-            <Icon className={`w-6 h-6 ${getIconColor(variant)}`} />
+            <Icon className={`w-6 h-6 ${getIconColor(variant)} stroke-[1.5]`} />
           </div>
           <div className="text-center">
             <h3 className="text-base sm:text-lg font-semibold">{title}</h3>
