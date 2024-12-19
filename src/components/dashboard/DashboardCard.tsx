@@ -20,13 +20,13 @@ export const DashboardCard = ({
   const getBackgroundColor = (variant: string) => {
     switch (variant) {
       case "primary":
-        return "bg-primary/20";
+        return "bg-primary/10";
       case "secondary":
-        return "bg-secondary/20";
+        return "bg-secondary/10";
       case "accent":
-        return "bg-accent/20";
+        return "bg-accent/10";
       default:
-        return "bg-primary/20";
+        return "bg-primary/10";
     }
   };
 
@@ -35,9 +35,9 @@ export const DashboardCard = ({
       case "primary":
         return "text-primary";
       case "secondary":
-        return "text-primary";
+        return "text-secondary-foreground";
       case "accent":
-        return "text-primary";
+        return "text-accent-foreground";
       default:
         return "text-primary";
     }
