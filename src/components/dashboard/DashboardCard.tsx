@@ -22,22 +22,23 @@ export const DashboardCard = ({
       case "primary":
         return "bg-primary/10";
       case "secondary":
-        return "bg-secondary/10";
+        return "bg-primary/5";
       case "accent":
-        return "bg-accent/10";
+        return "bg-primary/3";
       default:
         return "bg-primary/10";
     }
   };
 
   const getIconColor = (variant: string) => {
+    // All icons will use the primary color (purple) with varying opacities
     switch (variant) {
       case "primary":
         return "text-primary";
       case "secondary":
-        return "text-secondary-foreground";
+        return "text-primary";
       case "accent":
-        return "text-accent-foreground";
+        return "text-primary";
       default:
         return "text-primary";
     }
