@@ -20,30 +20,34 @@ const Children = () => {
   const { data: children = [], isLoading, error, refetch } = useChildrenData();
 
   useEffect(() => {
-    if (location.state?.selectedChild) {
-      console.log('Setting selected child from navigation:', location.state.selectedChild);
-      try {
-        const child = location.state.selectedChild;
-        setSelectedChild({
-          ...child,
-          birth_date: child.birth_date || '',
-          story: child.story || '',
-          school_id: child.school_id || '',
-          grade: child.grade || '',
-          image_url: child.image_url || null,
-          status: child.status || 'pending',
-        });
-        // Limpiar el estado de navegación para evitar problemas al recargar
-        navigate(location.pathname, { replace: true, state: {} });
-      } catch (error) {
-        console.error('Error al establecer el niño seleccionado:', error);
-        toast({
-          title: "Error",
-          description: "No se pudieron cargar los datos del niño seleccionado",
-          variant: "destructive",
-        });
+    const handleSelectedChildFromNavigation = () => {
+      if (location.state?.selectedChild) {
+        console.log('Setting selected child from navigation:', location.state.selectedChild);
+        try {
+          const child = location.state.selectedChild;
+          setSelectedChild({
+            ...child,
+            birth_date: child.birth_date || '',
+            story: child.story || '',
+            school_id: child.school_id || '',
+            grade: child.grade || '',
+            image_url: child.image_url || null,
+            status: child.status || 'pending',
+          });
+          // Limpiar el estado de navegación inmediatamente para evitar problemas al recargar
+          navigate(location.pathname, { replace: true, state: {} });
+        } catch (error) {
+          console.error('Error al establecer el niño seleccionado:', error);
+          toast({
+            title: "Error",
+            description: "No se pudieron cargar los datos del niño seleccionado",
+            variant: "destructive",
+          });
+        }
       }
-    }
+    };
+
+    handleSelectedChildFromNavigation();
   }, [location.state, navigate, location.pathname, toast]);
 
   if (error) {
