@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Printer } from "lucide-react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { PrintableChildProfile } from "../children/PrintableChildProfile";
-import { generatePDF } from "react-to-pdf";
+import generatePdf from "react-to-pdf";
 
 interface ChildrenListsProps {
   childrenWithoutSponsorship: Child[];
@@ -37,7 +37,7 @@ export const ChildrenLists = ({
     try {
       const targetElement = document.getElementById(`printable-profile-${child.id}`);
       if (targetElement) {
-        await generatePDF(() => targetElement, options);
+        await generatePdf(targetElement, options);
       }
     } catch (error) {
       console.error('Error generating PDF:', error);
