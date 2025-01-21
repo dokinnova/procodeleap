@@ -12,7 +12,7 @@ export interface ChildFormData {
   school_id: string;
   grade: string;
   image_url: string | null;
-  status: 'pending' | 'assignable' | 'assigned';
+  status: 'assigned' | 'assignable' | 'inactive' | 'pending' | 'baja';
 }
 
 export const useChildForm = (
@@ -33,13 +33,11 @@ export const useChildForm = (
 
   const { toast } = useToast();
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
+  const handleInputChange = (field: keyof ChildFormData, value: any) => {
+    console.log('Actualizando campo:', field, 'con valor:', value);
+    setFormData(prev => ({
       ...prev,
-      [name]: value,
+      [field]: value
     }));
   };
 
