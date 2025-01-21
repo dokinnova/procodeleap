@@ -8,32 +8,43 @@ import { ChildrenError } from "@/components/children/layout/ChildrenError";
 import { ChildrenLoading } from "@/components/children/layout/ChildrenLoading";
 import { useChildrenData } from "@/hooks/useChildrenData";
 import { Child } from "@/types";
+import { useToast } from "@/hooks/use-toast";
 
 const Children = () => {
   const [search, setSearch] = useState("");
   const [selectedChild, setSelectedChild] = useState<Child | null>(null);
   const location = useLocation();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const { data: children = [], isLoading, error, refetch } = useChildrenData();
 
   useEffect(() => {
     if (location.state?.selectedChild) {
       console.log('Setting selected child from navigation:', location.state.selectedChild);
-      const child = location.state.selectedChild;
-      setSelectedChild({
-        ...child,
-        birth_date: child.birth_date || '',
-        story: child.story || '',
-        school_id: child.school_id || '',
-        grade: child.grade || '',
-        image_url: child.image_url || null,
-        status: child.status || 'pending',
-      });
-      // Clear navigation state to prevent issues on reload
-      navigate(location.pathname, { replace: true, state: {} });
+      try {
+        const child = location.state.selectedChild;
+        setSelectedChild({
+          ...child,
+          birth_date: child.birth_date || '',
+          story: child.story || '',
+          school_id: child.school_id || '',
+          grade: child.grade || '',
+          image_url: child.image_url || null,
+          status: child.status || 'pending',
+        });
+        // Limpiar el estado de navegación para evitar problemas al recargar
+        navigate(location.pathname, { replace: true, state: {} });
+      } catch (error) {
+        console.error('Error al establecer el niño seleccionado:', error);
+        toast({
+          title: "Error",
+          description: "No se pudieron cargar los datos del niño seleccionado",
+          variant: "destructive",
+        });
+      }
     }
-  }, [location.state, navigate, location.pathname]);
+  }, [location.state, navigate, location.pathname, toast]);
 
   if (error) {
     return <ChildrenError error={error as Error} onRetry={refetch} />;

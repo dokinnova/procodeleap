@@ -7,6 +7,7 @@ import { DeleteConfirmationDialog } from "@/components/shared/DeleteConfirmation
 import { Child } from "@/types";
 import { ChildrenFilters } from "./table/ChildrenFilters";
 import { ChildStatusBadge } from "./table/ChildStatusBadge";
+import { useToast } from "@/hooks/use-toast";
 
 interface ChildrenTableProps {
   children: Child[];
@@ -23,11 +24,30 @@ export const ChildrenTable = ({
 }: ChildrenTableProps) => {
   const { childToDelete, setChildToDelete, handleDelete } = useDeleteChild();
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const { toast } = useToast();
 
   const generateShortId = (child: Child) => {
     const timestamp = new Date(child.created_at).getTime().toString(36);
     const uniqueId = child.id.slice(0, 4);
     return `${timestamp.slice(-4)}${uniqueId}`.toUpperCase();
+  };
+
+  const handleChildSelect = (child: Child) => {
+    try {
+      console.log('Seleccionando niño:', child);
+      setSelectedChild(child);
+      toast({
+        title: "Niño seleccionado",
+        description: `Se han cargado los datos de ${child.name}`,
+      });
+    } catch (error) {
+      console.error('Error al seleccionar el niño:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo seleccionar el niño",
+        variant: "destructive",
+      });
+    }
   };
 
   const filteredChildren = children.filter(child => {
@@ -64,7 +84,7 @@ export const ChildrenTable = ({
               <TableRow 
                 key={child.id} 
                 className="hover:bg-gray-50 cursor-pointer"
-                onClick={() => setSelectedChild(child)}
+                onClick={() => handleChildSelect(child)}
               >
                 <TableCell className="font-mono text-sm">
                   {generateShortId(child)}
