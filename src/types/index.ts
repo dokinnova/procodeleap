@@ -10,6 +10,9 @@ export interface Child {
   status: 'assigned' | 'assignable' | 'inactive' | 'pending' | 'baja';
   created_at: string;
   grade: string | null;
+  schools?: {
+    name: string;
+  } | null;
 }
 
 export interface School {
