@@ -314,11 +314,11 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      child_status: "assigned" | "assignable" | "inactive" | "pending"
+      child_status: "assigned" | "assignable" | "inactive" | "pending" | "baja"
       email_batch_status: "pending" | "sent" | "failed"
       payment_method: "bank_transfer" | "credit_card" | "paypal" | "cash"
       receipt_status: "pending" | "paid" | "cancelled"
-      sponsor_status: "active" | "inactive" | "pending"
+      sponsor_status: "active" | "inactive" | "pending" | "baja"
       user_role: "admin" | "editor" | "viewer"
     }
     CompositeTypes: {
