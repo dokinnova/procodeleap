@@ -1,190 +1,156 @@
 import { useState } from "react";
-import { FileText, Search } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useNavigate } from "react-router-dom";
-import { Child } from "@/types";
-import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
-import { format } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
+import { Child } from "@/types";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 const ChildrenReport = () => {
-  const [search, setSearch] = useState("");
-  const [locationFilter, setLocationFilter] = useState("all");
-  const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
 
-  const { data: children = [], isLoading, error } = useQuery({
-    queryKey: ["children-report"],
+  const { data: children = [], isLoading, error, refetch } = useQuery({
+    queryKey: ['children-report'],
     queryFn: async () => {
       try {
+        console.log('Iniciando fetch de niños para reporte...');
         const { data, error } = await supabase
-          .from("children")
-          .select(`
-            *,
-            schools (
-              name
-            )
-          `)
-          .order("name");
-        
+          .from('children')
+          .select('*, schools(name)')
+          .order('name');
+
         if (error) {
-          console.error('Error fetching children:', error);
-          toast({
-            title: "Error al cargar los datos",
-            description: "Por favor, intenta nuevamente en unos momentos",
-            variant: "destructive",
-          });
+          console.error('Error al obtener niños:', error);
           throw error;
         }
 
         if (!data) {
+          console.log('No se encontraron niños');
           return [];
         }
 
-        return data;
+        console.log('Niños obtenidos exitosamente:', data);
+        return data as Child[];
       } catch (error) {
-        console.error('Error in query function:', error);
+        console.error('Error en la consulta de niños:', error);
         toast({
-          title: "Error de conexión",
-          description: "No se pudo conectar con el servidor. Por favor, verifica tu conexión a internet.",
+          title: "Error al cargar los datos",
+          description: "Por favor, verifica tu conexión e intenta nuevamente",
           variant: "destructive",
         });
         throw error;
       }
     },
     retry: 3,
-    retryDelay: 1000,
-    staleTime: 1000 * 60 * 5,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    staleTime: 1000 * 60 * 5, // 5 minutos
     refetchOnWindowFocus: false,
+    refetchOnMount: true,
   });
 
-  const uniqueLocations = [...new Set(children.map(child => child.location))];
-
-  const filteredChildren = children.filter(child => {
-    const matchesSearch = child.name.toLowerCase().includes(search.toLowerCase());
-    const matchesLocation = locationFilter === "all" || child.location === locationFilter;
-    return matchesSearch && matchesLocation;
-  });
-
-  const handleChildSelect = (child: Child) => {
-    console.log('Navigating to child edit with data:', child);
-    navigate('/children', { 
-      state: { 
-        selectedChild: {
-          ...child,
-          birth_date: child.birth_date || format(new Date(), 'yyyy-MM-dd'),
-          story: child.story || '',
-          school_id: child.school_id || '',
-          grade: child.grade || '',
-          image_url: child.image_url || null,
-          status: child.status || 'pending',
-        } 
-      } 
-    });
-  };
-
-  const handlePrint = () => {
-    window.print();
-  };
-
-  if (error) {
-    return (
-      <div className="flex flex-col justify-center items-center min-h-[50vh] gap-4">
-        <p className="text-lg text-red-500">Error al cargar los datos</p>
-        <Button 
-          variant="outline"
-          onClick={() => window.location.reload()}
-        >
-          Reintentar
-        </Button>
-      </div>
-    );
-  }
+  const filteredChildren = children.filter(child =>
+    child.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-[50vh]">
-        <div className="animate-pulse text-lg text-gray-600">Cargando datos...</div>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Cargando...</CardTitle>
+          <CardDescription>
+            Obteniendo datos del reporte
+          </CardDescription>
+        </CardHeader>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Error</CardTitle>
+          <CardDescription>
+            No se pudieron cargar los datos del reporte
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-red-500">
+            Hubo un problema al conectar con el servidor. Verifica tu conexión a internet e intenta de nuevo.
+          </p>
+          <Button 
+            onClick={() => refetch()}
+            variant="outline"
+            className="w-full"
+          >
+            Reintentar
+          </Button>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <FileText className="h-8 w-8 text-primary" />
-          <h1 className="text-2xl font-bold text-gray-900">Listado de Niños</h1>
-        </div>
-        <Button onClick={handlePrint} variant="outline">
-          Imprimir Reporte
-        </Button>
-      </div>
-
-      <div className="flex gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input
-            className="pl-10 bg-white"
-            placeholder="Buscar por nombre..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-        <div className="w-[200px]">
-          <Select value={locationFilter} onValueChange={setLocationFilter}>
-            <SelectTrigger>
-              <SelectValue placeholder="Filtrar por ubicación" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas las ubicaciones</SelectItem>
-              {uniqueLocations.map((location) => (
-                <SelectItem key={location} value={location}>
-                  {location}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nombre</TableHead>
-              <TableHead>Edad</TableHead>
-              <TableHead>Ubicación</TableHead>
-              <TableHead>Colegio</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredChildren.map((child) => (
-              <TableRow 
-                key={child.id}
-                onClick={() => handleChildSelect(child)}
-                className="cursor-pointer hover:bg-gray-50"
-              >
-                <TableCell className="font-medium">{child.name}</TableCell>
-                <TableCell>{child.age} años</TableCell>
-                <TableCell>{child.location}</TableCell>
-                <TableCell>{child.schools?.name || "No asignado"}</TableCell>
-              </TableRow>
-            ))}
-            {filteredChildren.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={4} className="text-center py-8 text-gray-500">
-                  No se encontraron niños con los filtros seleccionados
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle>Reporte de Niños</CardTitle>
+          <CardDescription>
+            Listado completo de niños registrados en el sistema
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <input
+              type="text"
+              placeholder="Buscar por nombre..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full p-2 border rounded"
+            />
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Nombre
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Edad
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Ubicación
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Escuela
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredChildren.map((child) => (
+                    <tr key={child.id}>
+                      <td className="px-6 py-4 whitespace-nowrap">{child.name}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{child.age} años</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{child.location}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {child.schools?.name || 'No asignada'}
+                      </td>
+                    </tr>
+                  ))}
+                  {filteredChildren.length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="px-6 py-4 text-center text-gray-500">
+                        No se encontraron niños
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
