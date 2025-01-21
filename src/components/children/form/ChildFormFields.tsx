@@ -4,17 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { School } from "@/types";
 import { PhotoUpload } from "../PhotoUpload";
 import { differenceInYears, parseISO } from "date-fns";
-
-interface ChildFormData {
-  name: string;
-  age: number;
-  birth_date: string;
-  location: string;
-  story: string;
-  school_id: string;
-  image_url: string | null;
-  status: 'assigned' | 'assignable' | 'inactive' | 'pending';
-}
+import { ChildFormData } from "@/hooks/useChildForm";
 
 interface ChildFormFieldsProps {
   formData: ChildFormData;
@@ -95,7 +85,7 @@ export const ChildFormFields = ({ formData, schools, onInputChange }: ChildFormF
         <Label htmlFor="status">Estado</Label>
         <Select 
           value={formData.status} 
-          onValueChange={(value: 'assigned' | 'assignable' | 'inactive' | 'pending') => 
+          onValueChange={(value: 'assigned' | 'assignable' | 'inactive' | 'pending' | 'baja') => 
             onInputChange('status', value)
           }
         >
@@ -107,6 +97,7 @@ export const ChildFormFields = ({ formData, schools, onInputChange }: ChildFormF
             <SelectItem value="assigned">Asignado</SelectItem>
             <SelectItem value="inactive">Baja</SelectItem>
             <SelectItem value="pending">Pendiente</SelectItem>
+            <SelectItem value="baja">Baja</SelectItem>
           </SelectContent>
         </Select>
       </div>

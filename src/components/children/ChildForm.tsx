@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ChildFormFields } from "./form/ChildFormFields";
 import { Child } from "@/types";
-import { useChildForm } from "@/hooks/useChildForm";
+import { useChildForm, ChildFormData } from "@/hooks/useChildForm";
 
 interface ChildFormProps {
   selectedChild: Child | null;
