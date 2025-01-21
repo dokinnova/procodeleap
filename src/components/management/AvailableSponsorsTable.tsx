@@ -46,7 +46,7 @@ export const AvailableSponsorsTable = ({ sponsors, onSponsorSelect, isLoading }:
                   <TableCell>{sponsor.name}</TableCell>
                   <TableCell>{sponsor.email}</TableCell>
                   <TableCell className="font-mono">
-                    ${sponsor.contribution.toLocaleString('en-US', { 
+                    ${sponsor.contribution.toLocaleString('es-ES', { 
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2 
                     })}/mes

@@ -76,14 +76,12 @@ export const ChildrenLists = ({
 
   return (
     <>
-      {/* Lista de Niños sin Padrinos */}
       {renderChildrenTable(
         childrenWithoutSponsorship,
         "Niños sin Padrinos",
         "No hay niños sin padrinos asignados"
       )}
 
-      {/* Separador destacado */}
       <div className="relative py-8">
         <Separator className="absolute left-0 right-0 top-1/2 transform -translate-y-1/2" />
         <div className="relative z-10 flex justify-center">
@@ -93,13 +91,12 @@ export const ChildrenLists = ({
         </div>
       </div>
 
-      {/* Lista de Niños con Padrinos */}
       <div className="bg-white rounded-lg shadow-lg border-2 border-primary">
         {renderChildrenTable(
           childrenWithSponsorship,
           "Niños con Padrinos",
           "No hay niños con padrinos asignados",
-          true // showSponsor parameter
+          true
         )}
       </div>
     </>
