@@ -19,6 +19,7 @@ const Children = () => {
   useEffect(() => {
     if (location.state?.selectedChild) {
       setSelectedChild(location.state.selectedChild);
+      // Limpiar el estado de navegación para evitar problemas al recargar
       window.history.replaceState({}, document.title);
     }
   }, [location.state]);
@@ -71,17 +72,9 @@ const Children = () => {
     });
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-[80vh] print:hidden">
-        <div className="animate-pulse text-lg text-gray-600">Cargando datos...</div>
-      </div>
-    );
-  }
-
   if (error) {
     return (
-      <div className="flex flex-col justify-center items-center min-h-[80vh] gap-4 print:hidden">
+      <div className="flex flex-col justify-center items-center min-h-[80vh] print:hidden gap-4">
         <p className="text-lg text-red-500">Error al cargar los datos</p>
         <Button 
           variant="outline"
@@ -89,6 +82,14 @@ const Children = () => {
         >
           Reintentar
         </Button>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-[80vh] print:hidden">
+        <div className="animate-pulse text-lg text-gray-600">Cargando datos...</div>
       </div>
     );
   }

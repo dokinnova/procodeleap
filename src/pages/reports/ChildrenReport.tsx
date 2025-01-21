@@ -53,7 +53,7 @@ const ChildrenReport = () => {
     },
     retry: 3,
     retryDelay: 1000,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
   });
 
@@ -66,7 +66,17 @@ const ChildrenReport = () => {
   });
 
   const handleChildSelect = (child: Child) => {
-    navigate('/children', { state: { selectedChild: child } });
+    navigate('/children', { 
+      state: { 
+        selectedChild: {
+          ...child,
+          birth_date: child.birth_date || format(new Date(), 'yyyy-MM-dd'),
+          story: child.story || '',
+          school_id: child.school_id || '',
+          grade: child.grade || '',
+        } 
+      } 
+    });
   };
 
   const handlePrint = () => {
