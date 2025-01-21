@@ -36,6 +36,7 @@ export const ChildrenTable = ({ children, search, setSearch, setSelectedChild }:
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-[100px]">ID</TableHead>
               <TableHead>Nombre</TableHead>
               <TableHead>Edad</TableHead>
               <TableHead>Ubicación</TableHead>
@@ -49,6 +50,9 @@ export const ChildrenTable = ({ children, search, setSearch, setSelectedChild }:
                 className="hover:bg-gray-50 cursor-pointer"
                 onClick={() => setSelectedChild(child)}
               >
+                <TableCell className="font-mono text-sm text-gray-500">
+                  {child.id.slice(0, 8)}...
+                </TableCell>
                 <TableCell className="font-medium">{child.name}</TableCell>
                 <TableCell>{child.age} años</TableCell>
                 <TableCell>{child.location}</TableCell>
@@ -69,7 +73,7 @@ export const ChildrenTable = ({ children, search, setSearch, setSelectedChild }:
             ))}
             {filteredChildren.length === 0 && (
               <TableRow>
-                <TableCell colSpan={4} className="text-center py-8 text-gray-500">
+                <TableCell colSpan={5} className="text-center py-8 text-gray-500">
                   No se encontraron niños
                 </TableCell>
               </TableRow>
