@@ -5,10 +5,12 @@ import { Child } from "@/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 const ChildrenReport = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const { data: children = [], isLoading, error, refetch } = useQuery({
     queryKey: ['children-report'],
@@ -52,6 +54,10 @@ const ChildrenReport = () => {
   const filteredChildren = children.filter(child =>
     child.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleChildClick = (child: Child) => {
+    navigate('/children', { state: { selectedChild: child } });
+  };
 
   if (isLoading) {
     return (
@@ -129,7 +135,11 @@ const ChildrenReport = () => {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredChildren.map((child) => (
-                    <tr key={child.id}>
+                    <tr 
+                      key={child.id}
+                      onClick={() => handleChildClick(child)}
+                      className="hover:bg-gray-50 cursor-pointer"
+                    >
                       <td className="px-6 py-4 whitespace-nowrap">{child.name}</td>
                       <td className="px-6 py-4 whitespace-nowrap">{child.age} años</td>
                       <td className="px-6 py-4 whitespace-nowrap">{child.location}</td>
