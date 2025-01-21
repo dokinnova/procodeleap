@@ -10,6 +10,7 @@ import { useState } from "react";
 const SponsorsReport = () => {
   const [search, setSearch] = useState("");
   const [contributionFilter, setContributionFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   const { data: sponsors = [], isLoading } = useQuery({
     queryKey: ["sponsors-report"],
@@ -31,18 +32,25 @@ const SponsorsReport = () => {
     { label: "Más de $200", min: 200, max: Infinity },
   ];
 
+  const statusOptions = [
+    { value: "active", label: "Activo" },
+    { value: "inactive", label: "Inactivo" },
+    { value: "pending", label: "Pendiente" },
+  ];
+
   const filteredSponsors = sponsors.filter(sponsor => {
     const matchesSearch = sponsor.name.toLowerCase().includes(search.toLowerCase()) ||
                          sponsor.email.toLowerCase().includes(search.toLowerCase());
     
-    if (contributionFilter === "all") return matchesSearch;
+    const matchesContribution = contributionFilter === "all" ? true :
+      (() => {
+        const range = contributionRanges.find(r => r.label === contributionFilter);
+        return range && sponsor.contribution >= range.min && sponsor.contribution < range.max;
+      })();
+
+    const matchesStatus = statusFilter === "all" ? true : sponsor.status === statusFilter;
     
-    const range = contributionRanges.find(r => r.label === contributionFilter);
-    const matchesContribution = range && 
-      sponsor.contribution >= range.min && 
-      sponsor.contribution < range.max;
-    
-    return matchesSearch && matchesContribution;
+    return matchesSearch && matchesContribution && matchesStatus;
   });
 
   const handlePrint = () => {
@@ -94,6 +102,21 @@ const SponsorsReport = () => {
             </SelectContent>
           </Select>
         </div>
+        <div className="w-[200px]">
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder="Filtrar por estado" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los estados</SelectItem>
+              {statusOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -104,6 +127,7 @@ const SponsorsReport = () => {
               <TableHead>Email</TableHead>
               <TableHead>Teléfono</TableHead>
               <TableHead>Contribución</TableHead>
+              <TableHead>Estado</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -119,11 +143,14 @@ const SponsorsReport = () => {
                   })}
                   /mes
                 </TableCell>
+                <TableCell>
+                  {statusOptions.find(opt => opt.value === sponsor.status)?.label || sponsor.status}
+                </TableCell>
               </TableRow>
             ))}
             {filteredSponsors.length === 0 && (
               <TableRow>
-                <TableCell colSpan={4} className="text-center py-8 text-gray-500">
+                <TableCell colSpan={5} className="text-center py-8 text-gray-500">
                   No se encontraron padrinos con los filtros seleccionados
                 </TableCell>
               </TableRow>
