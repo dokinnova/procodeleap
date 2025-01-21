@@ -46,11 +46,6 @@ const Children = () => {
         
         if (error) {
           console.error('Error fetching children:', error);
-          toast({
-            title: "Error al cargar los datos",
-            description: "Por favor, intenta nuevamente en unos momentos",
-            variant: "destructive",
-          });
           throw error;
         }
         
@@ -63,18 +58,14 @@ const Children = () => {
         return data as Child[];
       } catch (error) {
         console.error('Error in query function:', error);
-        toast({
-          title: "Error de conexión",
-          description: "No se pudo conectar con el servidor. Por favor, verifica tu conexión a internet.",
-          variant: "destructive",
-        });
         throw error;
       }
     },
     retry: 3,
-    retryDelay: 1000,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     staleTime: 1000 * 60 * 5, // 5 minutes
     refetchOnWindowFocus: false,
+    gcTime: 1000 * 60 * 10, // 10 minutes
   });
 
   if (error) {
@@ -84,6 +75,7 @@ const Children = () => {
         <Button 
           variant="outline"
           onClick={() => refetch()}
+          className="mt-4"
         >
           Reintentar
         </Button>
