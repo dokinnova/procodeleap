@@ -49,6 +49,7 @@ const ChildrenReport = () => {
     staleTime: 1000 * 60 * 5, // 5 minutos
     refetchOnWindowFocus: false,
     refetchOnMount: true,
+    gcTime: 1000 * 60 * 10, // 10 minutos
   });
 
   const filteredChildren = children.filter(child =>
