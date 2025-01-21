@@ -26,7 +26,7 @@ export const NavigationHeader = ({ onLogoClick }: NavigationHeaderProps) => {
         className="text-xl font-semibold text-white hover:opacity-80 transition-opacity flex items-center gap-3"
         onClick={onLogoClick}
       >
-        PROCODELI
+        COPRODELI
         {siteSettings?.logo_url && (
           <img 
             src={siteSettings.logo_url} 
