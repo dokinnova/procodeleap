@@ -11,10 +11,12 @@ export const supabase = createClient<Database>(
     auth: {
       persistSession: true,
       autoRefreshToken: true,
+      detectSessionInUrl: true
     },
     global: {
       headers: {
         'Content-Type': 'application/json',
+        'apikey': SUPABASE_ANON_KEY
       },
     },
     db: {

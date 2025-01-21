@@ -15,7 +15,7 @@ export const useChildrenData = () => {
         
         if (error) {
           console.error('Error fetching children:', error);
-          throw error;
+          throw new Error(`Error al obtener datos: ${error.message}`);
         }
         
         if (!data) {
@@ -27,13 +27,16 @@ export const useChildrenData = () => {
         return data as Child[];
       } catch (error) {
         console.error('Error in query function:', error);
-        throw error;
+        if (error instanceof Error) {
+          throw new Error(`Error de conexión: ${error.message}`);
+        }
+        throw new Error('Error desconocido al obtener los datos');
       }
     },
-    retry: 1,
-    retryDelay: 1000,
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(1000 * (attemptIndex + 1), 3000),
     staleTime: 1000 * 60 * 5, // 5 minutes
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
     gcTime: 1000 * 60 * 10, // 10 minutes
   });
 };
