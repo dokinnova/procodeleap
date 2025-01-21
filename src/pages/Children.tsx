@@ -8,31 +8,14 @@ import { ChildForm } from "@/components/children/ChildForm";
 import { ChildrenTable } from "@/components/children/ChildrenTable";
 import { PrintableChildrenList } from "@/components/children/PrintableChildrenList";
 import { Child } from "@/types";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const Children = () => {
   const [search, setSearch] = useState("");
   const [selectedChild, setSelectedChild] = useState<Child | null>(null);
   const { toast } = useToast();
   const location = useLocation();
-
-  useEffect(() => {
-    if (location.state?.selectedChild) {
-      console.log('Setting selected child from navigation:', location.state.selectedChild);
-      const child = location.state.selectedChild;
-      setSelectedChild({
-        ...child,
-        birth_date: child.birth_date || '',
-        story: child.story || '',
-        school_id: child.school_id || '',
-        grade: child.grade || '',
-        image_url: child.image_url || null,
-        status: child.status || 'pending',
-      });
-      // Limpiar el estado de navegación para evitar problemas al recargar
-      window.history.replaceState({}, document.title);
-    }
-  }, [location.state]);
+  const navigate = useNavigate();
 
   const { data: children = [], isLoading, error, refetch } = useQuery({
     queryKey: ['children'],
@@ -67,6 +50,24 @@ const Children = () => {
     refetchOnWindowFocus: false,
     gcTime: 1000 * 60 * 10, // 10 minutes
   });
+
+  useEffect(() => {
+    if (location.state?.selectedChild) {
+      console.log('Setting selected child from navigation:', location.state.selectedChild);
+      const child = location.state.selectedChild;
+      setSelectedChild({
+        ...child,
+        birth_date: child.birth_date || '',
+        story: child.story || '',
+        school_id: child.school_id || '',
+        grade: child.grade || '',
+        image_url: child.image_url || null,
+        status: child.status || 'pending',
+      });
+      // Limpiar el estado de navegación para evitar problemas al recargar
+      navigate(location.pathname, { replace: true });
+    }
+  }, [location.state, navigate, location.pathname]);
 
   if (error) {
     return (
