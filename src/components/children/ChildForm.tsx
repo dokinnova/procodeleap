@@ -16,32 +16,43 @@ export const ChildForm = ({ selectedChild, setSelectedChild }: ChildFormProps) =
   const { formData, handleInputChange, handleSubmit } = useChildForm(selectedChild, setSelectedChild);
   const { toast } = useToast();
 
-  const { data: schools = [], isError, isLoading } = useQuery({
+  const { data: schools = [], isError, isLoading, refetch } = useQuery({
     queryKey: ['schools'],
     queryFn: async () => {
-      console.log('Fetching schools data...');
-      const { data, error } = await supabase
-        .from('schools')
-        .select('*')
-        .order('name');
-      
-      if (error) {
-        console.error('Error fetching schools:', error);
+      try {
+        console.log('Iniciando fetch de escuelas...');
+        const { data, error } = await supabase
+          .from('schools')
+          .select('*')
+          .order('name');
+        
+        if (error) {
+          console.error('Error al obtener escuelas:', error);
+          throw error;
+        }
+
+        if (!data) {
+          console.log('No se encontraron escuelas');
+          return [];
+        }
+
+        console.log('Escuelas obtenidas exitosamente:', data);
+        return data;
+      } catch (error) {
+        console.error('Error en la consulta de escuelas:', error);
         toast({
           title: "Error al cargar las escuelas",
-          description: "Por favor, intenta nuevamente en unos momentos",
+          description: "Por favor, intenta nuevamente",
           variant: "destructive",
         });
         throw error;
       }
-
-      console.log('Schools data fetched successfully:', data);
-      return data;
     },
     retry: 3,
-    retryDelay: 1000,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    retryDelay: (attemptIndex) => Math.min(1000 * (2 ** attemptIndex), 30000),
+    staleTime: 1000 * 60 * 5, // 5 minutos
     refetchOnWindowFocus: false,
+    refetchOnMount: true,
   });
 
   if (isLoading) {
@@ -66,10 +77,14 @@ export const ChildForm = ({ selectedChild, setSelectedChild }: ChildFormProps) =
             No se pudieron cargar los datos. Por favor, intenta nuevamente.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-red-500">
+            Hubo un problema al conectar con el servidor. Verifica tu conexión a internet e intenta de nuevo.
+          </p>
           <Button 
-            onClick={() => window.location.reload()}
+            onClick={() => refetch()}
             variant="outline"
+            className="w-full"
           >
             Reintentar
           </Button>
