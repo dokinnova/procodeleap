@@ -8,28 +8,53 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Child } from "@/types";
+import { useToast } from "@/hooks/use-toast";
 
 const ChildrenReport = () => {
   const [search, setSearch] = useState("");
   const [locationFilter, setLocationFilter] = useState("all");
   const navigate = useNavigate();
+  const { toast } = useToast();
 
-  const { data: children = [], isLoading } = useQuery({
+  const { data: children = [], isLoading, error } = useQuery({
     queryKey: ["children-report"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("children")
-        .select(`
-          *,
-          schools (
-            name
-          )
-        `)
-        .order("name");
-      
-      if (error) throw error;
-      return data;
+      try {
+        const { data, error } = await supabase
+          .from("children")
+          .select(`
+            *,
+            schools (
+              name
+            )
+          `)
+          .order("name");
+        
+        if (error) {
+          console.error('Error fetching children:', error);
+          toast({
+            title: "Error al cargar los datos",
+            description: "Por favor, intenta nuevamente en unos momentos",
+            variant: "destructive",
+          });
+          throw error;
+        }
+
+        return data || [];
+      } catch (error) {
+        console.error('Error in query function:', error);
+        toast({
+          title: "Error de conexión",
+          description: "No se pudo conectar con el servidor. Por favor, verifica tu conexión a internet.",
+          variant: "destructive",
+        });
+        throw error;
+      }
     },
+    retry: 3,
+    retryDelay: 1000,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    refetchOnWindowFocus: false,
   });
 
   const uniqueLocations = [...new Set(children.map(child => child.location))];
@@ -41,13 +66,26 @@ const ChildrenReport = () => {
   });
 
   const handleChildSelect = (child: Child) => {
-    // Navigate to the children management page with the selected child
     navigate('/children', { state: { selectedChild: child } });
   };
 
   const handlePrint = () => {
     window.print();
   };
+
+  if (error) {
+    return (
+      <div className="flex flex-col justify-center items-center min-h-[50vh] gap-4">
+        <p className="text-lg text-red-500">Error al cargar los datos</p>
+        <Button 
+          variant="outline"
+          onClick={() => window.location.reload()}
+        >
+          Reintentar
+        </Button>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
