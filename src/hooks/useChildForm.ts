@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Child } from "@/types";
 import { format } from "date-fns";
 
-interface ChildFormData {
+export interface ChildFormData {
   name: string;
   age: number;
   birth_date: string;

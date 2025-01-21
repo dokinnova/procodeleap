@@ -8,6 +8,7 @@ export interface Child {
   image_url: string | null;
   school_id: string | null;
   status: 'assigned' | 'assignable' | 'inactive' | 'pending' | 'baja';
+  created_at: string;
 }
 
 export interface School {
