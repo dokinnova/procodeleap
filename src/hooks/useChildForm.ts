@@ -38,18 +38,20 @@ export const useChildForm = (
 
   useEffect(() => {
     if (selectedChild) {
+      console.log('Actualizando formulario con niño seleccionado:', selectedChild);
       setFormData({
-        name: selectedChild.name,
-        age: selectedChild.age,
+        name: selectedChild.name || '',
+        age: selectedChild.age || 0,
         birth_date: selectedChild.birth_date || format(new Date(), 'yyyy-MM-dd'),
-        location: selectedChild.location,
+        location: selectedChild.location || '',
         story: selectedChild.story || '',
         school_id: selectedChild.school_id || '',
         image_url: selectedChild.image_url,
-        status: selectedChild.status,
+        status: selectedChild.status || 'pending',
         grade: selectedChild.grade || '',
       });
     } else {
+      console.log('Reseteando formulario a valores iniciales');
       setFormData({
         name: '',
         age: 0,
@@ -65,6 +67,7 @@ export const useChildForm = (
   }, [selectedChild]);
 
   const handleInputChange = (field: keyof ChildFormData, value: any) => {
+    console.log('Actualizando campo:', field, 'con valor:', value);
     setFormData(prev => ({
       ...prev,
       [field]: value

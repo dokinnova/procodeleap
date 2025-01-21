@@ -32,17 +32,7 @@ export const ChildrenTable = ({
 
   const handleChildSelect = (child: Child) => {
     try {
-      const normalizedChild = {
-        ...child,
-        birth_date: child.birth_date || '',
-        story: child.story || '',
-        school_id: child.school_id || '',
-        grade: child.grade || '',
-        image_url: child.image_url || null,
-        status: child.status || 'pending',
-      };
-      
-      setSelectedChild(normalizedChild);
+      setSelectedChild(child);
     } catch (error) {
       console.error('Error al seleccionar el niño:', error);
       toast({
