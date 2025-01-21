@@ -34,17 +34,33 @@ const Children = () => {
         
         if (error) {
           console.error('Error fetching children:', error);
+          toast({
+            title: "Error al cargar los datos",
+            description: "Por favor, intenta nuevamente en unos momentos",
+            variant: "destructive",
+          });
           throw error;
+        }
+        
+        if (!data) {
+          return [];
         }
         
         return data as Child[];
       } catch (error) {
         console.error('Error in query function:', error);
+        toast({
+          title: "Error de conexión",
+          description: "No se pudo conectar con el servidor. Por favor, verifica tu conexión a internet.",
+          variant: "destructive",
+        });
         throw error;
       }
     },
     retry: 3,
     retryDelay: 1000,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    refetchOnWindowFocus: false,
   });
 
   const handlePrint = () => {
