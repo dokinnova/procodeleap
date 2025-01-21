@@ -18,6 +18,7 @@ const Children = () => {
 
   useEffect(() => {
     if (location.state?.selectedChild) {
+      console.log('Setting selected child from navigation:', location.state.selectedChild);
       setSelectedChild(location.state.selectedChild);
       // Limpiar el estado de navegación para evitar problemas al recargar
       window.history.replaceState({}, document.title);
@@ -28,6 +29,7 @@ const Children = () => {
     queryKey: ['children'],
     queryFn: async () => {
       try {
+        console.log('Fetching children data...');
         const { data, error } = await supabase
           .from('children')
           .select('*, schools(name)')
@@ -44,9 +46,11 @@ const Children = () => {
         }
         
         if (!data) {
+          console.log('No children data found');
           return [];
         }
         
+        console.log('Children data fetched successfully:', data);
         return data as Child[];
       } catch (error) {
         console.error('Error in query function:', error);

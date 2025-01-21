@@ -71,6 +71,7 @@ const ChildrenReport = () => {
   });
 
   const handleChildSelect = (child: Child) => {
+    console.log('Navigating to child edit with data:', child);
     navigate('/children', { 
       state: { 
         selectedChild: {
@@ -79,6 +80,7 @@ const ChildrenReport = () => {
           story: child.story || '',
           school_id: child.school_id || '',
           grade: child.grade || '',
+          image_url: child.image_url || null,
         } 
       } 
     });
