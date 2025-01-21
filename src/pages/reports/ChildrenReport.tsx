@@ -9,6 +9,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Child } from "@/types";
 import { useToast } from "@/hooks/use-toast";
+import { format } from "date-fns";
 
 const ChildrenReport = () => {
   const [search, setSearch] = useState("");
@@ -40,7 +41,11 @@ const ChildrenReport = () => {
           throw error;
         }
 
-        return data || [];
+        if (!data) {
+          return [];
+        }
+
+        return data;
       } catch (error) {
         console.error('Error in query function:', error);
         toast({
