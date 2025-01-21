@@ -17,5 +17,8 @@ export const supabase = createClient<Database>(
         'Content-Type': 'application/json',
       },
     },
+    db: {
+      schema: 'public'
+    }
   }
 );

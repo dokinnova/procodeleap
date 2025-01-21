@@ -44,8 +44,8 @@ const Children = () => {
         throw error;
       }
     },
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    retry: 1,
+    retryDelay: 1000,
     staleTime: 1000 * 60 * 5, // 5 minutes
     refetchOnWindowFocus: false,
     gcTime: 1000 * 60 * 10, // 10 minutes
@@ -64,15 +64,15 @@ const Children = () => {
         image_url: child.image_url || null,
         status: child.status || 'pending',
       });
-      // Limpiar el estado de navegación para evitar problemas al recargar
-      navigate(location.pathname, { replace: true });
+      // Clear navigation state to prevent issues on reload
+      navigate(location.pathname, { replace: true, state: {} });
     }
   }, [location.state, navigate, location.pathname]);
 
   if (error) {
     return (
       <div className="flex flex-col justify-center items-center min-h-[80vh] print:hidden gap-4">
-        <p className="text-lg text-red-500">Error al cargar los datos</p>
+        <p className="text-lg text-red-500">Error al cargar los datos: {(error as Error).message}</p>
         <Button 
           variant="outline"
           onClick={() => refetch()}
