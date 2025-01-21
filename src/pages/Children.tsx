@@ -34,7 +34,7 @@ const Children = () => {
     }
   }, [location.state]);
 
-  const { data: children = [], isLoading, error } = useQuery({
+  const { data: children = [], isLoading, error, refetch } = useQuery({
     queryKey: ['children'],
     queryFn: async () => {
       try {
@@ -73,17 +73,9 @@ const Children = () => {
     },
     retry: 3,
     retryDelay: 1000,
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 5, // 5 minutes
     refetchOnWindowFocus: false,
   });
-
-  const handlePrint = () => {
-    window.print();
-    toast({
-      title: "Preparando impresión",
-      description: "Se abrirá el diálogo de impresión automáticamente.",
-    });
-  };
 
   if (error) {
     return (
@@ -91,7 +83,7 @@ const Children = () => {
         <p className="text-lg text-red-500">Error al cargar los datos</p>
         <Button 
           variant="outline"
-          onClick={() => window.location.reload()}
+          onClick={() => refetch()}
         >
           Reintentar
         </Button>
@@ -106,6 +98,14 @@ const Children = () => {
       </div>
     );
   }
+
+  const handlePrint = () => {
+    window.print();
+    toast({
+      title: "Preparando impresión",
+      description: "Se abrirá el diálogo de impresión automáticamente.",
+    });
+  };
 
   return (
     <div className="space-y-6">
