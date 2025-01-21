@@ -1,8 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Child } from "@/types";
+import { useToast } from "@/hooks/use-toast";
 
 export const useChildrenData = () => {
+  const { toast } = useToast();
+
   return useQuery({
     queryKey: ['children'],
     queryFn: async () => {
@@ -15,6 +18,11 @@ export const useChildrenData = () => {
         
         if (error) {
           console.error('Error fetching children:', error);
+          toast({
+            title: "Error al cargar los datos",
+            description: error.message,
+            variant: "destructive",
+          });
           throw new Error(`Error al obtener datos: ${error.message}`);
         }
         
@@ -27,6 +35,11 @@ export const useChildrenData = () => {
         return data as Child[];
       } catch (error) {
         console.error('Error in query function:', error);
+        toast({
+          title: "Error de conexión",
+          description: "Por favor, verifica tu conexión e intenta nuevamente",
+          variant: "destructive",
+        });
         if (error instanceof Error) {
           throw new Error(`Error de conexión: ${error.message}`);
         }
