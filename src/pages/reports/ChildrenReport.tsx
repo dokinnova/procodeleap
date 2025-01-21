@@ -6,10 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Child } from "@/types";
 
 const ChildrenReport = () => {
   const [search, setSearch] = useState("");
   const [locationFilter, setLocationFilter] = useState("all");
+  const navigate = useNavigate();
 
   const { data: children = [], isLoading } = useQuery({
     queryKey: ["children-report"],
@@ -36,6 +39,11 @@ const ChildrenReport = () => {
     const matchesLocation = locationFilter === "all" || child.location === locationFilter;
     return matchesSearch && matchesLocation;
   });
+
+  const handleChildSelect = (child: Child) => {
+    // Navigate to the children management page with the selected child
+    navigate('/children', { state: { selectedChild: child } });
+  };
 
   const handlePrint = () => {
     window.print();
@@ -100,7 +108,11 @@ const ChildrenReport = () => {
           </TableHeader>
           <TableBody>
             {filteredChildren.map((child) => (
-              <TableRow key={child.id}>
+              <TableRow 
+                key={child.id}
+                onClick={() => handleChildSelect(child)}
+                className="cursor-pointer hover:bg-gray-50"
+              >
                 <TableCell className="font-medium">{child.name}</TableCell>
                 <TableCell>{child.age} años</TableCell>
                 <TableCell>{child.location}</TableCell>

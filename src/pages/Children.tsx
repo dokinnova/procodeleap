@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Baby, Printer } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,11 +8,22 @@ import { ChildForm } from "@/components/children/ChildForm";
 import { ChildrenTable } from "@/components/children/ChildrenTable";
 import { PrintableChildrenList } from "@/components/children/PrintableChildrenList";
 import { Child } from "@/types";
+import { useLocation } from "react-router-dom";
 
 const Children = () => {
   const [search, setSearch] = useState("");
   const [selectedChild, setSelectedChild] = useState<Child | null>(null);
   const { toast } = useToast();
+  const location = useLocation();
+
+  // Handle selected child from navigation state
+  useEffect(() => {
+    if (location.state?.selectedChild) {
+      setSelectedChild(location.state.selectedChild);
+      // Clear the navigation state to avoid persisting the selection
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   const { data: children = [], isLoading, error } = useQuery({
     queryKey: ['children'],
