@@ -9,14 +9,16 @@ export const supabase = createClient<Database>(
   SUPABASE_ANON_KEY,
   {
     auth: {
-      persistSession: true,
+      persistSession: false, // Changed to false for incognito mode
       autoRefreshToken: true,
-      detectSessionInUrl: true
+      detectSessionInUrl: true,
+      storage: sessionStorage // Use sessionStorage instead of localStorage
     },
     global: {
       headers: {
         'Content-Type': 'application/json',
-        'apikey': SUPABASE_ANON_KEY
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
       },
     },
     db: {
