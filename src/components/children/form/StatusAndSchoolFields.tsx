@@ -16,7 +16,7 @@ export const StatusAndSchoolFields = ({
   onInputChange 
 }: StatusAndSchoolFieldsProps) => {
   return (
-    <>
+    <div className="grid grid-cols-2 gap-4">
       <div className="space-y-2">
         <Label htmlFor="status">Estado</Label>
         <Select 
@@ -44,7 +44,7 @@ export const StatusAndSchoolFields = ({
           value={schoolId} 
           onValueChange={(value) => onInputChange('school_id', value)}
         >
-          <SelectTrigger className="w-[200px]">
+          <SelectTrigger>
             <SelectValue placeholder="Selecciona un colegio" />
           </SelectTrigger>
           <SelectContent>
@@ -56,6 +56,6 @@ export const StatusAndSchoolFields = ({
           </SelectContent>
         </Select>
       </div>
-    </>
+    </div>
   );
 };

@@ -20,7 +20,7 @@ export const PersonalInfoFields = ({
   onInputChange,
 }: PersonalInfoFieldsProps) => {
   return (
-    <div className="space-y-4">
+    <div className="grid grid-cols-2 gap-4">
       <div className="space-y-2">
         <Label htmlFor="name">Nombre</Label>
         <Input
@@ -62,7 +62,7 @@ export const PersonalInfoFields = ({
         />
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-2 col-span-2">
         <Label htmlFor="grade">Datos de estudio</Label>
         <Input
           id="grade"
