@@ -16,11 +16,9 @@ const Children = () => {
   const { toast } = useToast();
   const location = useLocation();
 
-  // Handle selected child from navigation state
   useEffect(() => {
     if (location.state?.selectedChild) {
       setSelectedChild(location.state.selectedChild);
-      // Clear the navigation state to avoid persisting the selection
       window.history.replaceState({}, document.title);
     }
   }, [location.state]);
@@ -28,18 +26,25 @@ const Children = () => {
   const { data: children = [], isLoading, error } = useQuery({
     queryKey: ['children'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('children')
-        .select('*')
-        .order('name');
-      
-      if (error) {
-        console.error('Error fetching children:', error);
+      try {
+        const { data, error } = await supabase
+          .from('children')
+          .select('*, schools(name)')
+          .order('name');
+        
+        if (error) {
+          console.error('Error fetching children:', error);
+          throw error;
+        }
+        
+        return data as Child[];
+      } catch (error) {
+        console.error('Error in query function:', error);
         throw error;
       }
-      
-      return data as Child[];
-    }
+    },
+    retry: 3,
+    retryDelay: 1000,
   });
 
   const handlePrint = () => {
