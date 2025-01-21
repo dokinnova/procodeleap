@@ -1,10 +1,9 @@
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { School } from "@/types";
-import { PhotoUpload } from "../PhotoUpload";
-import { differenceInYears, parseISO } from "date-fns";
 import { ChildFormData } from "@/hooks/useChildForm";
+import { PhotoField } from "./PhotoField";
+import { PersonalInfoFields } from "./PersonalInfoFields";
+import { StatusAndSchoolFields } from "./StatusAndSchoolFields";
+import { StoryField } from "./StoryField";
 
 interface ChildFormFieldsProps {
   formData: ChildFormData;
@@ -13,123 +12,32 @@ interface ChildFormFieldsProps {
 }
 
 export const ChildFormFields = ({ formData, schools, onInputChange }: ChildFormFieldsProps) => {
-  const handleBirthDateChange = (value: string) => {
-    onInputChange('birth_date', value);
-    // Calculate age automatically when birth date changes
-    if (value) {
-      const birthDate = parseISO(value);
-      const age = differenceInYears(new Date(), birthDate);
-      onInputChange('age', age);
-    }
-  };
-
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div className="md:col-span-2">
-        <Label>Foto</Label>
-        <div className="mt-2">
-          <PhotoUpload
-            currentPhotoUrl={formData.image_url}
-            onPhotoUploaded={(url) => onInputChange('image_url', url)}
-          />
-        </div>
-      </div>
+      <PhotoField
+        currentPhotoUrl={formData.image_url}
+        onPhotoUploaded={(url) => onInputChange('image_url', url)}
+      />
 
-      <div className="space-y-2">
-        <Label htmlFor="name">Nombre completo</Label>
-        <Input
-          id="name"
-          placeholder="Nombre del niño"
-          value={formData.name}
-          onChange={(e) => onInputChange('name', e.target.value)}
-          required
-        />
-      </div>
-      
-      <div className="flex gap-4 items-start">
-        <div className="space-y-2 flex-1">
-          <Label htmlFor="birth_date">Fecha de nacimiento</Label>
-          <Input
-            id="birth_date"
-            type="date"
-            value={formData.birth_date}
-            onChange={(e) => handleBirthDateChange(e.target.value)}
-            required
-          />
-        </div>
+      <PersonalInfoFields
+        name={formData.name}
+        birthDate={formData.birth_date}
+        age={formData.age}
+        location={formData.location}
+        onInputChange={onInputChange}
+      />
 
-        <div className="space-y-2 w-24">
-          <Label htmlFor="age">Edad</Label>
-          <Input
-            id="age"
-            type="number"
-            value={formData.age}
-            readOnly
-            className="bg-gray-100"
-          />
-        </div>
-      </div>
+      <StatusAndSchoolFields
+        status={formData.status}
+        schoolId={formData.school_id}
+        schools={schools}
+        onInputChange={onInputChange}
+      />
 
-      <div className="space-y-2">
-        <Label htmlFor="location">Ubicación</Label>
-        <Input
-          id="location"
-          placeholder="Ubicación"
-          value={formData.location}
-          onChange={(e) => onInputChange('location', e.target.value)}
-          required
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="status">Estado</Label>
-        <Select 
-          value={formData.status} 
-          onValueChange={(value: 'assigned' | 'assignable' | 'inactive' | 'pending' | 'baja') => 
-            onInputChange('status', value)
-          }
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Selecciona un estado" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="assignable">Asignable</SelectItem>
-            <SelectItem value="assigned">Asignado</SelectItem>
-            <SelectItem value="inactive">Inactivo</SelectItem>
-            <SelectItem value="pending">Pendiente</SelectItem>
-            <SelectItem value="baja">Baja</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="school">Colegio</Label>
-        <Select 
-          value={formData.school_id} 
-          onValueChange={(value) => onInputChange('school_id', value)}
-        >
-          <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="Selecciona un colegio" />
-          </SelectTrigger>
-          <SelectContent>
-            {schools.map((school) => (
-              <SelectItem key={school.id} value={school.id}>
-                {school.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-2 md:col-span-2">
-        <Label htmlFor="story">Historia</Label>
-        <Input
-          id="story"
-          placeholder="Historia del niño"
-          value={formData.story}
-          onChange={(e) => onInputChange('story', e.target.value)}
-        />
-      </div>
+      <StoryField
+        story={formData.story}
+        onInputChange={onInputChange}
+      />
     </div>
   );
 };
