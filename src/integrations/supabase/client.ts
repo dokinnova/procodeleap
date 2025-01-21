@@ -12,7 +12,7 @@ export const supabase = createClient<Database>(
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: true,
-      storage: sessionStorage
+      storage: window.sessionStorage
     },
     global: {
       headers: {
@@ -23,6 +23,11 @@ export const supabase = createClient<Database>(
     },
     db: {
       schema: 'public'
+    },
+    realtime: {
+      params: {
+        eventsPerSecond: 10
+      }
     }
   }
 );
