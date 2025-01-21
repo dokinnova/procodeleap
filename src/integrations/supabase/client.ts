@@ -12,7 +12,15 @@ export const supabase = createClient<Database>(
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: true,
-      storage: localStorage
+      storage: typeof window !== 'undefined' ? window.localStorage : undefined
     },
+    db: {
+      schema: 'public'
+    },
+    global: {
+      headers: {
+        'X-Client-Info': 'supabase-js-web'
+      }
+    }
   }
 );
