@@ -40,10 +40,7 @@ export const useChildrenData = () => {
           description: "Por favor, verifica tu conexión e intenta nuevamente",
           variant: "destructive",
         });
-        if (error instanceof Error) {
-          throw new Error(`Error de conexión: ${error.message}`);
-        }
-        throw new Error('Error desconocido al obtener los datos');
+        throw error;
       }
     },
     retry: 2,
