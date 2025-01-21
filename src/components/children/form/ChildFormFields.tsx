@@ -95,7 +95,7 @@ export const ChildFormFields = ({ formData, schools, onInputChange }: ChildFormF
           <SelectContent>
             <SelectItem value="assignable">Asignable</SelectItem>
             <SelectItem value="assigned">Asignado</SelectItem>
-            <SelectItem value="inactive">Baja</SelectItem>
+            <SelectItem value="inactive">Inactivo</SelectItem>
             <SelectItem value="pending">Pendiente</SelectItem>
             <SelectItem value="baja">Baja</SelectItem>
           </SelectContent>
