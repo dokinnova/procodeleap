@@ -14,6 +14,7 @@ export interface ChildFormData {
   school_id: string;
   image_url: string | null;
   status: 'assigned' | 'assignable' | 'inactive' | 'pending' | 'baja';
+  grade: string;
 }
 
 export const useChildForm = (
@@ -32,6 +33,7 @@ export const useChildForm = (
     school_id: '',
     image_url: null,
     status: 'pending',
+    grade: '',
   });
 
   useEffect(() => {
@@ -45,6 +47,7 @@ export const useChildForm = (
         school_id: selectedChild.school_id || '',
         image_url: selectedChild.image_url,
         status: selectedChild.status,
+        grade: selectedChild.grade || '',
       });
     } else {
       setFormData({
@@ -56,6 +59,7 @@ export const useChildForm = (
         school_id: '',
         image_url: null,
         status: 'pending',
+        grade: '',
       });
     }
   }, [selectedChild]);
@@ -92,6 +96,7 @@ export const useChildForm = (
             school_id: formData.school_id || null,
             image_url: formData.image_url,
             status: formData.status,
+            grade: formData.grade || null,
           })
           .eq('id', selectedChild.id);
 
@@ -113,6 +118,7 @@ export const useChildForm = (
             school_id: formData.school_id || null,
             image_url: formData.image_url,
             status: formData.status,
+            grade: formData.grade || null,
           }]);
 
         if (error) throw error;
@@ -131,6 +137,7 @@ export const useChildForm = (
           school_id: '',
           image_url: null,
           status: 'pending',
+          grade: '',
         });
       }
 

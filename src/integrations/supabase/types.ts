@@ -38,6 +38,7 @@ export type Database = {
           age: number
           birth_date: string
           created_at: string
+          grade: string | null
           id: string
           image_url: string | null
           location: string
@@ -50,6 +51,7 @@ export type Database = {
           age: number
           birth_date: string
           created_at?: string
+          grade?: string | null
           id?: string
           image_url?: string | null
           location: string
@@ -62,6 +64,7 @@ export type Database = {
           age?: number
           birth_date?: string
           created_at?: string
+          grade?: string | null
           id?: string
           image_url?: string | null
           location?: string

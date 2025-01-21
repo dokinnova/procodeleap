@@ -9,6 +9,7 @@ export interface Child {
   school_id: string | null;
   status: 'assigned' | 'assignable' | 'inactive' | 'pending' | 'baja';
   created_at: string;
+  grade: string | null;
 }
 
 export interface School {

@@ -24,6 +24,7 @@ export const ChildFormFields = ({ formData, schools, onInputChange }: ChildFormF
         birthDate={formData.birth_date}
         age={formData.age}
         location={formData.location}
+        grade={formData.grade || ''}
         onInputChange={onInputChange}
       />
 
