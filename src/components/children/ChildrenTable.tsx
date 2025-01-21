@@ -1,13 +1,10 @@
-import { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useDeleteChild } from "@/hooks/useDeleteChild";
 import { DeleteConfirmationDialog } from "@/components/shared/DeleteConfirmationDialog";
 import { Child } from "@/types";
 import { ChildrenFilters } from "./table/ChildrenFilters";
-import { ChildStatusBadge } from "./table/ChildStatusBadge";
 import { useToast } from "@/hooks/use-toast";
+import { TableRow as ChildTableRow } from "./table/TableRow";
 
 interface ChildrenTableProps {
   children: Child[];
@@ -86,34 +83,13 @@ export const ChildrenTable = ({
           </TableHeader>
           <TableBody>
             {filteredChildren.map((child) => (
-              <TableRow 
-                key={child.id} 
-                className="hover:bg-gray-50 cursor-pointer"
-                onClick={() => handleChildSelect(child)}
-              >
-                <TableCell className="font-mono text-sm">
-                  {generateShortId(child)}
-                </TableCell>
-                <TableCell className="font-medium">{child.name}</TableCell>
-                <TableCell>{child.age} años</TableCell>
-                <TableCell>{child.location}</TableCell>
-                <TableCell>
-                  <ChildStatusBadge status={child.status} />
-                </TableCell>
-                <TableCell>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setChildToDelete(child);
-                    }}
-                    className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </TableCell>
-              </TableRow>
+              <ChildTableRow
+                key={child.id}
+                child={child}
+                shortId={generateShortId(child)}
+                onSelect={handleChildSelect}
+                onDelete={setChildToDelete}
+              />
             ))}
             {filteredChildren.length === 0 && (
               <TableRow>
