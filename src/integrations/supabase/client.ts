@@ -9,10 +9,10 @@ export const supabase = createClient<Database>(
   SUPABASE_ANON_KEY,
   {
     auth: {
-      persistSession: false, // Changed to false for incognito mode
+      persistSession: true, // Changed back to true to maintain session
       autoRefreshToken: true,
       detectSessionInUrl: true,
-      storage: sessionStorage // Use sessionStorage instead of localStorage
+      storage: sessionStorage // Keep using sessionStorage for incognito compatibility
     },
     global: {
       headers: {
