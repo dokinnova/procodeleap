@@ -6,6 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const ChildrenReport = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -32,7 +34,7 @@ const ChildrenReport = () => {
           return [];
         }
 
-        console.log('Niños obtenidos exitosamente:', data);
+        console.log('Niños obtenidos exitosamente:', data.length, 'registros');
         return data as Child[];
       } catch (error) {
         console.error('Error en la consulta de niños:', error);
@@ -57,6 +59,7 @@ const ChildrenReport = () => {
   );
 
   const handleChildClick = (child: Child) => {
+    console.log('Navegando a detalles del niño:', child.id);
     navigate('/children', { state: { selectedChild: child } });
   };
 
@@ -69,6 +72,12 @@ const ChildrenReport = () => {
             Obteniendo datos del reporte
           </CardDescription>
         </CardHeader>
+        <CardContent>
+          <div className="animate-pulse space-y-4">
+            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+          </div>
+        </CardContent>
       </Card>
     );
   }
@@ -83,11 +92,18 @@ const ChildrenReport = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-sm text-red-500">
-            Hubo un problema al conectar con el servidor. Verifica tu conexión a internet e intenta de nuevo.
-          </p>
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error de conexión</AlertTitle>
+            <AlertDescription>
+              Hubo un problema al conectar con el servidor. Verifica tu conexión a internet e intenta de nuevo.
+            </AlertDescription>
+          </Alert>
           <Button 
-            onClick={() => refetch()}
+            onClick={() => {
+              console.log('Reintentando carga de datos...');
+              refetch();
+            }}
             variant="outline"
             className="w-full"
           >
@@ -139,7 +155,7 @@ const ChildrenReport = () => {
                     <tr 
                       key={child.id}
                       onClick={() => handleChildClick(child)}
-                      className="hover:bg-gray-50 cursor-pointer"
+                      className="hover:bg-gray-50 cursor-pointer transition-colors duration-150"
                     >
                       <td className="px-6 py-4 whitespace-nowrap">{child.name}</td>
                       <td className="px-6 py-4 whitespace-nowrap">{child.age} años</td>
