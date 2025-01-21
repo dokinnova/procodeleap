@@ -19,7 +19,16 @@ const Children = () => {
   useEffect(() => {
     if (location.state?.selectedChild) {
       console.log('Setting selected child from navigation:', location.state.selectedChild);
-      setSelectedChild(location.state.selectedChild);
+      const child = location.state.selectedChild;
+      setSelectedChild({
+        ...child,
+        birth_date: child.birth_date || '',
+        story: child.story || '',
+        school_id: child.school_id || '',
+        grade: child.grade || '',
+        image_url: child.image_url || null,
+        status: child.status || 'pending',
+      });
       // Limpiar el estado de navegación para evitar problemas al recargar
       window.history.replaceState({}, document.title);
     }
@@ -64,7 +73,7 @@ const Children = () => {
     },
     retry: 3,
     retryDelay: 1000,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
   });
 
