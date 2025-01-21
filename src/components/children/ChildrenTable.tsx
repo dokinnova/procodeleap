@@ -34,8 +34,6 @@ export const ChildrenTable = ({
 
   const handleChildSelect = (child: Child) => {
     try {
-      console.log('Seleccionando niño:', child);
-      // Asegurarse de que todos los campos requeridos estén presentes
       const normalizedChild = {
         ...child,
         birth_date: child.birth_date || '',
@@ -47,10 +45,6 @@ export const ChildrenTable = ({
       };
       
       setSelectedChild(normalizedChild);
-      toast({
-        title: "Niño seleccionado",
-        description: `Se han cargado los datos de ${child.name}`,
-      });
     } catch (error) {
       console.error('Error al seleccionar el niño:', error);
       toast({

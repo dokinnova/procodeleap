@@ -20,35 +20,31 @@ const Children = () => {
   const { data: children = [], isLoading, error, refetch } = useChildrenData();
 
   useEffect(() => {
-    const handleSelectedChildFromNavigation = () => {
-      if (location.state?.selectedChild) {
-        console.log('Setting selected child from navigation:', location.state.selectedChild);
-        try {
-          const child = location.state.selectedChild;
-          setSelectedChild({
-            ...child,
-            birth_date: child.birth_date || '',
-            story: child.story || '',
-            school_id: child.school_id || '',
-            grade: child.grade || '',
-            image_url: child.image_url || null,
-            status: child.status || 'pending',
-          });
-          // Limpiar el estado de navegación inmediatamente para evitar problemas al recargar
-          navigate(location.pathname, { replace: true, state: {} });
-        } catch (error) {
-          console.error('Error al establecer el niño seleccionado:', error);
-          toast({
-            title: "Error",
-            description: "No se pudieron cargar los datos del niño seleccionado",
-            variant: "destructive",
-          });
-        }
+    if (location.state?.selectedChild) {
+      const child = location.state.selectedChild;
+      try {
+        setSelectedChild({
+          ...child,
+          birth_date: child.birth_date || '',
+          story: child.story || '',
+          school_id: child.school_id || '',
+          grade: child.grade || '',
+          image_url: child.image_url || null,
+          status: child.status || 'pending',
+        });
+      } catch (error) {
+        console.error('Error al establecer el niño seleccionado:', error);
+        toast({
+          title: "Error",
+          description: "No se pudieron cargar los datos del niño seleccionado",
+          variant: "destructive",
+        });
+      } finally {
+        // Limpiar el estado de navegación inmediatamente
+        navigate(location.pathname, { replace: true });
       }
-    };
-
-    handleSelectedChildFromNavigation();
-  }, [location.state, navigate, location.pathname, toast]);
+    }
+  }, [location.state?.selectedChild]);
 
   if (error) {
     return <ChildrenError error={error as Error} onRetry={refetch} />;
