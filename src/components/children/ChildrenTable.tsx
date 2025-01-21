@@ -20,6 +20,13 @@ export const ChildrenTable = ({ children, search, setSearch, setSelectedChild }:
     child.name.toLowerCase().includes(search.toLowerCase())
   );
 
+  // Función para generar un ID corto basado en el timestamp de creación y los primeros caracteres del UUID
+  const generateShortId = (child: Child) => {
+    const timestamp = new Date(child.created_at).getTime().toString(36);
+    const uniqueId = child.id.slice(0, 4);
+    return `${timestamp.slice(-4)}${uniqueId}`.toUpperCase();
+  };
+
   return (
     <div className="space-y-4">
       <div className="relative">
@@ -50,8 +57,8 @@ export const ChildrenTable = ({ children, search, setSearch, setSelectedChild }:
                 className="hover:bg-gray-50 cursor-pointer"
                 onClick={() => setSelectedChild(child)}
               >
-                <TableCell className="font-mono text-sm text-gray-500">
-                  {child.id.slice(0, 8)}...
+                <TableCell className="font-mono text-sm">
+                  {generateShortId(child)}
                 </TableCell>
                 <TableCell className="font-medium">{child.name}</TableCell>
                 <TableCell>{child.age} años</TableCell>
