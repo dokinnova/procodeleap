@@ -13,7 +13,7 @@ interface ChildFormData {
   story: string;
   school_id: string;
   image_url: string | null;
-  status: 'assigned' | 'assignable' | 'inactive' | 'pending';
+  status: 'assigned' | 'assignable' | 'inactive' | 'pending' | 'baja';
 }
 
 export const useChildForm = (
