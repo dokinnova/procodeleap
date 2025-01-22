@@ -20,6 +20,7 @@ export const AuthFormWrapper = () => {
           container: 'w-full',
           button: 'w-full',
           input: 'rounded-md',
+          message: 'text-sm text-red-600 mb-4'
         }
       }}
       localization={{
@@ -52,10 +53,17 @@ export const AuthFormWrapper = () => {
             loading_button_label: 'Enviando instrucciones...',
             link_text: '¿Olvidaste tu contraseña?',
           },
+          confirmation: {
+            button_label: 'Reenviar email de confirmación'
+          }
         },
       }}
       theme="light"
       providers={[]}
+      onError={(error) => {
+        console.error('Auth error:', error);
+      }}
+      redirectTo={window.location.origin}
     />
   );
 };
