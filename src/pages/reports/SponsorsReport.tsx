@@ -1,17 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
-import { FileText, Search } from "lucide-react";
+import { BarChart2, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 
-const SponsorsReport = () => {
+const SponsorReport = () => {
   const [search, setSearch] = useState("");
   const [contributionFilter, setContributionFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -23,9 +23,9 @@ const SponsorsReport = () => {
     queryFn: async () => {
       try {
         console.log('Iniciando fetch de padrinos para reporte...');
-        const { data: session } = await supabase.auth.getSession();
+        const { data: { session } } = await supabase.auth.getSession();
         
-        if (!session?.session) {
+        if (!session) {
           console.error('No hay sesión activa');
           toast({
             title: "Error de autenticación",
@@ -33,10 +33,10 @@ const SponsorsReport = () => {
             variant: "destructive",
           });
           navigate('/auth');
-          throw new Error('No hay sesión activa. Por favor, inicia sesión nuevamente.');
+          throw new Error('No hay sesión activa');
         }
 
-        console.log('Sesión activa:', session.session.user.email);
+        console.log('Sesión activa:', session.user.email);
         const { data, error } = await supabase
           .from("sponsors")
           .select("*")
@@ -47,13 +47,8 @@ const SponsorsReport = () => {
           throw error;
         }
 
-        if (!data) {
-          console.log('No se encontraron padrinos');
-          return [];
-        }
-
-        console.log('Padrinos obtenidos exitosamente:', data.length, 'registros');
-        return data;
+        console.log('Datos obtenidos:', data);
+        return data || [];
       } catch (error: any) {
         console.error('Error en la consulta de padrinos:', error);
         toast({
@@ -126,7 +121,7 @@ const SponsorsReport = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <FileText className="h-8 w-8 text-primary" />
+          <BarChart2 className="h-8 w-8 text-primary" />
           <h1 className="text-2xl font-bold text-gray-900">Listado de Padrinos</h1>
         </div>
         <Button onClick={() => window.print()} variant="outline">
@@ -220,4 +215,4 @@ const SponsorsReport = () => {
   );
 };
 
-export default SponsorsReport;
+export default SponsorReport;
