@@ -59,11 +59,22 @@ export const useChildForm = (
         return;
       }
 
+      // Preparar los datos para la inserción/actualización
+      const dataToSave = {
+        ...formData,
+        // Si school_id está vacío, establecerlo como null
+        school_id: formData.school_id || null,
+        // Si story está vacío, establecerlo como null
+        story: formData.story || null,
+        // Si grade está vacío, establecerlo como null
+        grade: formData.grade || null
+      };
+
       if (selectedChild) {
         console.log('Updating existing child:', selectedChild.id);
         const { error } = await supabase
           .from("children")
-          .update(formData)
+          .update(dataToSave)
           .eq("id", selectedChild.id);
 
         if (error) {
@@ -80,7 +91,7 @@ export const useChildForm = (
         console.log('Creating new child');
         const { error } = await supabase
           .from("children")
-          .insert([formData]);
+          .insert([dataToSave]);
 
         if (error) {
           console.error('Error creating child:', error);
