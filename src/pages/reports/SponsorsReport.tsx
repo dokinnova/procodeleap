@@ -17,6 +17,15 @@ const SponsorsReport = () => {
     queryKey: ["sponsors-report"],
     queryFn: async () => {
       console.log("Iniciando fetch de sponsors para reporte...");
+      
+      // Verificar sesión primero
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log("Estado de sesión:", session ? "Activa" : "Inactiva");
+      
+      if (!session) {
+        throw new Error("No hay sesión activa");
+      }
+
       const { data, error } = await supabase
         .from("sponsors")
         .select("*")
@@ -35,8 +44,15 @@ const SponsorsReport = () => {
       console.log("Respuesta completa de Supabase:", { data, error });
       console.log("Sponsors obtenidos exitosamente:", data?.length, "registros");
       console.log("Datos de sponsors:", data);
+      
+      if (!data) {
+        console.log("No se recibieron datos de sponsors");
+        return [];
+      }
+
       return data as Sponsor[];
     },
+    retry: 1,
     refetchOnWindowFocus: false,
   });
 
@@ -90,9 +106,14 @@ const SponsorsReport = () => {
           <BarChart2 className="h-8 w-8 text-primary" />
           <h1 className="text-2xl font-bold text-gray-900">Listado de Padrinos</h1>
         </div>
-        <Button onClick={() => window.location.reload()} variant="outline">
-          Actualizar Datos
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            onClick={() => window.location.reload()} 
+            variant="outline"
+          >
+            Actualizar Datos
+          </Button>
+        </div>
       </div>
 
       <SponsorsFilter
