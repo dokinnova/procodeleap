@@ -13,6 +13,7 @@ export const DashboardHeader = () => {
       const { error } = await supabase.auth.signOut();
       
       if (error) {
+        console.error("Error during signOut:", error);
         throw error;
       }
 
@@ -28,7 +29,7 @@ export const DashboardHeader = () => {
       console.error("Error al cerrar sesión:", error);
       toast({
         title: "Error",
-        description: "No se pudo cerrar la sesión",
+        description: "No se pudo cerrar la sesión. Por favor, intenta de nuevo.",
         variant: "destructive",
       });
     }

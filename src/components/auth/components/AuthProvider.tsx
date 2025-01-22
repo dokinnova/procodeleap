@@ -14,9 +14,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   useEffect(() => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        console.log("User already logged in, redirecting to home");
-        navigate('/');
+      if (!session) {
+        console.log("No active session found, redirecting to auth");
+        navigate('/auth', { replace: true });
       }
     };
 
@@ -24,27 +24,28 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      console.log("Auth state changed:", _event);
+      
       if (_event === 'SIGNED_IN' && session) {
-        console.log("Auth state changed - user logged in, redirecting to home");
-        navigate('/');
-      } else if (_event === 'USER_UPDATED') {
-        console.log("Auth state changed - user updated");
+        console.log("User signed in, redirecting to home");
+        navigate('/', { replace: true });
       } else if (_event === 'SIGNED_OUT') {
-        console.log("Auth state changed - user signed out");
-      } else {
-        console.log("Auth state changed:", _event);
-        if (!session) {
-          toast({
-            title: "Error de autenticación",
-            description: "Hubo un problema al autenticar. Por favor intenta de nuevo.",
-            variant: "destructive",
-          });
-        }
+        console.log("User signed out, redirecting to auth");
+        navigate('/auth', { replace: true });
+      } else if (!session) {
+        console.log("No session found, redirecting to auth");
+        navigate('/auth', { replace: true });
+        toast({
+          title: "Sesión finalizada",
+          description: "Tu sesión ha finalizado. Por favor, inicia sesión nuevamente.",
+        });
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [navigate, toast]);
 
   return <>{children}</>;
