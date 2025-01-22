@@ -46,7 +46,7 @@ const SponsorsReport = () => {
           throw error;
         }
 
-        console.log('Datos obtenidos:', data);
+        console.log('Datos obtenidos:', data?.length || 0, 'padrinos');
         return data || [];
       } catch (error: any) {
         console.error('Error en la consulta de padrinos:', error);
