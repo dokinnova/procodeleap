@@ -3,10 +3,9 @@ import { Sponsor } from "@/types";
 
 interface SponsorsTableProps {
   sponsors: Sponsor[];
-  statusOptions: { value: string; label: string; }[];
 }
 
-export const SponsorsTable = ({ sponsors, statusOptions }: SponsorsTableProps) => {
+export const SponsorsTable = ({ sponsors }: SponsorsTableProps) => {
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden">
       <Table>
@@ -40,7 +39,9 @@ export const SponsorsTable = ({ sponsors, statusOptions }: SponsorsTableProps) =
                   /mes
                 </TableCell>
                 <TableCell>
-                  {statusOptions.find(opt => opt.value === sponsor.status)?.label || sponsor.status}
+                  {sponsor.status === 'active' ? 'Activo' : 
+                   sponsor.status === 'inactive' ? 'Inactivo' : 
+                   sponsor.status === 'pending' ? 'Pendiente' : sponsor.status}
                 </TableCell>
               </TableRow>
             ))
