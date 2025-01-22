@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Child } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "./use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 
 export interface ChildFormData {
   name: string;
@@ -32,6 +33,7 @@ export const useChildForm = (
   });
 
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const handleInputChange = (field: keyof ChildFormData, value: any) => {
     console.log('Actualizando campo:', field, 'con valor:', value);
@@ -46,6 +48,17 @@ export const useChildForm = (
     console.log('Submitting form with data:', formData);
 
     try {
+      const { data: session } = await supabase.auth.getSession();
+      
+      if (!session.session) {
+        toast({
+          title: "Error de autenticación",
+          description: "Debes iniciar sesión para realizar esta acción",
+          variant: "destructive",
+        });
+        return;
+      }
+
       if (selectedChild) {
         console.log('Updating existing child:', selectedChild.id);
         const { error } = await supabase
@@ -53,7 +66,10 @@ export const useChildForm = (
           .update(formData)
           .eq("id", selectedChild.id);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error updating child:', error);
+          throw error;
+        }
 
         toast({
           title: "Éxito",
@@ -62,15 +78,23 @@ export const useChildForm = (
         setSelectedChild(null);
       } else {
         console.log('Creating new child');
-        const { error } = await supabase.from("children").insert([formData]);
+        const { error } = await supabase
+          .from("children")
+          .insert([formData]);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error creating child:', error);
+          throw error;
+        }
 
         toast({
           title: "Éxito",
           description: "Niño registrado correctamente",
         });
       }
+
+      // Invalidate and refetch queries
+      queryClient.invalidateQueries({ queryKey: ['children'] });
 
       setFormData({
         name: "",
@@ -83,11 +107,11 @@ export const useChildForm = (
         image_url: null,
         status: "pending",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error in form submission:', error);
       toast({
         title: "Error",
-        description: "Hubo un error al procesar la solicitud",
+        description: error.message || "Hubo un error al procesar la solicitud",
         variant: "destructive",
       });
     }
