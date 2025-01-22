@@ -19,6 +19,13 @@ const ChildrenReport = () => {
     queryFn: async () => {
       try {
         console.log('Iniciando fetch de niños para reporte...');
+        const { data: session } = await supabase.auth.getSession();
+        
+        if (!session?.session) {
+          console.error('No hay sesión activa');
+          throw new Error('No hay sesión activa. Por favor, inicia sesión nuevamente.');
+        }
+
         const { data, error } = await supabase
           .from('children')
           .select('*, schools(name)')
@@ -36,11 +43,11 @@ const ChildrenReport = () => {
 
         console.log('Niños obtenidos exitosamente:', data.length, 'registros');
         return data as Child[];
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error en la consulta de niños:', error);
         toast({
           title: "Error al cargar los datos",
-          description: "Por favor, verifica tu conexión e intenta nuevamente",
+          description: error.message || "Por favor, verifica tu conexión e intenta nuevamente",
           variant: "destructive",
         });
         throw error;
@@ -96,7 +103,7 @@ const ChildrenReport = () => {
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Error de conexión</AlertTitle>
             <AlertDescription>
-              Hubo un problema al conectar con el servidor. Verifica tu conexión a internet e intenta de nuevo.
+              {error instanceof Error ? error.message : 'Hubo un problema al conectar con el servidor. Verifica tu conexión a internet e intenta de nuevo.'}
             </AlertDescription>
           </Alert>
           <Button 
