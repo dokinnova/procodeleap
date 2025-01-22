@@ -41,13 +41,15 @@ const SponsorsReport = () => {
       console.log('Padrinos obtenidos:', data);
       return data || [];
     },
-    onError: (error) => {
-      console.error('Error en la consulta:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "No se pudieron cargar los padrinos. Por favor, intenta de nuevo.",
-      });
+    meta: {
+      onError: (error) => {
+        console.error('Error en la consulta:', error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "No se pudieron cargar los padrinos. Por favor, intenta de nuevo.",
+        });
+      }
     }
   });
 
