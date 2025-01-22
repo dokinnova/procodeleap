@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { SponsorsFilter } from "@/components/reports/sponsors/SponsorsFilter";
 import { SponsorsTable } from "@/components/reports/sponsors/SponsorsTable";
 import { useToast } from "@/hooks/use-toast";
+import { Sponsor } from "@/types";
 
 const SponsorsReport = () => {
   const [search, setSearch] = useState("");
@@ -13,15 +14,16 @@ const SponsorsReport = () => {
   const { toast } = useToast();
 
   const { data: sponsors = [], isLoading, error } = useQuery({
-    queryKey: ["sponsors-report"],
+    queryKey: ["sponsors"],
     queryFn: async () => {
+      console.log("Fetching sponsors...");
       const { data, error } = await supabase
         .from("sponsors")
         .select("*")
-        .order('name');
+        .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Error fetching sponsors:', error);
+        console.error("Error fetching sponsors:", error);
         toast({
           title: "Error al cargar los datos",
           description: error.message,
@@ -30,13 +32,9 @@ const SponsorsReport = () => {
         throw error;
       }
 
-      return data || [];
+      console.log("Sponsors fetched successfully:", data);
+      return data as Sponsor[];
     },
-    retry: 2,
-    retryDelay: (attemptIndex) => Math.min(1000 * (attemptIndex + 1), 3000),
-    staleTime: 1000 * 60 * 5, // 5 minutes
-    refetchOnWindowFocus: true,
-    gcTime: 1000 * 60 * 10, // 10 minutes
   });
 
   if (isLoading) {
@@ -77,6 +75,8 @@ const SponsorsReport = () => {
     const daysAgo = (new Date().getTime() - startDate.getTime()) / (1000 * 3600 * 24);
     return matchesSearch && daysAgo <= range.days;
   });
+
+  console.log("Filtered sponsors:", filteredSponsors);
 
   return (
     <div className="space-y-6">
