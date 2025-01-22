@@ -12,15 +12,23 @@ const Sponsors = () => {
   const [sponsors, setSponsors] = useState<Sponsor[]>([]);
   const [search, setSearch] = useState("");
   const [selectedSponsor, setSelectedSponsor] = useState<Sponsor | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const loadSponsors = async () => {
     try {
+      setIsLoading(true);
+      console.log("Fetching sponsors...");
       const { data, error } = await supabase
         .from('sponsors')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching sponsors:', error);
+        throw error;
+      }
+      
+      console.log("Sponsors fetched:", data);
       setSponsors(data || []);
     } catch (error) {
       console.error('Error loading sponsors:', error);
@@ -29,6 +37,8 @@ const Sponsors = () => {
         title: "Error",
         description: "No se pudieron cargar los padrinos",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -55,6 +65,8 @@ const Sponsors = () => {
         status: formData.status,
       };
 
+      console.log("Saving sponsor data:", sponsorData);
+
       let error;
       if (selectedSponsor) {
         const { error: updateError } = await supabase
@@ -69,7 +81,10 @@ const Sponsors = () => {
         error = insertError;
       }
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
 
       toast({
         title: "Éxito",
@@ -79,7 +94,8 @@ const Sponsors = () => {
       });
 
       setSelectedSponsor(null);
-      loadSponsors();
+      // Immediately reload sponsors after successful save
+      await loadSponsors();
     } catch (error) {
       console.error('Error saving sponsor:', error);
       toast({
