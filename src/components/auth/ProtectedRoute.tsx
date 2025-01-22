@@ -13,32 +13,42 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     console.log('ProtectedRoute: Checking session...');
     
-    // Initialize session on component mount
-    supabase.auth.getSession().then(({ data: { session: currentSession }, error }) => {
-      if (error) {
-        console.error('ProtectedRoute: Error checking session:', error);
-        toast({
-          title: "Error de autenticación",
-          description: "Por favor, inicia sesión nuevamente",
-          variant: "destructive",
-        });
+    const checkSession = async () => {
+      try {
+        const { data: { session: currentSession }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('ProtectedRoute: Error checking session:', error);
+          toast({
+            title: "Error de autenticación",
+            description: "Por favor, inicia sesión nuevamente",
+            variant: "destructive",
+          });
+          setSession(null);
+          navigate('/auth', { replace: true });
+        } else if (!currentSession) {
+          console.log('ProtectedRoute: No session found');
+          setSession(null);
+          navigate('/auth', { replace: true });
+        } else {
+          console.log('ProtectedRoute: Session found:', currentSession);
+          setSession(currentSession);
+        }
+      } catch (error) {
+        console.error('ProtectedRoute: Error:', error);
         setSession(null);
         navigate('/auth', { replace: true });
-      } else if (!currentSession) {
-        console.log('ProtectedRoute: No session found');
-        setSession(null);
-        navigate('/auth', { replace: true });
-      } else {
-        console.log('ProtectedRoute: Session found:', currentSession);
-        setSession(currentSession);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
-    });
+    };
+
+    checkSession();
 
     // Subscribe to auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
       console.log('ProtectedRoute: Auth state changed:', _event);
       
       if (session) {
