@@ -17,7 +17,6 @@ const Sponsors = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check authentication status
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) {
         navigate('/auth');
@@ -57,28 +56,27 @@ const Sponsors = () => {
   };
 
   const handleSubmit = async (formData: any) => {
-    // Check if user is authenticated
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Debes iniciar sesión para realizar esta acción",
-      });
-      navigate('/auth');
-      return;
-    }
-
-    if (!formData.name || !formData.email || !formData.contribution || !formData.status) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Por favor complete los campos requeridos",
-      });
-      return;
-    }
-
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Debes iniciar sesión para realizar esta acción",
+        });
+        navigate('/auth');
+        return;
+      }
+
+      if (!formData.name || !formData.email || !formData.contribution || !formData.status) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Por favor complete los campos requeridos",
+        });
+        return;
+      }
+
       const sponsorData = {
         name: formData.name,
         email: formData.email,
@@ -89,25 +87,19 @@ const Sponsors = () => {
 
       console.log("Saving sponsor data:", sponsorData);
 
-      let error;
       if (selectedSponsor) {
         const { error: updateError } = await supabase
           .from('sponsors')
           .update(sponsorData)
-          .eq('id', selectedSponsor.id)
-          .single();
-        error = updateError;
+          .eq('id', selectedSponsor.id);
+
+        if (updateError) throw updateError;
       } else {
         const { error: insertError } = await supabase
           .from('sponsors')
-          .insert([sponsorData])
-          .single();
-        error = insertError;
-      }
+          .insert([sponsorData]);
 
-      if (error) {
-        console.error('Supabase error:', error);
-        throw error;
+        if (insertError) throw insertError;
       }
 
       toast({
