@@ -23,6 +23,7 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
         if (!currentSession) {
           console.log("No active session found");
           setSession(null);
+          navigate('/auth', { replace: true });
         } else {
           console.log("Active session found:", currentSession);
           setSession(currentSession);
@@ -35,6 +36,7 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
           variant: "destructive",
         });
         setSession(null);
+        navigate('/auth', { replace: true });
       } finally {
         setLoading(false);
       }
@@ -52,7 +54,7 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
       if (!session) {
         console.log("Session ended, redirecting to auth");
-        navigate('/auth');
+        navigate('/auth', { replace: true });
       }
     });
 
