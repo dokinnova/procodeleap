@@ -32,19 +32,29 @@ const SponsorsReport = () => {
             variant: "destructive",
           });
           navigate('/auth');
-          throw new Error('No hay sesión activa');
+          return [];
         }
 
         console.log('Sesión activa:', session.user.email);
         const { data, error } = await supabase
           .from("sponsors")
           .select("*")
-          .order("name");
-      
-        if (error) throw error;
+          .order('name');
+
+        if (error) {
+          console.error('Error al obtener padrinos:', error);
+          throw error;
+        }
+
+        console.log('Datos obtenidos:', data);
         return data || [];
       } catch (error: any) {
         console.error('Error en la consulta de padrinos:', error);
+        toast({
+          title: "Error",
+          description: "No se pudieron cargar los padrinos",
+          variant: "destructive",
+        });
         throw error;
       }
     },
