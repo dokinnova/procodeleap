@@ -32,6 +32,7 @@ const SponsorsReport = () => {
         throw error;
       }
 
+      console.log("Respuesta completa de Supabase:", { data, error });
       console.log("Sponsors obtenidos exitosamente:", data?.length, "registros");
       console.log("Datos de sponsors:", data);
       return data as Sponsor[];
@@ -40,6 +41,7 @@ const SponsorsReport = () => {
   });
 
   if (isLoading) {
+    console.log("Estado: Cargando datos...");
     return (
       <div className="flex justify-center items-center min-h-[50vh]">
         <div className="animate-pulse text-lg text-gray-600">Cargando datos...</div>
@@ -48,6 +50,7 @@ const SponsorsReport = () => {
   }
 
   if (error) {
+    console.error("Error en el componente:", error);
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-4">
         <p className="text-red-500">Error al cargar los datos</p>
@@ -87,8 +90,8 @@ const SponsorsReport = () => {
           <BarChart2 className="h-8 w-8 text-primary" />
           <h1 className="text-2xl font-bold text-gray-900">Listado de Padrinos</h1>
         </div>
-        <Button onClick={() => window.print()} variant="outline">
-          Imprimir Reporte
+        <Button onClick={() => window.location.reload()} variant="outline">
+          Actualizar Datos
         </Button>
       </div>
 
