@@ -24,7 +24,8 @@ export const ChildForm = ({ selectedChild, setSelectedChild }: ChildFormProps) =
         const { data, error } = await supabase
           .from('schools')
           .select('*')
-          .order('name');
+          .order('name')
+          .neq('name', '');
         
         if (error) {
           console.error('Error al obtener escuelas:', error);
