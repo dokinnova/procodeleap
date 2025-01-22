@@ -6,13 +6,27 @@ import { SponsorForm } from "@/components/sponsors/SponsorForm";
 import { SponsorsTable } from "@/components/sponsors/SponsorsTable";
 import { PaymentMethodsManager } from "@/components/sponsors/payment-methods/PaymentMethodsManager";
 import { Sponsor } from "@/types";
+import { useNavigate } from "react-router-dom";
 
 const Sponsors = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [sponsors, setSponsors] = useState<Sponsor[]>([]);
   const [search, setSearch] = useState("");
   const [selectedSponsor, setSelectedSponsor] = useState<Sponsor | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Check authentication status
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) {
+        navigate('/auth');
+        return;
+      }
+    });
+
+    loadSponsors();
+  }, [navigate]);
 
   const loadSponsors = async () => {
     try {
@@ -42,11 +56,19 @@ const Sponsors = () => {
     }
   };
 
-  useEffect(() => {
-    loadSponsors();
-  }, []);
-
   const handleSubmit = async (formData: any) => {
+    // Check if user is authenticated
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Debes iniciar sesión para realizar esta acción",
+      });
+      navigate('/auth');
+      return;
+    }
+
     if (!formData.name || !formData.email || !formData.contribution || !formData.status) {
       toast({
         variant: "destructive",
@@ -72,12 +94,14 @@ const Sponsors = () => {
         const { error: updateError } = await supabase
           .from('sponsors')
           .update(sponsorData)
-          .eq('id', selectedSponsor.id);
+          .eq('id', selectedSponsor.id)
+          .single();
         error = updateError;
       } else {
         const { error: insertError } = await supabase
           .from('sponsors')
-          .insert([sponsorData]);
+          .insert([sponsorData])
+          .single();
         error = insertError;
       }
 
