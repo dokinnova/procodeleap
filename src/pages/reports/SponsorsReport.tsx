@@ -6,23 +6,67 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 const SponsorsReport = () => {
   const [search, setSearch] = useState("");
   const [contributionFilter, setContributionFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
-  const { data: sponsors = [], isLoading } = useQuery({
+  const { data: sponsors = [], isLoading, error, refetch } = useQuery({
     queryKey: ["sponsors-report"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("sponsors")
-        .select("*")
-        .order("name");
+      try {
+        console.log('Iniciando fetch de padrinos para reporte...');
+        const { data: session } = await supabase.auth.getSession();
+        
+        if (!session?.session) {
+          console.error('No hay sesión activa');
+          toast({
+            title: "Error de autenticación",
+            description: "Por favor, inicia sesión nuevamente",
+            variant: "destructive",
+          });
+          navigate('/auth');
+          throw new Error('No hay sesión activa. Por favor, inicia sesión nuevamente.');
+        }
+
+        console.log('Sesión activa:', session.session.user.email);
+        const { data, error } = await supabase
+          .from("sponsors")
+          .select("*")
+          .order("name");
       
-      if (error) throw error;
-      return data;
+        if (error) {
+          console.error('Error al obtener padrinos:', error);
+          throw error;
+        }
+
+        if (!data) {
+          console.log('No se encontraron padrinos');
+          return [];
+        }
+
+        console.log('Padrinos obtenidos exitosamente:', data.length, 'registros');
+        return data;
+      } catch (error: any) {
+        console.error('Error en la consulta de padrinos:', error);
+        toast({
+          title: "Error al cargar los datos",
+          description: error.message || "Por favor, verifica tu conexión e intenta nuevamente",
+          variant: "destructive",
+        });
+        throw error;
+      }
     },
+    retry: 1,
+    staleTime: 1000 * 60 * 5, // 5 minutos
+    refetchOnWindowFocus: false,
   });
 
   const contributionRanges = [
@@ -53,14 +97,27 @@ const SponsorsReport = () => {
     return matchesSearch && matchesContribution && matchesStatus;
   });
 
-  const handlePrint = () => {
-    window.print();
-  };
-
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-[50vh]">
         <div className="animate-pulse text-lg text-gray-600">Cargando datos...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-4">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error de conexión</AlertTitle>
+          <AlertDescription>
+            {error instanceof Error ? error.message : 'Hubo un problema al conectar con el servidor. Verifica tu conexión a internet e intenta de nuevo.'}
+          </AlertDescription>
+        </Alert>
+        <Button onClick={() => refetch()} variant="outline">
+          Reintentar
+        </Button>
       </div>
     );
   }
@@ -72,7 +129,7 @@ const SponsorsReport = () => {
           <FileText className="h-8 w-8 text-primary" />
           <h1 className="text-2xl font-bold text-gray-900">Listado de Padrinos</h1>
         </div>
-        <Button onClick={handlePrint} variant="outline">
+        <Button onClick={() => window.print()} variant="outline">
           Imprimir Reporte
         </Button>
       </div>
@@ -131,29 +188,30 @@ const SponsorsReport = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredSponsors.map((sponsor) => (
-              <TableRow key={sponsor.id}>
-                <TableCell className="font-medium">{sponsor.name}</TableCell>
-                <TableCell>{sponsor.email}</TableCell>
-                <TableCell>{sponsor.phone || "No disponible"}</TableCell>
-                <TableCell className="font-mono">
-                  ${sponsor.contribution.toLocaleString("es-ES", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
-                  /mes
-                </TableCell>
-                <TableCell>
-                  {statusOptions.find(opt => opt.value === sponsor.status)?.label || sponsor.status}
-                </TableCell>
-              </TableRow>
-            ))}
-            {filteredSponsors.length === 0 && (
+            {filteredSponsors.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="text-center py-8 text-gray-500">
-                  No se encontraron padrinos con los filtros seleccionados
+                  No se encontraron padrinos
                 </TableCell>
               </TableRow>
+            ) : (
+              filteredSponsors.map((sponsor) => (
+                <TableRow key={sponsor.id}>
+                  <TableCell className="font-medium">{sponsor.name}</TableCell>
+                  <TableCell>{sponsor.email}</TableCell>
+                  <TableCell>{sponsor.phone || "No disponible"}</TableCell>
+                  <TableCell className="font-mono">
+                    ${sponsor.contribution.toLocaleString("es-ES", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                    /mes
+                  </TableCell>
+                  <TableCell>
+                    {statusOptions.find(opt => opt.value === sponsor.status)?.label || sponsor.status}
+                  </TableCell>
+                </TableRow>
+              ))
             )}
           </TableBody>
         </Table>
