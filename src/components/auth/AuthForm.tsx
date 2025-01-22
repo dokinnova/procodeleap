@@ -41,15 +41,19 @@ export const AuthForm = () => {
       if (_event === 'SIGNED_IN' && session) {
         console.log("Auth state changed - user logged in, redirecting to home");
         navigate('/');
-      } else if (_event === 'USER_DELETED' || _event === 'SIGNED_OUT') {
+      } else if (_event === 'USER_UPDATED') {
+        console.log("Auth state changed - user updated");
+      } else if (_event === 'SIGNED_OUT') {
         console.log("Auth state changed - user signed out");
-      } else if (_event === 'AUTH_ERROR') {
-        console.error('Authentication error occurred');
-        toast({
-          title: "Error de autenticación",
-          description: "Hubo un problema al autenticar. Por favor intenta de nuevo.",
-          variant: "destructive",
-        });
+      } else {
+        console.log("Auth state changed:", _event);
+        if (!session) {
+          toast({
+            title: "Error de autenticación",
+            description: "Hubo un problema al autenticar. Por favor intenta de nuevo.",
+            variant: "destructive",
+          });
+        }
       }
     });
 
