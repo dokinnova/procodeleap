@@ -14,9 +14,9 @@ const SponsorsReport = () => {
   const { toast } = useToast();
 
   const { data: sponsors = [], isLoading, error } = useQuery({
-    queryKey: ["sponsors"],
+    queryKey: ["sponsors-report"],
     queryFn: async () => {
-      console.log("Fetching sponsors...");
+      console.log("Iniciando fetch de sponsors para reporte...");
       const { data, error } = await supabase
         .from("sponsors")
         .select("*")
@@ -32,9 +32,11 @@ const SponsorsReport = () => {
         throw error;
       }
 
-      console.log("Sponsors fetched successfully:", data);
+      console.log("Sponsors obtenidos exitosamente:", data?.length, "registros");
+      console.log("Datos de sponsors:", data);
       return data as Sponsor[];
     },
+    refetchOnWindowFocus: false,
   });
 
   if (isLoading) {
@@ -76,7 +78,7 @@ const SponsorsReport = () => {
     return matchesSearch && daysAgo <= range.days;
   });
 
-  console.log("Filtered sponsors:", filteredSponsors);
+  console.log("Sponsors filtrados:", filteredSponsors);
 
   return (
     <div className="space-y-6">
