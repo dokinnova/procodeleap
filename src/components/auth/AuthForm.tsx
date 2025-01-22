@@ -38,14 +38,23 @@ export const AuthForm = () => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) {
+      if (_event === 'SIGNED_IN' && session) {
         console.log("Auth state changed - user logged in, redirecting to home");
         navigate('/');
+      } else if (_event === 'USER_DELETED' || _event === 'SIGNED_OUT') {
+        console.log("Auth state changed - user signed out");
+      } else if (_event === 'AUTH_ERROR') {
+        console.error('Authentication error occurred');
+        toast({
+          title: "Error de autenticación",
+          description: "Hubo un problema al autenticar. Por favor intenta de nuevo.",
+          variant: "destructive",
+        });
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, toast]);
 
   const currentYear = new Date().getFullYear();
 
@@ -117,14 +126,6 @@ export const AuthForm = () => {
               }}
               theme="light"
               providers={[]}
-              onError={(error) => {
-                console.error('Auth error:', error);
-                toast({
-                  title: "Error de autenticación",
-                  description: error.message,
-                  variant: "destructive",
-                });
-              }}
             />
           </CardContent>
         </Card>
