@@ -6,6 +6,7 @@ import { ChildFormFields } from "./form/ChildFormFields";
 import { Child } from "@/types";
 import { useChildForm } from "@/hooks/useChildForm";
 import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 interface ChildFormProps {
   selectedChild: Child | null;
@@ -15,12 +16,19 @@ interface ChildFormProps {
 export const ChildForm = ({ selectedChild, setSelectedChild }: ChildFormProps) => {
   const { formData, handleInputChange, handleSubmit } = useChildForm(selectedChild, setSelectedChild);
   const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { data: schools = [], isError, isLoading, refetch } = useQuery({
     queryKey: ['schools'],
     queryFn: async () => {
       try {
         console.log('Iniciando fetch de escuelas...');
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+          throw new Error('No hay sesión activa');
+        }
+
         const { data, error } = await supabase
           .from('schools')
           .select('*')
@@ -55,6 +63,15 @@ export const ChildForm = ({ selectedChild, setSelectedChild }: ChildFormProps) =
     refetchOnWindowFocus: false,
     refetchOnMount: true,
   });
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    setIsSubmitting(true);
+    try {
+      await handleSubmit(e);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -107,7 +124,7 @@ export const ChildForm = ({ selectedChild, setSelectedChild }: ChildFormProps) =
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleFormSubmit} className="space-y-4">
           <ChildFormFields
             formData={formData}
             schools={schools}
@@ -116,12 +133,21 @@ export const ChildForm = ({ selectedChild, setSelectedChild }: ChildFormProps) =
 
           <div className="flex justify-end gap-2">
             {selectedChild && (
-              <Button variant="outline" onClick={() => setSelectedChild(null)}>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setSelectedChild(null)}
+                disabled={isSubmitting}
+              >
                 Cancelar
               </Button>
             )}
-            <Button type="submit">
-              {selectedChild ? 'Actualizar' : 'Registrar'}
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting 
+                ? 'Guardando...' 
+                : selectedChild 
+                  ? 'Actualizar' 
+                  : 'Registrar'}
             </Button>
           </div>
         </form>

@@ -48,12 +48,23 @@ export const useChildForm = (
     console.log('Submitting form with data:', formData);
 
     try {
-      const { data: session } = await supabase.auth.getSession();
+      const { data: { session } } = await supabase.auth.getSession();
       
-      if (!session.session) {
+      if (!session) {
+        console.error('No session found');
         toast({
           title: "Error de autenticación",
-          description: "Debes iniciar sesión para realizar esta acción",
+          description: "Por favor, inicia sesión para realizar esta acción",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validar campos requeridos
+      if (!formData.name || !formData.birth_date || !formData.location) {
+        toast({
+          title: "Error de validación",
+          description: "Por favor completa todos los campos requeridos",
           variant: "destructive",
         });
         return;
@@ -62,11 +73,8 @@ export const useChildForm = (
       // Preparar los datos para la inserción/actualización
       const dataToSave = {
         ...formData,
-        // Si school_id está vacío, establecerlo como null
         school_id: formData.school_id || null,
-        // Si story está vacío, establecerlo como null
         story: formData.story || null,
-        // Si grade está vacío, establecerlo como null
         grade: formData.grade || null
       };
 
