@@ -9,43 +9,56 @@ import { AlertCircle } from "lucide-react";
 import { SponsorsFilter } from "@/components/reports/sponsors/SponsorsFilter";
 import { SponsorsTable } from "@/components/reports/sponsors/SponsorsTable";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 const SponsorsReport = () => {
   const [search, setSearch] = useState("");
   const [dateFilter, setDateFilter] = useState("all");
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const { data: sponsors = [], isLoading, error, refetch } = useQuery({
     queryKey: ["sponsors-report"],
     queryFn: async () => {
-      console.log('Iniciando fetch de padrinos...');
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        console.error('No hay sesión activa');
-        throw new Error('No hay sesión activa');
-      }
+      try {
+        console.log('Iniciando fetch de padrinos...');
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+          console.error('No hay sesión activa');
+          navigate('/auth');
+          throw new Error('No hay sesión activa');
+        }
 
-      console.log('Sesión activa:', session);
-      console.log('Token de autenticación:', session.access_token);
+        console.log('Sesión activa:', session);
+        console.log('Token de autenticación:', session.access_token);
 
-      const { data, error } = await supabase
-        .from("sponsors")
-        .select("*")
-        .order('name');
-      
-      if (error) {
-        console.error('Error al obtener padrinos:', error);
+        const { data, error } = await supabase
+          .from("sponsors")
+          .select("*")
+          .order('name');
+        
+        if (error) {
+          console.error('Error al obtener padrinos:', error);
+          throw error;
+        }
+        
+        console.log('Respuesta de Supabase:', { data, error });
+        console.log('Número de padrinos obtenidos:', data?.length || 0);
+        console.log('Padrinos obtenidos:', data);
+        return data || [];
+      } catch (error: any) {
+        console.error('Error en la consulta:', error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "No se pudieron cargar los padrinos. Por favor, intenta de nuevo.",
+        });
         throw error;
       }
-      
-      console.log('Respuesta de Supabase:', { data, error });
-      console.log('Número de padrinos obtenidos:', data?.length || 0);
-      console.log('Padrinos obtenidos:', data);
-      return data || [];
     },
     meta: {
-      onError: (error) => {
+      onError: (error: Error) => {
         console.error('Error en la consulta:', error);
         toast({
           variant: "destructive",
