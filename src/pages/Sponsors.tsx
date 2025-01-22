@@ -15,16 +15,30 @@ const Sponsors = () => {
   const [search, setSearch] = useState("");
   const [selectedSponsor, setSelectedSponsor] = useState<Sponsor | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [session, setSession] = useState<any>(null);
 
   useEffect(() => {
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      if (!session) {
+        navigate('/auth');
+      }
+    });
+
+    // Initial session check
     supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
       if (!session) {
         navigate('/auth');
         return;
       }
+      loadSponsors();
     });
 
-    loadSponsors();
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [navigate]);
 
   const loadSponsors = async () => {
@@ -56,27 +70,26 @@ const Sponsors = () => {
   };
 
   const handleSubmit = async (formData: any) => {
+    if (!session) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Debes iniciar sesión para realizar esta acción",
+      });
+      navigate('/auth');
+      return;
+    }
+
+    if (!formData.name || !formData.email || !formData.contribution || !formData.status) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Por favor complete los campos requeridos",
+      });
+      return;
+    }
+
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Debes iniciar sesión para realizar esta acción",
-        });
-        navigate('/auth');
-        return;
-      }
-
-      if (!formData.name || !formData.email || !formData.contribution || !formData.status) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Por favor complete los campos requeridos",
-        });
-        return;
-      }
-
       const sponsorData = {
         name: formData.name,
         email: formData.email,
@@ -124,6 +137,10 @@ const Sponsors = () => {
   const handleSponsorSelect = (sponsor: Sponsor) => {
     setSelectedSponsor(sponsor);
   };
+
+  if (!session) {
+    return null;
+  }
 
   return (
     <div className="space-y-6 container mx-auto px-4">
