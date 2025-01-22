@@ -11,47 +11,43 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { toast } = useToast();
 
   useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const { data: { session: currentSession }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          throw error;
-        }
-
-        if (!currentSession) {
-          console.log("No active session found");
-          setSession(null);
-          navigate('/auth', { replace: true });
-        } else {
-          console.log("Active session found:", currentSession);
-          setSession(currentSession);
-        }
-      } catch (error) {
+    // Initialize session on component mount
+    supabase.auth.getSession().then(({ data: { session: currentSession }, error }) => {
+      if (error) {
         console.error('Error checking session:', error);
         toast({
           title: "Error de autenticación",
-          description: "Hubo un problema al verificar tu sesión. Por favor intenta de nuevo.",
+          description: "Hubo un problema al verificar tu sesión",
           variant: "destructive",
         });
         setSession(null);
         navigate('/auth', { replace: true });
-      } finally {
-        setLoading(false);
+      } else if (!currentSession) {
+        console.log("No active session found");
+        setSession(null);
+        navigate('/auth', { replace: true });
+      } else {
+        console.log("Active session found:", currentSession);
+        setSession(currentSession);
       }
-    };
+      setLoading(false);
+    });
 
-    checkSession();
-
+    // Subscribe to auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       console.log("Auth state changed:", _event, session);
-      setSession(session);
-
-      if (!session) {
-        console.log("Session ended, redirecting to auth");
+      
+      if (session) {
+        setSession(session);
+      } else {
+        setSession(null);
         navigate('/auth', { replace: true });
+        toast({
+          title: "Sesión finalizada",
+          description: "Tu sesión ha finalizado. Por favor, inicia sesión nuevamente.",
+        });
       }
     });
 

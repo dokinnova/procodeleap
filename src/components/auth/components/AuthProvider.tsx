@@ -12,16 +12,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const { toast } = useToast();
 
   useEffect(() => {
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+    // Check initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) {
-        console.log("No active session found, redirecting to auth");
+        console.log("No active session found");
         navigate('/auth', { replace: true });
       }
-    };
+    });
 
-    checkSession();
-
+    // Subscribe to auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
