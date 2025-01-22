@@ -3,8 +3,14 @@ import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 export const AuthForm = () => {
+  const { toast } = useToast();
+  const navigate = useNavigate();
+
   const { data: siteSettings } = useQuery({
     queryKey: ['site-settings'],
     queryFn: async () => {
@@ -17,6 +23,29 @@ export const AuthForm = () => {
       return data;
     },
   });
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        console.log("User already logged in, redirecting to home");
+        navigate('/');
+      }
+    };
+
+    checkSession();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) {
+        console.log("Auth state changed - user logged in, redirecting to home");
+        navigate('/');
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
 
   const currentYear = new Date().getFullYear();
 
@@ -88,6 +117,14 @@ export const AuthForm = () => {
               }}
               theme="light"
               providers={[]}
+              onError={(error) => {
+                console.error('Auth error:', error);
+                toast({
+                  title: "Error de autenticación",
+                  description: error.message,
+                  variant: "destructive",
+                });
+              }}
             />
           </CardContent>
         </Card>

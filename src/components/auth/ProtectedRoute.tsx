@@ -12,29 +12,54 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     // Check current session
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      if (error) {
+    const checkSession = async () => {
+      try {
+        const { data: { session: currentSession }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          throw error;
+        }
+
+        if (!currentSession) {
+          console.log("No active session found");
+          setSession(null);
+        } else {
+          console.log("Active session found:", currentSession);
+          setSession(currentSession);
+        }
+      } catch (error) {
         console.error('Error checking session:', error);
         toast({
           title: "Error de autenticación",
           description: "Hubo un problema al verificar tu sesión. Por favor intenta de nuevo.",
           variant: "destructive",
         });
+        setSession(null);
+      } finally {
+        setLoading(false);
       }
-      setSession(session);
-      setLoading(false);
-    });
+    };
+
+    checkSession();
 
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      console.log("Auth state changed:", _event, session);
       setSession(session);
       setLoading(false);
+
+      if (!session) {
+        console.log("Session ended, redirecting to auth");
+        navigate('/auth');
+      }
     });
 
-    return () => subscription.unsubscribe();
-  }, [toast]);
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [navigate, toast]);
 
   if (loading) {
     return (
