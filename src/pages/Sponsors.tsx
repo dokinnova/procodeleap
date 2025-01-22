@@ -17,21 +17,31 @@ const Sponsors = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [session, setSession] = useState<any>(null);
 
+  // Verificar sesión al cargar el componente
   useEffect(() => {
-    // Check current session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (!session) {
+    const checkSession = async () => {
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      
+      if (!currentSession) {
+        console.log("No hay sesión activa, redirigiendo a /auth");
         navigate('/auth');
         return;
       }
-      loadSponsors();
-    });
 
-    // Set up auth state listener
+      setSession(currentSession);
+      console.log("Sesión activa:", currentSession);
+      loadSponsors();
+    };
+
+    checkSession();
+
+    // Escuchar cambios en la autenticación
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log("Cambio en el estado de autenticación:", _event, session);
       setSession(session);
+      
       if (!session) {
+        console.log("Sesión terminada, redirigiendo a /auth");
         navigate('/auth');
       }
     });
@@ -44,21 +54,29 @@ const Sponsors = () => {
   const loadSponsors = async () => {
     try {
       setIsLoading(true);
-      console.log("Fetching sponsors...");
+      console.log("Obteniendo padrinos...");
+      
+      const { data: currentSession } = await supabase.auth.getSession();
+      if (!currentSession.session) {
+        console.log("No hay sesión al cargar padrinos");
+        navigate('/auth');
+        return;
+      }
+
       const { data, error } = await supabase
         .from('sponsors')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Error fetching sponsors:', error);
+        console.error('Error al obtener padrinos:', error);
         throw error;
       }
       
-      console.log("Sponsors fetched:", data);
+      console.log("Padrinos obtenidos:", data);
       setSponsors(data || []);
     } catch (error) {
-      console.error('Error loading sponsors:', error);
+      console.error('Error al cargar padrinos:', error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -70,26 +88,27 @@ const Sponsors = () => {
   };
 
   const handleSubmit = async (formData: any) => {
-    if (!session) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Debes iniciar sesión para realizar esta acción",
-      });
-      navigate('/auth');
-      return;
-    }
-
-    if (!formData.name || !formData.email || !formData.contribution || !formData.status) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Por favor complete los campos requeridos",
-      });
-      return;
-    }
-
     try {
+      const { data: currentSession } = await supabase.auth.getSession();
+      if (!currentSession.session) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Debes iniciar sesión para realizar esta acción",
+        });
+        navigate('/auth');
+        return;
+      }
+
+      if (!formData.name || !formData.email || !formData.contribution || !formData.status) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Por favor complete los campos requeridos",
+        });
+        return;
+      }
+
       const sponsorData = {
         name: formData.name,
         email: formData.email,
@@ -98,7 +117,7 @@ const Sponsors = () => {
         status: formData.status,
       };
 
-      console.log("Saving sponsor data:", sponsorData);
+      console.log("Guardando datos del padrino:", sponsorData);
 
       if (selectedSponsor) {
         const { error: updateError } = await supabase
@@ -125,7 +144,7 @@ const Sponsors = () => {
       setSelectedSponsor(null);
       await loadSponsors();
     } catch (error: any) {
-      console.error('Error saving sponsor:', error);
+      console.error('Error al guardar padrino:', error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -138,6 +157,7 @@ const Sponsors = () => {
     setSelectedSponsor(sponsor);
   };
 
+  // Si no hay sesión, no renderizamos nada
   if (!session) {
     return null;
   }
