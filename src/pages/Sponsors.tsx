@@ -18,15 +18,7 @@ const Sponsors = () => {
   const [session, setSession] = useState<any>(null);
 
   useEffect(() => {
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      if (!session) {
-        navigate('/auth');
-      }
-    });
-
-    // Initial session check
+    // Check current session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (!session) {
@@ -34,6 +26,14 @@ const Sponsors = () => {
         return;
       }
       loadSponsors();
+    });
+
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      if (!session) {
+        navigate('/auth');
+      }
     });
 
     return () => {
