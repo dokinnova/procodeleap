@@ -60,7 +60,7 @@ const Sponsors = () => {
       const sponsorData = {
         name: formData.name,
         email: formData.email,
-        phone: formData.phone,
+        phone: formData.phone || null,
         contribution: Number(formData.contribution),
         status: formData.status,
       };
@@ -94,14 +94,13 @@ const Sponsors = () => {
       });
 
       setSelectedSponsor(null);
-      // Immediately reload sponsors after successful save
       await loadSponsors();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving sponsor:', error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "No se pudo guardar el padrino",
+        description: error.message || "No se pudo guardar el padrino",
       });
     }
   };
