@@ -11,7 +11,6 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check current session
     const checkSession = async () => {
       try {
         const { data: { session: currentSession }, error } = await supabase.auth.getSession();
@@ -44,13 +43,11 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
     checkSession();
 
-    // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
       console.log("Auth state changed:", _event, session);
       setSession(session);
-      setLoading(false);
 
       if (!session) {
         console.log("Session ended, redirecting to auth");

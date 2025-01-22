@@ -1,8 +1,11 @@
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export const AuthFormWrapper = () => {
+  const { toast } = useToast();
+
   return (
     <Auth
       supabaseClient={supabase}
@@ -57,9 +60,6 @@ export const AuthFormWrapper = () => {
       }}
       theme="light"
       providers={[]}
-      onError={(error) => {
-        console.error('Auth error:', error);
-      }}
       redirectTo={window.location.origin}
     />
   );
