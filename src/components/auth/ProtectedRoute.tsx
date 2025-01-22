@@ -11,23 +11,25 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { toast } = useToast();
 
   useEffect(() => {
+    console.log('ProtectedRoute: Checking session...');
+    
     // Initialize session on component mount
     supabase.auth.getSession().then(({ data: { session: currentSession }, error }) => {
       if (error) {
-        console.error('Error checking session:', error);
+        console.error('ProtectedRoute: Error checking session:', error);
         toast({
           title: "Error de autenticación",
-          description: "Hubo un problema al verificar tu sesión",
+          description: "Por favor, inicia sesión nuevamente",
           variant: "destructive",
         });
         setSession(null);
         navigate('/auth', { replace: true });
       } else if (!currentSession) {
-        console.log("No active session found");
+        console.log('ProtectedRoute: No session found');
         setSession(null);
         navigate('/auth', { replace: true });
       } else {
-        console.log("Active session found:", currentSession);
+        console.log('ProtectedRoute: Session found:', currentSession);
         setSession(currentSession);
       }
       setLoading(false);
@@ -37,21 +39,20 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      console.log("Auth state changed:", _event, session);
+      console.log('ProtectedRoute: Auth state changed:', _event);
       
       if (session) {
+        console.log('ProtectedRoute: Setting session');
         setSession(session);
       } else {
+        console.log('ProtectedRoute: Clearing session');
         setSession(null);
         navigate('/auth', { replace: true });
-        toast({
-          title: "Sesión finalizada",
-          description: "Tu sesión ha finalizado. Por favor, inicia sesión nuevamente.",
-        });
       }
     });
 
     return () => {
+      console.log('ProtectedRoute: Cleaning up subscription');
       subscription.unsubscribe();
     };
   }, [navigate, toast]);

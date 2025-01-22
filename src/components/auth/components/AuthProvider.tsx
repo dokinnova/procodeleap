@@ -12,37 +12,39 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const { toast } = useToast();
 
   useEffect(() => {
+    console.log('AuthProvider: Initializing...');
+    
     // Check initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) {
-        console.log("No active session found");
+        console.log('AuthProvider: No session found, redirecting to auth');
         navigate('/auth', { replace: true });
+      } else {
+        console.log('AuthProvider: Session found:', session);
       }
     });
 
     // Subscribe to auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      console.log("Auth state changed:", _event);
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log('AuthProvider: Auth state changed:', _event);
       
       if (_event === 'SIGNED_IN' && session) {
-        console.log("User signed in, redirecting to home");
+        console.log('AuthProvider: User signed in, redirecting to home');
         navigate('/', { replace: true });
-      } else if (_event === 'SIGNED_OUT') {
-        console.log("User signed out, redirecting to auth");
-        navigate('/auth', { replace: true });
-      } else if (!session) {
-        console.log("No session found, redirecting to auth");
+      } else if (_event === 'SIGNED_OUT' || !session) {
+        console.log('AuthProvider: No session, redirecting to auth');
         navigate('/auth', { replace: true });
         toast({
           title: "Sesión finalizada",
-          description: "Tu sesión ha finalizado. Por favor, inicia sesión nuevamente.",
+          description: "Por favor, inicia sesión para continuar.",
         });
       }
     });
 
     return () => {
+      console.log('AuthProvider: Cleaning up subscription');
       subscription.unsubscribe();
     };
   }, [navigate, toast]);
