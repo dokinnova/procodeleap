@@ -38,6 +38,7 @@ const SponsorsReport = () => {
         throw error;
       }
       
+      console.log('Respuesta de Supabase:', { data, error });
       console.log('Padrinos obtenidos:', data);
       return data || [];
     },
