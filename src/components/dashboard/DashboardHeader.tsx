@@ -10,13 +10,22 @@ export const DashboardHeader = () => {
 
   const handleLogout = async () => {
     try {
-      await supabase.auth.signOut();
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        throw error;
+      }
+
+      // Mostrar toast de éxito
       toast({
         title: "Sesión cerrada",
         description: "Has cerrado sesión exitosamente",
       });
-      navigate("/");
+
+      // Forzar la navegación al login
+      navigate("/auth", { replace: true });
     } catch (error) {
+      console.error("Error al cerrar sesión:", error);
       toast({
         title: "Error",
         description: "No se pudo cerrar la sesión",
