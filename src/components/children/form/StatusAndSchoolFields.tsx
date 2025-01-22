@@ -25,10 +25,10 @@ export const StatusAndSchoolFields = ({
             onInputChange('status', value)
           }
         >
-          <SelectTrigger>
+          <SelectTrigger className="bg-background">
             <SelectValue placeholder="Selecciona un estado" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-popover z-50">
             <SelectItem value="assignable">Asignable</SelectItem>
             <SelectItem value="assigned">Asignado</SelectItem>
             <SelectItem value="inactive">Inactivo</SelectItem>
@@ -44,10 +44,10 @@ export const StatusAndSchoolFields = ({
           value={schoolId} 
           onValueChange={(value) => onInputChange('school_id', value)}
         >
-          <SelectTrigger>
+          <SelectTrigger className="bg-background">
             <SelectValue placeholder="Selecciona un colegio" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-popover z-50">
             {schools.map((school) => (
               <SelectItem key={school.id} value={school.id}>
                 {school.name}
