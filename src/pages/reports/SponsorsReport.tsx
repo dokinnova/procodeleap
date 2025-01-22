@@ -19,14 +19,15 @@ const SponsorsReport = () => {
     queryKey: ["sponsors-report"],
     queryFn: async () => {
       console.log('Iniciando fetch de padrinos...');
-      const { data: session } = await supabase.auth.getSession();
+      const { data: { session } } = await supabase.auth.getSession();
       
-      if (!session.session) {
+      if (!session) {
         console.error('No hay sesión activa');
         throw new Error('No hay sesión activa');
       }
 
-      console.log('Sesión activa:', session.session);
+      console.log('Sesión activa:', session);
+      console.log('Token de autenticación:', session.access_token);
 
       const { data, error } = await supabase
         .from("sponsors")
@@ -39,6 +40,7 @@ const SponsorsReport = () => {
       }
       
       console.log('Respuesta de Supabase:', { data, error });
+      console.log('Número de padrinos obtenidos:', data?.length || 0);
       console.log('Padrinos obtenidos:', data);
       return data || [];
     },
