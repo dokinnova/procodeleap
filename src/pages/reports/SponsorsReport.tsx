@@ -8,28 +8,47 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { SponsorsFilter } from "@/components/reports/sponsors/SponsorsFilter";
 import { SponsorsTable } from "@/components/reports/sponsors/SponsorsTable";
+import { useToast } from "@/hooks/use-toast";
 
 const SponsorsReport = () => {
   const [search, setSearch] = useState("");
   const [dateFilter, setDateFilter] = useState("all");
+  const { toast } = useToast();
 
   const { data: sponsors = [], isLoading, error, refetch } = useQuery({
     queryKey: ["sponsors-report"],
     queryFn: async () => {
       console.log('Iniciando fetch de padrinos...');
+      const { data: session } = await supabase.auth.getSession();
+      
+      if (!session.session) {
+        console.error('No hay sesión activa');
+        throw new Error('No hay sesión activa');
+      }
+
+      console.log('Sesión activa:', session.session);
+
       const { data, error } = await supabase
         .from("sponsors")
         .select("*")
-        .order("name");
+        .order('name');
       
       if (error) {
         console.error('Error al obtener padrinos:', error);
         throw error;
       }
       
-      console.log('Padrinos obtenidos:', data?.length || 0, 'registros');
+      console.log('Padrinos obtenidos:', data);
       return data || [];
     },
+    onError: (error) => {
+      console.error('Error en la consulta:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudieron cargar los padrinos. Por favor, intenta de nuevo.",
+      });
+    }
   });
 
   const dateRanges = [
