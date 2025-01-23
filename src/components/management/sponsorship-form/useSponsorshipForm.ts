@@ -35,7 +35,7 @@ export const useSponsorshipForm = (
             )
           `)
           .eq('child_id', selectedChild.id)
-          .single();
+          .maybeSingle();
 
         if (data) {
           setExistingSponsorship(data);
@@ -56,10 +56,11 @@ export const useSponsorshipForm = (
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Iniciando envío del formulario...");
     
     if (!selectedChild || !selectedSponsor || !startDate) {
       toast({
-        title: "Error",
+        title: "Error de validación",
         description: "Por favor completa todos los campos requeridos",
         variant: "destructive",
       });
@@ -69,6 +70,23 @@ export const useSponsorshipForm = (
     setIsSubmitting(true);
 
     try {
+      console.log("Datos a enviar:", {
+        child_id: selectedChild.id,
+        sponsor_id: selectedSponsor.id,
+        start_date: startDate,
+        notes: notes || null,
+      });
+
+      const { data: session } = await supabase.auth.getSession();
+      if (!session.session) {
+        toast({
+          title: "Error de autenticación",
+          description: "Debes iniciar sesión para realizar esta acción",
+          variant: "destructive",
+        });
+        return;
+      }
+
       if (existingSponsorship) {
         const { error } = await supabase
           .from('sponsorships')
@@ -79,7 +97,10 @@ export const useSponsorshipForm = (
           })
           .eq('id', existingSponsorship.id);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error al actualizar:', error);
+          throw error;
+        }
 
         toast({
           title: "Éxito",
@@ -97,7 +118,10 @@ export const useSponsorshipForm = (
             }
           ]);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error al insertar:', error);
+          throw error;
+        }
 
         toast({
           title: "Éxito",
@@ -105,18 +129,18 @@ export const useSponsorshipForm = (
         });
       }
 
-      queryClient.invalidateQueries({ queryKey: ["sponsorships"] });
-      queryClient.invalidateQueries({ queryKey: ["sponsors"] });
-      queryClient.invalidateQueries({ queryKey: ["children"] });
-      queryClient.invalidateQueries({ queryKey: ["available-sponsors"] });
-      queryClient.invalidateQueries({ queryKey: ["available-children"] });
+      await queryClient.invalidateQueries({ queryKey: ["sponsorships"] });
+      await queryClient.invalidateQueries({ queryKey: ["sponsors"] });
+      await queryClient.invalidateQueries({ queryKey: ["children"] });
+      await queryClient.invalidateQueries({ queryKey: ["available-sponsors"] });
+      await queryClient.invalidateQueries({ queryKey: ["available-children"] });
 
       onClose();
-    } catch (error) {
-      console.error('Error saving sponsorship:', error);
+    } catch (error: any) {
+      console.error('Error detallado:', error);
       toast({
         title: "Error",
-        description: "No se pudo guardar el apadrinamiento",
+        description: error.message || "No se pudo guardar el apadrinamiento. Por favor, intenta de nuevo.",
         variant: "destructive",
       });
     } finally {
@@ -140,18 +164,18 @@ export const useSponsorshipForm = (
         description: "Apadrinamiento eliminado correctamente",
       });
 
-      queryClient.invalidateQueries({ queryKey: ["sponsorships"] });
-      queryClient.invalidateQueries({ queryKey: ["sponsors"] });
-      queryClient.invalidateQueries({ queryKey: ["children"] });
-      queryClient.invalidateQueries({ queryKey: ["available-sponsors"] });
-      queryClient.invalidateQueries({ queryKey: ["available-children"] });
+      await queryClient.invalidateQueries({ queryKey: ["sponsorships"] });
+      await queryClient.invalidateQueries({ queryKey: ["sponsors"] });
+      await queryClient.invalidateQueries({ queryKey: ["children"] });
+      await queryClient.invalidateQueries({ queryKey: ["available-sponsors"] });
+      await queryClient.invalidateQueries({ queryKey: ["available-children"] });
 
       onClose();
-    } catch (error) {
-      console.error('Error deleting sponsorship:', error);
+    } catch (error: any) {
+      console.error('Error al eliminar:', error);
       toast({
         title: "Error",
-        description: "No se pudo eliminar el apadrinamiento",
+        description: error.message || "No se pudo eliminar el apadrinamiento",
         variant: "destructive",
       });
     }
