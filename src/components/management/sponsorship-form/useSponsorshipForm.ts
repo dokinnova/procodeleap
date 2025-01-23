@@ -23,27 +23,16 @@ export const useSponsorshipForm = (
       if (selectedChild) {
         const { data } = await supabase
           .from('sponsorships')
-          .select(`
-            *,
-            sponsor:sponsors (
-              id,
-              name,
-              email,
-              phone,
-              contribution,
-              status
-            )
-          `)
+          .select(`*, sponsor:sponsors (*)`)
           .eq('child_id', selectedChild.id)
           .maybeSingle();
 
+        setExistingSponsorship(data);
         if (data) {
-          setExistingSponsorship(data);
           setStartDate(data.start_date);
           setNotes(data.notes || '');
           setSelectedSponsor(data.sponsor);
         } else {
-          setExistingSponsorship(null);
           setStartDate('');
           setNotes('');
           setSelectedSponsor(null);
@@ -54,9 +43,13 @@ export const useSponsorshipForm = (
     fetchExistingSponsorship();
   }, [selectedChild]);
 
+  const invalidateQueries = async () => {
+    const queries = ["sponsorships", "sponsors", "children", "available-sponsors", "available-children"];
+    await Promise.all(queries.map(query => queryClient.invalidateQueries({ queryKey: [query] })));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Iniciando envío del formulario...");
     
     if (!selectedChild || !selectedSponsor || !startDate) {
       toast({
@@ -70,77 +63,42 @@ export const useSponsorshipForm = (
     setIsSubmitting(true);
 
     try {
-      console.log("Datos a enviar:", {
-        child_id: selectedChild.id,
+      const { data: session } = await supabase.auth.getSession();
+      if (!session.session) {
+        throw new Error("Debes iniciar sesión para realizar esta acción");
+      }
+
+      const sponsorshipData = {
         sponsor_id: selectedSponsor.id,
         start_date: startDate,
         notes: notes || null,
+      };
+
+      const { error } = existingSponsorship
+        ? await supabase
+            .from('sponsorships')
+            .update(sponsorshipData)
+            .eq('id', existingSponsorship.id)
+        : await supabase
+            .from('sponsorships')
+            .insert([{ ...sponsorshipData, child_id: selectedChild.id }]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Éxito",
+        description: existingSponsorship 
+          ? "Apadrinamiento actualizado correctamente"
+          : "Apadrinamiento creado correctamente",
       });
 
-      const { data: session } = await supabase.auth.getSession();
-      if (!session.session) {
-        toast({
-          title: "Error de autenticación",
-          description: "Debes iniciar sesión para realizar esta acción",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      if (existingSponsorship) {
-        const { error } = await supabase
-          .from('sponsorships')
-          .update({
-            sponsor_id: selectedSponsor.id,
-            start_date: startDate,
-            notes: notes || null,
-          })
-          .eq('id', existingSponsorship.id);
-
-        if (error) {
-          console.error('Error al actualizar:', error);
-          throw error;
-        }
-
-        toast({
-          title: "Éxito",
-          description: "Apadrinamiento actualizado correctamente",
-        });
-      } else {
-        const { error } = await supabase
-          .from('sponsorships')
-          .insert([
-            {
-              child_id: selectedChild.id,
-              sponsor_id: selectedSponsor.id,
-              start_date: startDate,
-              notes: notes || null,
-            }
-          ]);
-
-        if (error) {
-          console.error('Error al insertar:', error);
-          throw error;
-        }
-
-        toast({
-          title: "Éxito",
-          description: "Apadrinamiento creado correctamente",
-        });
-      }
-
-      await queryClient.invalidateQueries({ queryKey: ["sponsorships"] });
-      await queryClient.invalidateQueries({ queryKey: ["sponsors"] });
-      await queryClient.invalidateQueries({ queryKey: ["children"] });
-      await queryClient.invalidateQueries({ queryKey: ["available-sponsors"] });
-      await queryClient.invalidateQueries({ queryKey: ["available-children"] });
-
+      await invalidateQueries();
       onClose();
     } catch (error: any) {
-      console.error('Error detallado:', error);
+      console.error('Error:', error);
       toast({
         title: "Error",
-        description: error.message || "No se pudo guardar el apadrinamiento. Por favor, intenta de nuevo.",
+        description: error.message || "No se pudo procesar el apadrinamiento",
         variant: "destructive",
       });
     } finally {
@@ -164,15 +122,10 @@ export const useSponsorshipForm = (
         description: "Apadrinamiento eliminado correctamente",
       });
 
-      await queryClient.invalidateQueries({ queryKey: ["sponsorships"] });
-      await queryClient.invalidateQueries({ queryKey: ["sponsors"] });
-      await queryClient.invalidateQueries({ queryKey: ["children"] });
-      await queryClient.invalidateQueries({ queryKey: ["available-sponsors"] });
-      await queryClient.invalidateQueries({ queryKey: ["available-children"] });
-
+      await invalidateQueries();
       onClose();
     } catch (error: any) {
-      console.error('Error al eliminar:', error);
+      console.error('Error:', error);
       toast({
         title: "Error",
         description: error.message || "No se pudo eliminar el apadrinamiento",
