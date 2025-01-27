@@ -5,6 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Trash2 } from "lucide-react";
+import { DeleteConfirmationDialog } from "@/components/shared/DeleteConfirmationDialog";
+import { useDeleteSponsor } from "@/hooks/useDeleteSponsor";
 import { Sponsor } from "@/types";
 
 interface SponsorFormProps {
@@ -24,6 +27,7 @@ export const SponsorForm = ({ selectedSponsor, onSubmit, onCancel }: SponsorForm
     },
   });
 
+  const { sponsorToDelete, setSponsorToDelete, handleDelete } = useDeleteSponsor();
   const status = watch("status");
 
   useEffect(() => {
@@ -46,84 +50,117 @@ export const SponsorForm = ({ selectedSponsor, onSubmit, onCancel }: SponsorForm
     }
   }, [selectedSponsor, reset]);
 
+  const handleDeleteClick = () => {
+    if (selectedSponsor) {
+      setSponsorToDelete(selectedSponsor);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (sponsorToDelete) {
+      await handleDelete(sponsorToDelete.id);
+      onCancel(); // Regresar al listado después de eliminar
+    }
+  };
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>
-          {selectedSponsor ? "Editar Padrino" : "Registrar Nuevo Padrino"}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Nombre</Label>
-              <Input
-                id="name"
-                {...register("name")}
-                placeholder="Nombre completo"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                {...register("email")}
-                placeholder="correo@ejemplo.com"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="phone">Teléfono</Label>
-              <Input
-                id="phone"
-                {...register("phone")}
-                placeholder="Número de teléfono"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="contribution">Contribución Mensual ($)</Label>
-              <Input
-                id="contribution"
-                type="number"
-                step="0.01"
-                {...register("contribution")}
-                placeholder="0.00"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="status">Estado</Label>
-              <Select
-                value={status}
-                onValueChange={(value) => setValue("status", value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar estado" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Activo</SelectItem>
-                  <SelectItem value="inactive">Inactivo</SelectItem>
-                  <SelectItem value="pending">Pendiente</SelectItem>
-                  <SelectItem value="baja">Baja</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={onCancel}>
-              Cancelar
+    <>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle>
+            {selectedSponsor ? "Editar Padrino" : "Registrar Nuevo Padrino"}
+          </CardTitle>
+          {selectedSponsor && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleDeleteClick}
+              className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+            >
+              <Trash2 className="h-4 w-4" />
             </Button>
-            <Button type="submit">
-              {selectedSponsor ? "Actualizar" : "Registrar"}
-            </Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+          )}
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Nombre</Label>
+                <Input
+                  id="name"
+                  {...register("name")}
+                  placeholder="Nombre completo"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  {...register("email")}
+                  placeholder="correo@ejemplo.com"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="phone">Teléfono</Label>
+                <Input
+                  id="phone"
+                  {...register("phone")}
+                  placeholder="Número de teléfono"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="contribution">Contribución Mensual ($)</Label>
+                <Input
+                  id="contribution"
+                  type="number"
+                  step="0.01"
+                  {...register("contribution")}
+                  placeholder="0.00"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="status">Estado</Label>
+                <Select
+                  value={status}
+                  onValueChange={(value) => setValue("status", value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar estado" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Activo</SelectItem>
+                    <SelectItem value="inactive">Inactivo</SelectItem>
+                    <SelectItem value="pending">Pendiente</SelectItem>
+                    <SelectItem value="baja">Baja</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={onCancel}>
+                Cancelar
+              </Button>
+              <Button type="submit">
+                {selectedSponsor ? "Actualizar" : "Registrar"}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+
+      <DeleteConfirmationDialog
+        isOpen={!!sponsorToDelete}
+        onClose={() => setSponsorToDelete(null)}
+        onConfirm={handleConfirmDelete}
+        title="¿Estás seguro?"
+        description={`Esta acción no se puede deshacer. Se eliminará permanentemente el padrino ${sponsorToDelete?.name}.`}
+      />
+    </>
   );
 };
