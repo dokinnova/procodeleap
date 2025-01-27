@@ -14,11 +14,9 @@ export const useSelectedSponsor = (sponsors: Sponsor[]) => {
       if (sponsor) {
         console.log("Padrino seleccionado desde URL:", sponsor);
         setSelectedSponsor(sponsor);
-        // Limpiamos el parámetro de la URL después de cargar el padrino
-        navigate('/sponsors', { replace: true });
       }
     }
-  }, [searchParams, sponsors, navigate]);
+  }, [searchParams, sponsors]);
 
   const handleSponsorSelect = (sponsor: Sponsor) => {
     console.log("Seleccionando padrino:", sponsor);

@@ -10,7 +10,7 @@ import { useSelectedSponsor } from "@/hooks/useSelectedSponsor";
 const Sponsors = () => {
   const session = useAuthSession();
   const { sponsors, isLoading, loadSponsors, handleSubmit } = useSponsors();
-  const { selectedSponsor, setSelectedSponsor } = useSelectedSponsor(sponsors);
+  const { selectedSponsor, setSelectedSponsor, handleSponsorSelect } = useSelectedSponsor(sponsors);
   const [search, setSearch] = useState("");
 
   // Si no hay sesión, no renderizamos nada
@@ -38,7 +38,7 @@ const Sponsors = () => {
               sponsors={sponsors}
               search={search}
               onSearchChange={setSearch}
-              onSponsorSelect={setSelectedSponsor}
+              onSponsorSelect={handleSponsorSelect}
             />
           </div>
         </div>
