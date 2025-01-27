@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { UserPlus } from "lucide-react";
 import { SponsorForm } from "@/components/sponsors/SponsorForm";
 import { SponsorsTable } from "@/components/sponsors/SponsorsTable";
@@ -12,6 +12,13 @@ const Sponsors = () => {
   const { sponsors, isLoading, loadSponsors, handleSubmit } = useSponsors();
   const { selectedSponsor, setSelectedSponsor, handleSponsorSelect } = useSelectedSponsor(sponsors);
   const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    if (session) {
+      console.log("Cargando padrinos inicialmente...");
+      loadSponsors();
+    }
+  }, [session, loadSponsors]);
 
   // Si no hay sesión, no renderizamos nada
   if (!session) {
