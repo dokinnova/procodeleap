@@ -131,20 +131,22 @@ export const SponsorForm = ({ selectedSponsor, onSubmit, onCancel }: SponsorForm
               </div>
             </div>
 
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-end gap-4 mt-6">
               {selectedSponsor && (
                 <Button
                   type="button"
                   variant="destructive"
+                  size="lg"
                   onClick={handleDeleteClick}
+                  className="px-8"
                 >
                   Eliminar Padrino
                 </Button>
               )}
-              <Button type="button" variant="outline" onClick={onCancel}>
+              <Button type="button" variant="outline" size="lg" onClick={onCancel}>
                 Cancelar
               </Button>
-              <Button type="submit">
+              <Button type="submit" size="lg">
                 {selectedSponsor ? "Actualizar" : "Registrar"}
               </Button>
             </div>
