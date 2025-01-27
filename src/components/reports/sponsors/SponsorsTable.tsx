@@ -10,6 +10,7 @@ export const SponsorsTable = ({ sponsors }: SponsorsTableProps) => {
   const navigate = useNavigate();
 
   const handleSponsorClick = (sponsor: Sponsor) => {
+    console.log("Navegando a padrino:", sponsor);
     navigate(`/sponsors?selected=${sponsor.id}`);
   };
 
