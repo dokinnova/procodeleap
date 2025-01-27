@@ -6,11 +6,12 @@ import { SponsorForm } from "@/components/sponsors/SponsorForm";
 import { SponsorsTable } from "@/components/sponsors/SponsorsTable";
 import { PaymentMethodsManager } from "@/components/sponsors/payment-methods/PaymentMethodsManager";
 import { Sponsor } from "@/types";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 const Sponsors = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [sponsors, setSponsors] = useState<Sponsor[]>([]);
   const [search, setSearch] = useState("");
   const [selectedSponsor, setSelectedSponsor] = useState<Sponsor | null>(null);
@@ -50,6 +51,20 @@ const Sponsors = () => {
       subscription.unsubscribe();
     };
   }, [navigate]);
+
+  // Efecto para manejar el parámetro selected de la URL
+  useEffect(() => {
+    const selectedId = searchParams.get('selected');
+    if (selectedId && sponsors.length > 0) {
+      const sponsor = sponsors.find(s => s.id === selectedId);
+      if (sponsor) {
+        console.log("Padrino seleccionado desde URL:", sponsor);
+        setSelectedSponsor(sponsor);
+        // Limpiar el parámetro de la URL después de cargar el padrino
+        navigate('/sponsors', { replace: true });
+      }
+    }
+  }, [searchParams, sponsors, navigate]);
 
   const loadSponsors = async () => {
     try {
