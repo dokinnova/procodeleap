@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Trash2 } from "lucide-react";
 import { DeleteConfirmationDialog } from "@/components/shared/DeleteConfirmationDialog";
 import { useDeleteSponsor } from "@/hooks/useDeleteSponsor";
 import { Sponsor } from "@/types";
@@ -70,16 +69,6 @@ export const SponsorForm = ({ selectedSponsor, onSubmit, onCancel }: SponsorForm
           <CardTitle>
             {selectedSponsor ? "Editar Padrino" : "Registrar Nuevo Padrino"}
           </CardTitle>
-          {selectedSponsor && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleDeleteClick}
-              className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          )}
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -143,6 +132,15 @@ export const SponsorForm = ({ selectedSponsor, onSubmit, onCancel }: SponsorForm
             </div>
 
             <div className="flex justify-end gap-2">
+              {selectedSponsor && (
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={handleDeleteClick}
+                >
+                  Eliminar Padrino
+                </Button>
+              )}
               <Button type="button" variant="outline" onClick={onCancel}>
                 Cancelar
               </Button>
