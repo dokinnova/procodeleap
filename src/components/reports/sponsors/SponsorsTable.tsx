@@ -1,11 +1,18 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Sponsor } from "@/types";
+import { useNavigate } from "react-router-dom";
 
 interface SponsorsTableProps {
   sponsors: Sponsor[];
 }
 
 export const SponsorsTable = ({ sponsors }: SponsorsTableProps) => {
+  const navigate = useNavigate();
+
+  const handleSponsorClick = (sponsor: Sponsor) => {
+    navigate(`/sponsors?selected=${sponsor.id}`);
+  };
+
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden">
       <Table>
@@ -27,7 +34,11 @@ export const SponsorsTable = ({ sponsors }: SponsorsTableProps) => {
             </TableRow>
           ) : (
             sponsors.map((sponsor) => (
-              <TableRow key={sponsor.id}>
+              <TableRow 
+                key={sponsor.id}
+                onClick={() => handleSponsorClick(sponsor)}
+                className="cursor-pointer hover:bg-gray-50"
+              >
                 <TableCell className="font-medium">{sponsor.name}</TableCell>
                 <TableCell>{sponsor.email}</TableCell>
                 <TableCell>{sponsor.phone || "No disponible"}</TableCell>
