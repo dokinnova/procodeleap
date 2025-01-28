@@ -14,32 +14,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   useEffect(() => {
     console.log('AuthProvider: Initializing...');
     
-    // Check initial session
-    const checkSession = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      
-      if (error) {
-        console.error('Error checking session:', error);
-        toast({
-          title: "Error de autenticación",
-          description: "Por favor, inicia sesión nuevamente",
-          variant: "destructive",
-        });
-        navigate('/auth', { replace: true });
-        return;
-      }
-
-      if (!session) {
-        console.log('AuthProvider: No session found, redirecting to auth');
-        navigate('/auth', { replace: true });
-      } else {
-        console.log('AuthProvider: Session found:', session);
-      }
-    };
-
-    checkSession();
-
-    // Subscribe to auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -48,13 +22,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       if (event === 'SIGNED_IN' && session) {
         console.log('AuthProvider: User signed in, redirecting to home');
         navigate('/', { replace: true });
-      } else if (event === 'SIGNED_OUT' || !session) {
-        console.log('AuthProvider: No session, redirecting to auth');
-        navigate('/auth', { replace: true });
-        toast({
-          title: "Sesión finalizada",
-          description: "Por favor, inicia sesión para continuar.",
-        });
       }
     });
 

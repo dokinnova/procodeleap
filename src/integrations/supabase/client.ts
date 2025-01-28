@@ -10,9 +10,4 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     detectSessionInUrl: true,
     flowType: 'pkce'
   },
-  global: {
-    headers: {
-      'X-Client-Info': 'supabase-js/2.39.3',
-    },
-  },
 });

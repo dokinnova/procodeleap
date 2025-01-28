@@ -19,17 +19,10 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
         
         if (error) {
           console.error('ProtectedRoute: Error checking session:', error);
-          toast({
-            title: "Error de autenticación",
-            description: "Por favor, inicia sesión nuevamente",
-            variant: "destructive",
-          });
           setSession(null);
-          navigate('/auth', { replace: true });
         } else if (!currentSession) {
           console.log('ProtectedRoute: No session found');
           setSession(null);
-          navigate('/auth', { replace: true });
         } else {
           console.log('ProtectedRoute: Session found:', currentSession);
           setSession(currentSession);
@@ -37,7 +30,6 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       } catch (error) {
         console.error('ProtectedRoute: Error:', error);
         setSession(null);
-        navigate('/auth', { replace: true });
       } finally {
         setLoading(false);
       }
@@ -45,20 +37,11 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
     checkSession();
 
-    // Subscribe to auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
       console.log('ProtectedRoute: Auth state changed:', _event);
-      
-      if (session) {
-        console.log('ProtectedRoute: Setting session');
-        setSession(session);
-      } else {
-        console.log('ProtectedRoute: Clearing session');
-        setSession(null);
-        navigate('/auth', { replace: true });
-      }
+      setSession(session);
     });
 
     return () => {
