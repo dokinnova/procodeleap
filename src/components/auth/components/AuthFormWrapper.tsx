@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 
 export const AuthFormWrapper = () => {
   const { toast } = useToast();
+  const redirectTo = `${window.location.origin}/auth/callback`;
 
   return (
     <Auth
@@ -60,7 +61,7 @@ export const AuthFormWrapper = () => {
       }}
       theme="light"
       providers={[]}
-      redirectTo={window.location.origin}
+      redirectTo={redirectTo}
     />
   );
 };
