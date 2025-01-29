@@ -32,7 +32,7 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
           console.log('ProtectedRoute: Session found:', currentSession);
           setSession(currentSession);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('ProtectedRoute: Error:', error);
         setSession(null);
         toast({
