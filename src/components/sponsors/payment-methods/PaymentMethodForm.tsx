@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -9,14 +8,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { CreditCardForm } from "./CreditCardForm";
+import { BankTransferForm } from "./BankTransferForm";
+import { PayPalForm } from "./PayPalForm";
 
 interface PaymentMethodFormProps {
   onSubmit: (formData: {
     method: string;
     bankName?: string;
     accountNumber?: string;
-    cardNumber?: string;
     cardHolder?: string;
+    cardNumber?: string;
     cardExpiry?: string;
     cardCvv?: string;
     paypalEmail?: string;
@@ -27,33 +29,42 @@ export const PaymentMethodForm = ({ onSubmit }: PaymentMethodFormProps) => {
   const [selectedMethod, setSelectedMethod] = useState<string>("");
   const [bankName, setBankName] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
-  const [cardNumber, setCardNumber] = useState("");
   const [cardHolder, setCardHolder] = useState("");
+  const [cardNumber, setCardNumber] = useState("");
   const [cardExpiry, setCardExpiry] = useState("");
-  const [cardCvv, setCvv] = useState("");
+  const [cardCvv, setCardCvv] = useState("");
   const [paypalEmail, setPaypalEmail] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({
-      method: selectedMethod,
-      bankName: selectedMethod === "bank_transfer" ? bankName : undefined,
-      accountNumber: selectedMethod === "bank_transfer" ? accountNumber : undefined,
-      cardNumber: selectedMethod === "credit_card" ? cardNumber : undefined,
-      cardHolder: selectedMethod === "credit_card" ? cardHolder : undefined,
-      cardExpiry: selectedMethod === "credit_card" ? cardExpiry : undefined,
-      cardCvv: selectedMethod === "credit_card" ? cardCvv : undefined,
-      paypalEmail: selectedMethod === "paypal" ? paypalEmail : undefined,
-    });
+    const formData: any = { method: selectedMethod };
+
+    switch (selectedMethod) {
+      case "bank_transfer":
+        formData.bankName = bankName;
+        formData.accountNumber = accountNumber;
+        break;
+      case "credit_card":
+        formData.cardHolder = cardHolder;
+        formData.cardNumber = cardNumber;
+        formData.cardExpiry = cardExpiry;
+        formData.cardCvv = cardCvv;
+        break;
+      case "paypal":
+        formData.paypalEmail = paypalEmail;
+        break;
+    }
+
+    onSubmit(formData);
 
     // Reset form
     setSelectedMethod("");
     setBankName("");
     setAccountNumber("");
-    setCardNumber("");
     setCardHolder("");
+    setCardNumber("");
     setCardExpiry("");
-    setCvv("");
+    setCardCvv("");
     setPaypalEmail("");
   };
 
@@ -61,79 +72,32 @@ export const PaymentMethodForm = ({ onSubmit }: PaymentMethodFormProps) => {
     switch (selectedMethod) {
       case "bank_transfer":
         return (
-          <>
-            <div className="space-y-2">
-              <Label>Nombre del banco</Label>
-              <Input
-                value={bankName}
-                onChange={(e) => setBankName(e.target.value)}
-                placeholder="Nombre del banco"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Número de cuenta</Label>
-              <Input
-                value={accountNumber}
-                onChange={(e) => setAccountNumber(e.target.value)}
-                placeholder="Número de cuenta"
-              />
-            </div>
-          </>
+          <BankTransferForm
+            bankName={bankName}
+            accountNumber={accountNumber}
+            onBankNameChange={setBankName}
+            onAccountNumberChange={setAccountNumber}
+          />
         );
       case "credit_card":
         return (
-          <>
-            <div className="space-y-2">
-              <Label>Nombre del titular</Label>
-              <Input
-                value={cardHolder}
-                onChange={(e) => setCardHolder(e.target.value)}
-                placeholder="Nombre como aparece en la tarjeta"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Número de tarjeta</Label>
-              <Input
-                value={cardNumber}
-                onChange={(e) => setCardNumber(e.target.value)}
-                placeholder="1234 5678 9012 3456"
-                maxLength={19}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Fecha de vencimiento</Label>
-                <Input
-                  value={cardExpiry}
-                  onChange={(e) => setCardExpiry(e.target.value)}
-                  placeholder="MM/AA"
-                  maxLength={5}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>CVV</Label>
-                <Input
-                  value={cardCvv}
-                  onChange={(e) => setCvv(e.target.value)}
-                  placeholder="123"
-                  maxLength={4}
-                  type="password"
-                />
-              </div>
-            </div>
-          </>
+          <CreditCardForm
+            cardHolder={cardHolder}
+            cardNumber={cardNumber}
+            cardExpiry={cardExpiry}
+            cardCvv={cardCvv}
+            onCardHolderChange={setCardHolder}
+            onCardNumberChange={setCardNumber}
+            onCardExpiryChange={setCardExpiry}
+            onCardCvvChange={setCardCvv}
+          />
         );
       case "paypal":
         return (
-          <div className="space-y-2">
-            <Label>Email de PayPal</Label>
-            <Input
-              type="email"
-              value={paypalEmail}
-              onChange={(e) => setPaypalEmail(e.target.value)}
-              placeholder="Email de PayPal"
-            />
-          </div>
+          <PayPalForm
+            paypalEmail={paypalEmail}
+            onPaypalEmailChange={setPaypalEmail}
+          />
         );
       default:
         return null;
