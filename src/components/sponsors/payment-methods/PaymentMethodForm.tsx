@@ -15,7 +15,10 @@ interface PaymentMethodFormProps {
     method: string;
     bankName?: string;
     accountNumber?: string;
-    cardLastFour?: string;
+    cardNumber?: string;
+    cardHolder?: string;
+    cardExpiry?: string;
+    cardCvv?: string;
     paypalEmail?: string;
   }) => void;
 }
@@ -24,7 +27,10 @@ export const PaymentMethodForm = ({ onSubmit }: PaymentMethodFormProps) => {
   const [selectedMethod, setSelectedMethod] = useState<string>("");
   const [bankName, setBankName] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
-  const [cardLastFour, setCardLastFour] = useState("");
+  const [cardNumber, setCardNumber] = useState("");
+  const [cardHolder, setCardHolder] = useState("");
+  const [cardExpiry, setCardExpiry] = useState("");
+  const [cardCvv, setCvv] = useState("");
   const [paypalEmail, setPaypalEmail] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -33,7 +39,10 @@ export const PaymentMethodForm = ({ onSubmit }: PaymentMethodFormProps) => {
       method: selectedMethod,
       bankName: selectedMethod === "bank_transfer" ? bankName : undefined,
       accountNumber: selectedMethod === "bank_transfer" ? accountNumber : undefined,
-      cardLastFour: selectedMethod === "credit_card" ? cardLastFour : undefined,
+      cardNumber: selectedMethod === "credit_card" ? cardNumber : undefined,
+      cardHolder: selectedMethod === "credit_card" ? cardHolder : undefined,
+      cardExpiry: selectedMethod === "credit_card" ? cardExpiry : undefined,
+      cardCvv: selectedMethod === "credit_card" ? cardCvv : undefined,
       paypalEmail: selectedMethod === "paypal" ? paypalEmail : undefined,
     });
 
@@ -41,7 +50,10 @@ export const PaymentMethodForm = ({ onSubmit }: PaymentMethodFormProps) => {
     setSelectedMethod("");
     setBankName("");
     setAccountNumber("");
-    setCardLastFour("");
+    setCardNumber("");
+    setCardHolder("");
+    setCardExpiry("");
+    setCvv("");
     setPaypalEmail("");
   };
 
@@ -70,15 +82,46 @@ export const PaymentMethodForm = ({ onSubmit }: PaymentMethodFormProps) => {
         );
       case "credit_card":
         return (
-          <div className="space-y-2">
-            <Label>Últimos 4 dígitos</Label>
-            <Input
-              value={cardLastFour}
-              onChange={(e) => setCardLastFour(e.target.value)}
-              placeholder="Últimos 4 dígitos"
-              maxLength={4}
-            />
-          </div>
+          <>
+            <div className="space-y-2">
+              <Label>Nombre del titular</Label>
+              <Input
+                value={cardHolder}
+                onChange={(e) => setCardHolder(e.target.value)}
+                placeholder="Nombre como aparece en la tarjeta"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Número de tarjeta</Label>
+              <Input
+                value={cardNumber}
+                onChange={(e) => setCardNumber(e.target.value)}
+                placeholder="1234 5678 9012 3456"
+                maxLength={19}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Fecha de vencimiento</Label>
+                <Input
+                  value={cardExpiry}
+                  onChange={(e) => setCardExpiry(e.target.value)}
+                  placeholder="MM/AA"
+                  maxLength={5}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>CVV</Label>
+                <Input
+                  value={cardCvv}
+                  onChange={(e) => setCvv(e.target.value)}
+                  placeholder="123"
+                  maxLength={4}
+                  type="password"
+                />
+              </div>
+            </div>
+          </>
         );
       case "paypal":
         return (

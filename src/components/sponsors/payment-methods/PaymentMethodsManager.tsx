@@ -24,28 +24,14 @@ export const PaymentMethodsManager = ({ sponsorId }: PaymentMethodsManagerProps)
         .order("created_at", { ascending: false });
       return data || [];
     },
-    enabled: Boolean(sponsorId), // Only run query when sponsorId exists
+    enabled: Boolean(sponsorId),
   });
 
-  const handleSubmit = async (formData: {
-    method: string;
-    bankName?: string;
-    accountNumber?: string;
-    cardLastFour?: string;
-  }) => {
+  const handleSubmit = async (formData: any) => {
     if (!sponsorId) {
       toast({
         title: "Error",
         description: "Por favor selecciona un padrino primero",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!formData.method) {
-      toast({
-        title: "Error",
-        description: "Por favor selecciona un método de pago",
         variant: "destructive",
       });
       return;
@@ -58,11 +44,19 @@ export const PaymentMethodsManager = ({ sponsorId }: PaymentMethodsManagerProps)
         is_default: paymentMethods.length === 0,
       };
 
-      if (formData.method === "bank_transfer") {
-        paymentData.bank_name = formData.bankName;
-        paymentData.account_number = formData.accountNumber;
-      } else if (formData.method === "credit_card") {
-        paymentData.card_last_four = formData.cardLastFour;
+      // Agregar campos específicos según el método de pago
+      switch (formData.method) {
+        case "bank_transfer":
+          paymentData.bank_name = formData.bankName;
+          paymentData.account_number = formData.accountNumber;
+          break;
+        case "credit_card":
+          // Solo guardamos los últimos 4 dígitos por seguridad
+          paymentData.card_last_four = formData.cardNumber.slice(-4);
+          break;
+        case "paypal":
+          paymentData.paypal_email = formData.paypalEmail;
+          break;
       }
 
       const { error } = await supabase
