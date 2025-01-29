@@ -7,11 +7,17 @@ import { ChildrenError } from "@/components/children/layout/ChildrenError";
 import { ChildrenLoading } from "@/components/children/layout/ChildrenLoading";
 import { useChildrenData } from "@/hooks/useChildrenData";
 import { useSelectedChild } from "@/hooks/useSelectedChild";
+import { Child } from "@/types";
 
 const Children = () => {
   const [search, setSearch] = useState("");
   const { selectedChild, setSelectedChild } = useSelectedChild();
   const { data: children = [], isLoading, error, refetch } = useChildrenData();
+
+  const handleChildSelect = (child: Child) => {
+    console.log('Seleccionando niño:', child);
+    setSelectedChild(child);
+  };
 
   if (error) {
     return <ChildrenError error={error as Error} onRetry={refetch} />;
@@ -35,7 +41,7 @@ const Children = () => {
           children={children}
           search={search}
           setSearch={setSearch}
-          setSelectedChild={setSelectedChild}
+          setSelectedChild={handleChildSelect}
         />
       </div>
 

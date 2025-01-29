@@ -13,6 +13,7 @@ export const useSelectedChild = () => {
     if (location.state?.selectedChild) {
       const child = location.state.selectedChild;
       try {
+        console.log('Estableciendo niño desde location state:', child);
         setSelectedChild({
           ...child,
           birth_date: child.birth_date || '',
@@ -35,5 +36,25 @@ export const useSelectedChild = () => {
     }
   }, [location.state?.selectedChild, navigate, location.pathname, toast]);
 
-  return { selectedChild, setSelectedChild };
+  const handleSetSelectedChild = (child: Child | null) => {
+    console.log('Actualizando niño seleccionado:', child);
+    if (child) {
+      setSelectedChild({
+        ...child,
+        birth_date: child.birth_date || '',
+        story: child.story || '',
+        school_id: child.school_id || '',
+        grade: child.grade || '',
+        image_url: child.image_url || null,
+        status: child.status || 'pending',
+      });
+    } else {
+      setSelectedChild(null);
+    }
+  };
+
+  return { 
+    selectedChild, 
+    setSelectedChild: handleSetSelectedChild 
+  };
 };
