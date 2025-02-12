@@ -1,3 +1,4 @@
+
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,9 +19,14 @@ interface SponsorFormProps {
 export const SponsorForm = ({ selectedSponsor, onSubmit, onCancel }: SponsorFormProps) => {
   const { register, handleSubmit, reset, setValue, watch } = useForm({
     defaultValues: {
-      name: "",
+      first_name: "",
+      last_name: "",
       email: "",
       phone: "",
+      mobile_phone: "",
+      address: "",
+      city: "",
+      country: "",
       contribution: "",
       status: "pending",
     },
@@ -32,17 +38,27 @@ export const SponsorForm = ({ selectedSponsor, onSubmit, onCancel }: SponsorForm
   useEffect(() => {
     if (selectedSponsor) {
       reset({
-        name: selectedSponsor.name,
+        first_name: selectedSponsor.first_name,
+        last_name: selectedSponsor.last_name,
         email: selectedSponsor.email,
         phone: selectedSponsor.phone || "",
+        mobile_phone: selectedSponsor.mobile_phone || "",
+        address: selectedSponsor.address || "",
+        city: selectedSponsor.city || "",
+        country: selectedSponsor.country || "",
         contribution: selectedSponsor.contribution.toString(),
         status: selectedSponsor.status,
       });
     } else {
       reset({
-        name: "",
+        first_name: "",
+        last_name: "",
         email: "",
         phone: "",
+        mobile_phone: "",
+        address: "",
+        city: "",
+        country: "",
         contribution: "",
         status: "pending",
       });
@@ -58,7 +74,7 @@ export const SponsorForm = ({ selectedSponsor, onSubmit, onCancel }: SponsorForm
   const handleConfirmDelete = async () => {
     if (sponsorToDelete) {
       await handleDelete(sponsorToDelete.id);
-      onCancel(); // Regresar al listado después de eliminar
+      onCancel();
     }
   };
 
@@ -74,11 +90,20 @@ export const SponsorForm = ({ selectedSponsor, onSubmit, onCancel }: SponsorForm
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Nombre</Label>
+                <Label htmlFor="first_name">Nombre</Label>
                 <Input
-                  id="name"
-                  {...register("name")}
-                  placeholder="Nombre completo"
+                  id="first_name"
+                  {...register("first_name")}
+                  placeholder="Nombre"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="last_name">Apellidos</Label>
+                <Input
+                  id="last_name"
+                  {...register("last_name")}
+                  placeholder="Apellidos"
                 />
               </div>
 
@@ -93,11 +118,47 @@ export const SponsorForm = ({ selectedSponsor, onSubmit, onCancel }: SponsorForm
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="phone">Teléfono</Label>
+                <Label htmlFor="phone">Teléfono Fijo</Label>
                 <Input
                   id="phone"
                   {...register("phone")}
-                  placeholder="Número de teléfono"
+                  placeholder="Teléfono fijo"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="mobile_phone">Teléfono Móvil</Label>
+                <Input
+                  id="mobile_phone"
+                  {...register("mobile_phone")}
+                  placeholder="Teléfono móvil"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="address">Dirección</Label>
+                <Input
+                  id="address"
+                  {...register("address")}
+                  placeholder="Dirección"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="city">Ciudad</Label>
+                <Input
+                  id="city"
+                  {...register("city")}
+                  placeholder="Ciudad"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="country">País</Label>
+                <Input
+                  id="country"
+                  {...register("country")}
+                  placeholder="País"
                 />
               </div>
 
@@ -159,7 +220,7 @@ export const SponsorForm = ({ selectedSponsor, onSubmit, onCancel }: SponsorForm
         onClose={() => setSponsorToDelete(null)}
         onConfirm={handleConfirmDelete}
         title="¿Estás seguro?"
-        description={`Esta acción no se puede deshacer. Se eliminará permanentemente el padrino ${sponsorToDelete?.name}.`}
+        description={`Esta acción no se puede deshacer. Se eliminará permanentemente el padrino ${sponsorToDelete?.first_name} ${sponsorToDelete?.last_name}.`}
       />
     </>
   );

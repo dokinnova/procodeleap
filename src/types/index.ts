@@ -1,3 +1,4 @@
+
 export interface Child {
   id: string;
   name: string;
@@ -23,9 +24,14 @@ export interface School {
 
 export interface Sponsor {
   id: string;
-  name: string;
+  first_name: string;
+  last_name: string;
   email: string;
   phone: string | null;
+  mobile_phone: string | null;
+  address: string | null;
+  city: string | null;
+  country: string | null;
   contribution: number;
   status: 'active' | 'inactive' | 'pending' | 'baja';
   created_at: string;

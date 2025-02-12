@@ -239,28 +239,46 @@ export type Database = {
       }
       sponsors: {
         Row: {
+          address: string | null
+          city: string | null
           contribution: number
+          country: string | null
           created_at: string
           email: string
+          first_name: string
           id: string
+          last_name: string
+          mobile_phone: string | null
           name: string
           phone: string | null
           status: Database["public"]["Enums"]["sponsor_status"]
         }
         Insert: {
+          address?: string | null
+          city?: string | null
           contribution?: number
+          country?: string | null
           created_at?: string
           email: string
+          first_name: string
           id?: string
+          last_name: string
+          mobile_phone?: string | null
           name: string
           phone?: string | null
           status?: Database["public"]["Enums"]["sponsor_status"]
         }
         Update: {
+          address?: string | null
+          city?: string | null
           contribution?: number
+          country?: string | null
           created_at?: string
           email?: string
+          first_name?: string
           id?: string
+          last_name?: string
+          mobile_phone?: string | null
           name?: string
           phone?: string | null
           status?: Database["public"]["Enums"]["sponsor_status"]

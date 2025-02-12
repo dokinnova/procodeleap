@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -52,7 +53,7 @@ export const useSponsors = () => {
         return;
       }
 
-      if (!formData.name || !formData.email || !formData.contribution || !formData.status) {
+      if (!formData.first_name || !formData.last_name || !formData.email || !formData.contribution || !formData.status) {
         toast({
           variant: "destructive",
           title: "Error",
@@ -62,9 +63,15 @@ export const useSponsors = () => {
       }
 
       const sponsorData = {
-        name: formData.name,
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        name: `${formData.first_name} ${formData.last_name}`, // Mantener el campo name para compatibilidad
         email: formData.email,
         phone: formData.phone || null,
+        mobile_phone: formData.mobile_phone || null,
+        address: formData.address || null,
+        city: formData.city || null,
+        country: formData.country || null,
         contribution: Number(formData.contribution),
         status: formData.status,
       };
