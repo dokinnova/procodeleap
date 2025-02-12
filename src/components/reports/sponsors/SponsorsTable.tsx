@@ -1,3 +1,4 @@
+
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Sponsor } from "@/types";
 import { useNavigate } from "react-router-dom";
@@ -40,7 +41,7 @@ export const SponsorsTable = ({ sponsors }: SponsorsTableProps) => {
                 onClick={() => handleSponsorClick(sponsor)}
                 className="cursor-pointer hover:bg-gray-50"
               >
-                <TableCell className="font-medium">{sponsor.name}</TableCell>
+                <TableCell className="font-medium">{`${sponsor.first_name} ${sponsor.last_name}`}</TableCell>
                 <TableCell>{sponsor.email}</TableCell>
                 <TableCell>{sponsor.phone || "No disponible"}</TableCell>
                 <TableCell className="font-mono">

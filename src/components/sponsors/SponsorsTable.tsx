@@ -1,3 +1,4 @@
+
 import { Search, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -30,7 +31,7 @@ export const SponsorsTable = ({
   const { sponsorToDelete, setSponsorToDelete, handleDelete } = useDeleteSponsor();
 
   const filteredSponsors = sponsors.filter(sponsor =>
-    sponsor.name.toLowerCase().includes(search.toLowerCase())
+    `${sponsor.first_name} ${sponsor.last_name}`.toLowerCase().includes(search.toLowerCase())
   );
 
   const handleRowClick = (sponsor: Sponsor) => {
@@ -61,12 +62,6 @@ export const SponsorsTable = ({
         return 'Inactivo';
       default:
         return 'Pendiente';
-    }
-  };
-
-  const onConfirmDelete = async () => {
-    if (sponsorToDelete) {
-      await handleDelete(sponsorToDelete.id);
     }
   };
 
@@ -101,7 +96,7 @@ export const SponsorsTable = ({
                 onClick={() => handleRowClick(sponsor)}
               >
                 <TableCell className="font-medium">
-                  {sponsor.name}
+                  {`${sponsor.first_name} ${sponsor.last_name}`}
                 </TableCell>
                 <TableCell>
                   {sponsor.email}
@@ -140,9 +135,9 @@ export const SponsorsTable = ({
       <DeleteConfirmationDialog
         isOpen={!!sponsorToDelete}
         onClose={() => setSponsorToDelete(null)}
-        onConfirm={onConfirmDelete}
+        onConfirm={() => handleDelete(sponsorToDelete?.id || '')}
         title="¿Estás seguro?"
-        description={`Esta acción no se puede deshacer. Se eliminará permanentemente el padrino ${sponsorToDelete?.name}.`}
+        description={`Esta acción no se puede deshacer. Se eliminará permanentemente el padrino ${sponsorToDelete ? `${sponsorToDelete.first_name} ${sponsorToDelete.last_name}` : ''}.`}
       />
     </div>
   );

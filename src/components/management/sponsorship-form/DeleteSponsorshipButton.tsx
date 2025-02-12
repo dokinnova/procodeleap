@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -33,7 +34,7 @@ export const DeleteSponsorshipButton = ({
       <AlertDialogHeader>
         <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
         <AlertDialogDescription>
-          Esta acción eliminará permanentemente el apadrinamiento entre {selectedChild?.name} y {selectedSponsor?.name}.
+          Esta acción eliminará permanentemente el apadrinamiento entre {selectedChild?.name} y {selectedSponsor ? `${selectedSponsor.first_name} ${selectedSponsor.last_name}` : ''}.
         </AlertDialogDescription>
       </AlertDialogHeader>
       <AlertDialogFooter>

@@ -1,3 +1,4 @@
+
 import { Sponsor } from "@/types";
 import {
   Select,
@@ -32,7 +33,7 @@ export const SponsorSelect = ({
         <SelectContent>
           {availableSponsors.map((sponsor) => (
             <SelectItem key={sponsor.id} value={sponsor.id}>
-              {sponsor.name} - ${sponsor.contribution}/mes
+              {`${sponsor.first_name} ${sponsor.last_name}`} - ${sponsor.contribution}/mes
             </SelectItem>
           ))}
           {availableSponsors.length === 0 && (

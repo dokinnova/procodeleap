@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { BarChart2 } from "lucide-react";
@@ -85,7 +86,7 @@ const SponsorsReport = () => {
   ];
 
   const filteredSponsors = sponsors.filter(sponsor => {
-    const matchesSearch = sponsor.name.toLowerCase().includes(search.toLowerCase());
+    const matchesSearch = `${sponsor.first_name} ${sponsor.last_name}`.toLowerCase().includes(search.toLowerCase());
 
     if (dateFilter === "all") return matchesSearch;
 

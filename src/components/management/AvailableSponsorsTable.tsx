@@ -1,3 +1,4 @@
+
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Sponsor } from "@/types";
 
@@ -43,7 +44,7 @@ export const AvailableSponsorsTable = ({ sponsors, onSponsorSelect, isLoading }:
                   className="cursor-pointer hover:bg-gray-50"
                   onClick={() => onSponsorSelect(sponsor)}
                 >
-                  <TableCell>{sponsor.name}</TableCell>
+                  <TableCell>{`${sponsor.first_name} ${sponsor.last_name}`}</TableCell>
                   <TableCell>{sponsor.email}</TableCell>
                   <TableCell className="font-mono">
                     ${sponsor.contribution.toLocaleString('es-ES', { 
