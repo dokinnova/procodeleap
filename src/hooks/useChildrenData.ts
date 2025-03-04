@@ -1,13 +1,16 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Child } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 
+export const CHILDREN_QUERY_KEY = 'children'; // Consistent query key to be used across components
+
 export const useChildrenData = () => {
   const { toast } = useToast();
 
   return useQuery({
-    queryKey: ['children'],
+    queryKey: [CHILDREN_QUERY_KEY],
     queryFn: async () => {
       try {
         console.log('Fetching children data...');

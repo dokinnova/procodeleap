@@ -1,8 +1,10 @@
+
 import { useState } from "react";
 import { Child } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "./use-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import { CHILDREN_QUERY_KEY } from "./useChildrenData";
 
 export interface ChildFormData {
   name: string;
@@ -113,7 +115,8 @@ export const useChildForm = (
       }
 
       // Invalidate and refetch queries
-      queryClient.invalidateQueries({ queryKey: ['children'] });
+      console.log('Invalidating children queries');
+      queryClient.invalidateQueries({ queryKey: [CHILDREN_QUERY_KEY] });
 
       setFormData({
         name: "",

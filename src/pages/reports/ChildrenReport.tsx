@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { CHILDREN_QUERY_KEY } from "@/hooks/useChildrenData";
 
 const ChildrenReport = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -15,7 +17,7 @@ const ChildrenReport = () => {
   const navigate = useNavigate();
 
   const { data: children = [], isLoading, error, refetch } = useQuery({
-    queryKey: ['children-report'],
+    queryKey: [CHILDREN_QUERY_KEY, 'report'],
     queryFn: async () => {
       try {
         console.log('Iniciando fetch de niños para reporte...');
