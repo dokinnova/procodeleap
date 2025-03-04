@@ -116,7 +116,12 @@ export const useChildForm = (
 
       // Invalidate and refetch queries
       console.log('Invalidating children queries');
-      queryClient.invalidateQueries({ queryKey: [CHILDREN_QUERY_KEY] });
+      
+      // Force an immediate refetch of all queries with the CHILDREN_QUERY_KEY
+      await queryClient.invalidateQueries({ 
+        queryKey: [CHILDREN_QUERY_KEY],
+        refetchType: 'all' 
+      });
 
       setFormData({
         name: "",
