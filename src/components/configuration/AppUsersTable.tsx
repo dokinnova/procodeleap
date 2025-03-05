@@ -368,7 +368,7 @@ export const AppUsersTable = () => {
                 </TableCell>
                 <TableCell>
                   {user.user_id !== "00000000-0000-0000-0000-000000000000" && authUsers[user.user_id] ? 
-                    formatLastSignIn(authUsers[user.user_id]?.last_sign_in_at) : 
+                    formatLastSignIn(authUsers[user.user_id].last_sign_in_at) : 
                     "Pendiente"}
                 </TableCell>
                 <TableCell>
