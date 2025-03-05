@@ -55,11 +55,13 @@ const Configuration = () => {
         throw new Error("Este usuario ya existe en el sistema");
       }
       
-      // Create user with email and password
-      const { data, error } = await supabase.auth.admin.createUser({
+      // Use standard signup instead of admin API
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        email_confirm: true,
+        options: {
+          emailRedirectTo: window.location.origin
+        }
       });
 
       if (error) throw error;
@@ -69,7 +71,7 @@ const Configuration = () => {
         .from("app_users")
         .insert({
           email,
-          user_id: data.user.id,
+          user_id: data.user?.id,
           role: userRole
         });
 
@@ -78,7 +80,7 @@ const Configuration = () => {
       return data;
     },
     onSuccess: () => {
-      toast.success("Usuario creado correctamente");
+      toast.success("Usuario creado correctamente. Se ha enviado un correo de verificación.");
       setNewUserEmail("");
       setNewUserPassword("");
       setNewUserRole("viewer");
