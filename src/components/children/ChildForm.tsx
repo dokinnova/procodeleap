@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Child } from "@/types";
@@ -7,6 +8,9 @@ import { useState } from "react";
 import { useSchoolsQuery } from "@/hooks/child-form/useSchoolsQuery";
 import { ChildFormError } from "./form/ChildFormError";
 import { ChildFormLoading } from "./form/ChildFormLoading";
+import { useUserPermissions } from "@/hooks/useUserPermissions";
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface ChildFormProps {
   selectedChild: Child | null;
@@ -17,6 +21,7 @@ export const ChildForm = ({ selectedChild, setSelectedChild }: ChildFormProps) =
   const { formData, handleInputChange, handleSubmit } = useChildForm(selectedChild, setSelectedChild);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { data: schools = [], isError, isLoading, refetch } = useSchoolsQuery();
+  const { canCreate, canEdit } = useUserPermissions();
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     setIsSubmitting(true);
@@ -29,6 +34,36 @@ export const ChildForm = ({ selectedChild, setSelectedChild }: ChildFormProps) =
 
   if (isLoading) return <ChildFormLoading />;
   if (isError) return <ChildFormError onRetry={refetch} />;
+
+  // Check if user has permission to create/edit
+  const hasPermission = selectedChild ? canEdit : canCreate;
+
+  if (!hasPermission) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            {selectedChild ? 'Editar Niño' : 'Registrar Nuevo Niño'}
+          </CardTitle>
+          <CardDescription>
+            {selectedChild 
+              ? 'Modifica los datos del niño seleccionado' 
+              : 'Ingresa los datos para registrar un nuevo niño'}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Acceso Denegado</AlertTitle>
+            <AlertDescription>
+              No tienes permisos para {selectedChild ? 'editar' : 'crear'} registros.
+              Contacta al administrador para solicitar acceso.
+            </AlertDescription>
+          </Alert>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>

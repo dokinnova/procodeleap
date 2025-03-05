@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Settings, UserPlus } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -9,10 +10,15 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AppUsersTable } from "@/components/configuration/AppUsersTable";
 import { LogoUploader } from "@/components/configuration/LogoUploader";
+import { useUserPermissions } from "@/hooks/useUserPermissions";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 const Configuration = () => {
   const queryClient = useQueryClient();
   const [newUserEmail, setNewUserEmail] = useState("");
+  const { canCreate, role } = useUserPermissions();
+  const isAdmin = role === 'admin';
 
   const { data: settings } = useQuery({
     queryKey: ["site-settings"],
@@ -65,6 +71,26 @@ const Configuration = () => {
     }
     addUserMutation.mutate(newUserEmail);
   };
+
+  if (!isAdmin) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-3">
+          <Settings className="h-8 w-8 text-primary" />
+          <h1 className="text-2xl font-bold text-gray-900">Configuración</h1>
+        </div>
+        
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Acceso Denegado</AlertTitle>
+          <AlertDescription>
+            Solo los administradores pueden acceder a la configuración del sistema.
+            Contacta al administrador para solicitar acceso.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

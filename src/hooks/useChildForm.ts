@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "./use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { CHILDREN_QUERY_KEY } from "./useChildrenData";
+import { useUserPermissions } from "./useUserPermissions";
 
 export interface ChildFormData {
   name: string;
@@ -36,6 +37,7 @@ export const useChildForm = (
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { canCreate, canEdit } = useUserPermissions();
 
   const handleInputChange = (field: keyof ChildFormData, value: any) => {
     console.log('Actualizando campo:', field, 'con valor:', value);
@@ -57,6 +59,23 @@ export const useChildForm = (
         toast({
           title: "Error de autenticación",
           description: "Por favor, inicia sesión para realizar esta acción",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Check permissions
+      if (selectedChild && !canEdit) {
+        toast({
+          title: "Permiso denegado",
+          description: "No tienes permisos para editar niños",
+          variant: "destructive",
+        });
+        return;
+      } else if (!selectedChild && !canCreate) {
+        toast({
+          title: "Permiso denegado",
+          description: "No tienes permisos para crear niños",
           variant: "destructive",
         });
         return;
