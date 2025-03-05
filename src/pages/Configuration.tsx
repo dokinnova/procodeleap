@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Settings, UserPlus } from "lucide-react";
+import { Settings, UserPlus, Eye, EyeOff } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,6 +17,7 @@ const Configuration = () => {
   const queryClient = useQueryClient();
   const [newUserEmail, setNewUserEmail] = useState("");
   const [newUserPassword, setNewUserPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const { canCreate, role } = useUserPermissions();
   const isAdmin = role === 'admin';
 
@@ -134,12 +135,21 @@ const Configuration = () => {
               onChange={(e) => setNewUserEmail(e.target.value)}
               className="mb-2"
             />
-            <Input
-              type="password"
-              placeholder="Contraseña del nuevo usuario"
-              value={newUserPassword}
-              onChange={(e) => setNewUserPassword(e.target.value)}
-            />
+            <div className="relative">
+              <Input
+                type={showPassword ? "text" : "password"}
+                placeholder="Contraseña del nuevo usuario"
+                value={newUserPassword}
+                onChange={(e) => setNewUserPassword(e.target.value)}
+              />
+              <button 
+                type="button"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
           <Button type="submit">
             <UserPlus className="w-4 h-4 mr-2" />
@@ -157,3 +167,4 @@ const Configuration = () => {
 };
 
 export default Configuration;
+
