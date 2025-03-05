@@ -12,11 +12,20 @@ import { LogoUploader } from "@/components/configuration/LogoUploader";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import { UserRole } from "@/hooks/useUserPermissions";
 
 const Configuration = () => {
   const queryClient = useQueryClient();
   const [newUserEmail, setNewUserEmail] = useState("");
   const [newUserPassword, setNewUserPassword] = useState("");
+  const [newUserRole, setNewUserRole] = useState<UserRole>("viewer");
   const [showPassword, setShowPassword] = useState(false);
   const { canCreate, role } = useUserPermissions();
   const isAdmin = role === 'admin';
@@ -34,7 +43,7 @@ const Configuration = () => {
   });
 
   const addUserMutation = useMutation({
-    mutationFn: async ({ email, password }: { email: string, password: string }) => {
+    mutationFn: async ({ email, password, userRole }: { email: string, password: string, userRole: UserRole }) => {
       // First check if user already exists in app_users
       const { data: existingUser } = await supabase
         .from("app_users")
@@ -55,13 +64,13 @@ const Configuration = () => {
 
       if (error) throw error;
       
-      // Create user record in app_users with default role
+      // Create user record in app_users with selected role
       const { error: userError } = await supabase
         .from("app_users")
         .insert({
           email,
           user_id: data.user.id,
-          role: 'viewer'
+          role: userRole
         });
 
       if (userError) throw userError;
@@ -72,6 +81,7 @@ const Configuration = () => {
       toast.success("Usuario creado correctamente");
       setNewUserEmail("");
       setNewUserPassword("");
+      setNewUserRole("viewer");
       queryClient.invalidateQueries({ queryKey: ["app-users"] });
     },
     onError: (error) => {
@@ -89,7 +99,11 @@ const Configuration = () => {
       toast.error("Por favor, introduce una contraseña de al menos 6 caracteres");
       return;
     }
-    addUserMutation.mutate({ email: newUserEmail, password: newUserPassword });
+    addUserMutation.mutate({ 
+      email: newUserEmail, 
+      password: newUserPassword, 
+      userRole: newUserRole 
+    });
   };
 
   if (!isAdmin) {
@@ -135,7 +149,7 @@ const Configuration = () => {
               onChange={(e) => setNewUserEmail(e.target.value)}
               className="mb-2 w-full"
             />
-            <div className="relative">
+            <div className="relative mb-2">
               <Input
                 type={showPassword ? "text" : "password"}
                 placeholder="Contraseña del nuevo usuario"
@@ -151,6 +165,19 @@ const Configuration = () => {
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
+            <Select 
+              value={newUserRole} 
+              onValueChange={(value) => setNewUserRole(value as UserRole)}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Selecciona un rol" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="admin">Administrador</SelectItem>
+                <SelectItem value="editor">Editor</SelectItem>
+                <SelectItem value="viewer">Visualizador</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div className="flex justify-center">
             <Button type="submit">
