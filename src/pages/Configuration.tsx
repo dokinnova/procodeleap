@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Settings, UserPlus, Eye, EyeOff } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -89,13 +90,13 @@ const Configuration = () => {
               if (insertError) {
                 console.error("Error al insertar usuario en app_users:", insertError);
                 if (insertError.message.includes("violates foreign key constraint")) {
-                  return { message: "No se puede añadir el usuario hasta que inicie sesión por primera vez" };
+                  return { message: "Usuario añadido. Pendiente de confirmación." };
                 }
                 throw insertError;
               }
               
               return { 
-                message: "El usuario ya existe en Auth. Se ha añadido a app_users con el rol asignado. Se completará cuando inicie sesión." 
+                message: "Usuario añadido. Estado: Pendiente de confirmación." 
               };
             } catch (err) {
               console.error("Error al comprobar usuario existente:", err);

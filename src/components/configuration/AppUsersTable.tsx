@@ -1,6 +1,6 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Trash2, Edit2, Check, RefreshCw } from "lucide-react";
+import { Trash2, Edit2, Check, RefreshCw, Clock, UserCheck } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -27,8 +27,17 @@ import { useState, useEffect } from "react";
 import { Database } from "@/integrations/supabase/types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { UserRole } from "@/hooks/useUserPermissions";
+import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
 type AppUser = Database['public']['Tables']['app_users']['Row'];
+type AuthUserInfo = {
+  id: string;
+  email: string;
+  last_sign_in_at: string | null;
+  created_at: string;
+};
 
 export const AppUsersTable = () => {
   const queryClient = useQueryClient();
@@ -36,6 +45,7 @@ export const AppUsersTable = () => {
   const [editingUser, setEditingUser] = useState<AppUser | null>(null);
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [authUsers, setAuthUsers] = useState<Record<string, AuthUserInfo>>({});
 
   // Función para sincronizar usuarios
   const syncUsers = async () => {
@@ -117,6 +127,28 @@ export const AppUsersTable = () => {
         }
       }
 
+      // Intentamos obtener información adicional de auth.users a través de la API de Supabase
+      try {
+        // Esta consulta solo funcionará si el usuario tiene permisos de administrador
+        const { data: authUsersData, error: authError } = await supabase.auth.admin.listUsers();
+        
+        if (!authError && authUsersData) {
+          const userMap: Record<string, AuthUserInfo> = {};
+          authUsersData.users.forEach(user => {
+            userMap[user.id] = {
+              id: user.id,
+              email: user.email || '',
+              last_sign_in_at: user.last_sign_in_at,
+              created_at: user.created_at
+            };
+          });
+          setAuthUsers(userMap);
+        }
+      } catch (authError) {
+        console.warn("No se pudo acceder a la información de auth.users:", authError);
+        // Esto es normal si el usuario no tiene permisos de administrador
+      }
+
       // Refrescar la consulta para mostrar los cambios
       queryClient.invalidateQueries({ queryKey: ["app-users"] });
       toast.success("Sincronización completada");
@@ -142,6 +174,16 @@ export const AppUsersTable = () => {
       
       if (error) throw error;
       return data as AppUser[];
+    },
+  });
+
+  // Consulta para obtener la sesión actual del usuario autenticado
+  const { data: sessionData } = useQuery({
+    queryKey: ["current-user-session"],
+    queryFn: async () => {
+      const { data, error } = await supabase.auth.getSession();
+      if (error) throw error;
+      return data.session;
     },
   });
 
@@ -210,6 +252,20 @@ export const AppUsersTable = () => {
     syncUsers();
   };
 
+  const formatLastSignIn = (lastSignIn: string | null | undefined) => {
+    if (!lastSignIn) return "Nunca";
+    try {
+      return format(new Date(lastSignIn), "dd/MM/yyyy HH:mm:ss", { locale: es });
+    } catch (e) {
+      return "Fecha inválida";
+    }
+  };
+
+  // Verificar si el usuario actual es el usuario de la fila
+  const isCurrentUser = (userId: string) => {
+    return sessionData?.user?.id === userId;
+  };
+
   if (isLoading || isSyncing) {
     return <div>Cargando usuarios...</div>;
   }
@@ -228,7 +284,7 @@ export const AppUsersTable = () => {
             </p>
             {pendingUsers.length > 0 && (
               <p className="text-amber-600 text-sm">
-                Usuarios pendientes de sincronización: <span className="font-bold">{pendingUsers.length}</span>
+                Usuarios pendientes de confirmación: <span className="font-bold">{pendingUsers.length}</span>
               </p>
             )}
           </div>
@@ -250,13 +306,14 @@ export const AppUsersTable = () => {
             <TableHead>Email</TableHead>
             <TableHead>Rol</TableHead>
             <TableHead>Estado</TableHead>
+            <TableHead>Última autenticación</TableHead>
             <TableHead>Acciones</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {appUsers?.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={4} className="text-center py-8 text-gray-500">
+              <TableCell colSpan={5} className="text-center py-8 text-gray-500">
                 No hay usuarios registrados
               </TableCell>
             </TableRow>
@@ -298,14 +355,21 @@ export const AppUsersTable = () => {
                 </TableCell>
                 <TableCell>
                   {user.user_id === "00000000-0000-0000-0000-000000000000" ? (
-                    <span className="px-2 py-1 rounded text-xs bg-amber-100 text-amber-800">
+                    <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
                       Pendiente
-                    </span>
+                    </Badge>
                   ) : (
-                    <span className="px-2 py-1 rounded text-xs bg-green-100 text-green-800">
-                      Sincronizado
-                    </span>
+                    <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300 flex items-center gap-1">
+                      <UserCheck className="h-3 w-3" />
+                      Confirmado
+                    </Badge>
                   )}
+                </TableCell>
+                <TableCell>
+                  {user.user_id !== "00000000-0000-0000-0000-000000000000" && authUsers[user.user_id] ? 
+                    formatLastSignIn(authUsers[user.user_id]?.last_sign_in_at) : 
+                    "Pendiente"}
                 </TableCell>
                 <TableCell>
                   <div className="flex space-x-2">
@@ -324,6 +388,7 @@ export const AppUsersTable = () => {
                           variant="destructive"
                           size="icon"
                           onClick={() => setUserToDelete(user.user_id)}
+                          disabled={isCurrentUser(user.user_id)}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
