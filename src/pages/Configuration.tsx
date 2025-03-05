@@ -127,13 +127,13 @@ const Configuration = () => {
       <Card className="p-6">
         <h2 className="text-xl font-semibold mb-4">Añadir Usuario</h2>
         <form onSubmit={handleAddUser} className="space-y-4">
-          <div>
+          <div className="max-w-md mx-auto">
             <Input
               type="email"
               placeholder="Email del nuevo usuario"
               value={newUserEmail}
               onChange={(e) => setNewUserEmail(e.target.value)}
-              className="mb-2"
+              className="mb-2 w-full"
             />
             <div className="relative">
               <Input
@@ -141,6 +141,7 @@ const Configuration = () => {
                 placeholder="Contraseña del nuevo usuario"
                 value={newUserPassword}
                 onChange={(e) => setNewUserPassword(e.target.value)}
+                className="w-full"
               />
               <button 
                 type="button"
@@ -151,10 +152,12 @@ const Configuration = () => {
               </button>
             </div>
           </div>
-          <Button type="submit">
-            <UserPlus className="w-4 h-4 mr-2" />
-            Añadir Usuario
-          </Button>
+          <div className="flex justify-center">
+            <Button type="submit">
+              <UserPlus className="w-4 h-4 mr-2" />
+              Añadir Usuario
+            </Button>
+          </div>
         </form>
       </Card>
 
@@ -167,4 +170,3 @@ const Configuration = () => {
 };
 
 export default Configuration;
-
