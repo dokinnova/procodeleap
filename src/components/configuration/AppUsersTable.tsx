@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Trash2, Edit2, Check, RefreshCw, Clock, UserCheck } from "lucide-react";
 import { toast } from "sonner";
@@ -132,15 +131,17 @@ export const AppUsersTable = () => {
         // Esta consulta solo funcionará si el usuario tiene permisos de administrador
         const { data: authUsersData, error: authError } = await supabase.auth.admin.listUsers();
         
-        if (!authError && authUsersData) {
+        if (!authError && authUsersData && authUsersData.users) {
           const userMap: Record<string, AuthUserInfo> = {};
           authUsersData.users.forEach(user => {
-            userMap[user.id] = {
-              id: user.id,
-              email: user.email || '',
-              last_sign_in_at: user.last_sign_in_at,
-              created_at: user.created_at
-            };
+            if (user && user.id) {
+              userMap[user.id] = {
+                id: user.id,
+                email: user.email || '',
+                last_sign_in_at: user.last_sign_in_at,
+                created_at: user.created_at
+              };
+            }
           });
           setAuthUsers(userMap);
         }
@@ -367,7 +368,9 @@ export const AppUsersTable = () => {
                   )}
                 </TableCell>
                 <TableCell>
-                  {user.user_id !== "00000000-0000-0000-0000-000000000000" && authUsers[user.user_id] ? 
+                  {user.user_id !== "00000000-0000-0000-0000-000000000000" && 
+                   authUsers[user.user_id] && 
+                   'last_sign_in_at' in authUsers[user.user_id] ? 
                     formatLastSignIn(authUsers[user.user_id].last_sign_in_at) : 
                     "Pendiente"}
                 </TableCell>
