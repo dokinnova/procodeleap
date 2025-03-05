@@ -16,6 +16,7 @@ import { AlertCircle } from "lucide-react";
 const Configuration = () => {
   const queryClient = useQueryClient();
   const [newUserEmail, setNewUserEmail] = useState("");
+  const [newUserPassword, setNewUserPassword] = useState("");
   const { canCreate, role } = useUserPermissions();
   const isAdmin = role === 'admin';
 
@@ -32,7 +33,7 @@ const Configuration = () => {
   });
 
   const addUserMutation = useMutation({
-    mutationFn: async (email: string) => {
+    mutationFn: async ({ email, password }: { email: string, password: string }) => {
       // First check if user already exists in app_users
       const { data: existingUser } = await supabase
         .from("app_users")
@@ -44,12 +45,11 @@ const Configuration = () => {
         throw new Error("Este usuario ya existe en el sistema");
       }
       
-      // Use magic link invitation instead of direct creation
-      const { data, error } = await supabase.auth.signInWithOtp({
+      // Create user with email and password
+      const { data, error } = await supabase.auth.admin.createUser({
         email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        },
+        password,
+        email_confirm: true,
       });
 
       if (error) throw error;
@@ -59,7 +59,7 @@ const Configuration = () => {
         .from("app_users")
         .insert({
           email,
-          user_id: '', // Will be updated when user signs up
+          user_id: data.user.id,
           role: 'viewer'
         });
 
@@ -68,8 +68,9 @@ const Configuration = () => {
       return data;
     },
     onSuccess: () => {
-      toast.success("Se ha enviado un enlace de invitación al usuario");
+      toast.success("Usuario creado correctamente");
       setNewUserEmail("");
+      setNewUserPassword("");
       queryClient.invalidateQueries({ queryKey: ["app-users"] });
     },
     onError: (error) => {
@@ -83,7 +84,11 @@ const Configuration = () => {
       toast.error("Por favor, introduce un email");
       return;
     }
-    addUserMutation.mutate(newUserEmail);
+    if (!newUserPassword || newUserPassword.length < 6) {
+      toast.error("Por favor, introduce una contraseña de al menos 6 caracteres");
+      return;
+    }
+    addUserMutation.mutate({ email: newUserEmail, password: newUserPassword });
   };
 
   if (!isAdmin) {
@@ -120,16 +125,25 @@ const Configuration = () => {
 
       <Card className="p-6">
         <h2 className="text-xl font-semibold mb-4">Añadir Usuario</h2>
-        <form onSubmit={handleAddUser} className="flex gap-2">
-          <Input
-            type="email"
-            placeholder="Email del nuevo usuario"
-            value={newUserEmail}
-            onChange={(e) => setNewUserEmail(e.target.value)}
-          />
+        <form onSubmit={handleAddUser} className="space-y-4">
+          <div>
+            <Input
+              type="email"
+              placeholder="Email del nuevo usuario"
+              value={newUserEmail}
+              onChange={(e) => setNewUserEmail(e.target.value)}
+              className="mb-2"
+            />
+            <Input
+              type="password"
+              placeholder="Contraseña del nuevo usuario"
+              value={newUserPassword}
+              onChange={(e) => setNewUserPassword(e.target.value)}
+            />
+          </div>
           <Button type="submit">
             <UserPlus className="w-4 h-4 mr-2" />
-            Añadir
+            Añadir Usuario
           </Button>
         </form>
       </Card>
