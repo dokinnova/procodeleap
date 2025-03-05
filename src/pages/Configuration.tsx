@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Settings, UserPlus, Eye, EyeOff } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -19,6 +20,9 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { UserRole } from "@/hooks/useUserPermissions";
+
+// Define a type for the return value of the mutation
+type AddUserResult = { user: any; session: any } | { message: string };
 
 const Configuration = () => {
   const queryClient = useQueryClient();
@@ -117,10 +121,11 @@ const Configuration = () => {
 
       if (userError) throw userError;
       
-      return data;
+      return data as AddUserResult;
     },
     onSuccess: (data) => {
-      if (data.message) {
+      // Check if data has a message property to determine its type
+      if ('message' in data) {
         toast.success(data.message);
       } else {
         toast.success("Usuario añadido correctamente. Se ha enviado un correo de verificación.");
