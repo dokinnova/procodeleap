@@ -28,18 +28,40 @@ export const useUserPermissions = (): PermissionsResult => {
       // Get the user's role from app_users table
       const { data, error } = await supabase
         .from('app_users')
-        .select('role')
+        .select('role, email')
         .eq('user_id', session.user.id)
         .single();
       
       if (error) {
         console.error('Error fetching user permissions:', error);
         
-        // Si el error es porque no se encontró el registro, creamos un registro para el usuario
+        // If the user doesn't exist in app_users yet (PGRST116 = no rows returned)
         if (error.code === 'PGRST116') {
           console.log('Creating new app_user record for:', session.user.email);
           
-          // Crear un nuevo registro en app_users con rol admin para este usuario
+          // Check if there's a record with this email but empty user_id
+          const { data: emailRecord, error: emailError } = await supabase
+            .from('app_users')
+            .select('*')
+            .eq('email', session.user.email);
+            
+          if (!emailError && emailRecord && emailRecord.length > 0) {
+            // Update the existing record with the user_id
+            const { error: updateError } = await supabase
+              .from('app_users')
+              .update({ user_id: session.user.id })
+              .eq('email', session.user.email);
+              
+            if (updateError) {
+              console.error('Error updating user record:', updateError);
+              toast.error('Error al actualizar permisos de usuario');
+              return { role: 'viewer' as UserRole };
+            }
+            
+            return { role: emailRecord[0].role as UserRole };
+          }
+          
+          // Create a new record in app_users with role admin for this user
           const { error: insertError } = await supabase
             .from('app_users')
             .insert({

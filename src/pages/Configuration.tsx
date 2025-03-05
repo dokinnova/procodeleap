@@ -34,27 +34,42 @@ const Configuration = () => {
 
   const addUserMutation = useMutation({
     mutationFn: async (email: string) => {
-      const { data: { user }, error: authError } = await supabase.auth.admin.createUser({
+      // First check if user already exists in app_users
+      const { data: existingUser } = await supabase
+        .from("app_users")
+        .select("*")
+        .eq("email", email)
+        .single();
+        
+      if (existingUser) {
+        throw new Error("Este usuario ya existe en el sistema");
+      }
+      
+      // Use magic link invitation instead of direct creation
+      const { data, error } = await supabase.auth.signInWithOtp({
         email,
-        email_confirm: true,
-        password: Math.random().toString(36).slice(-8),
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
       });
 
-      if (authError) throw authError;
-      if (!user) throw new Error("No se pudo crear el usuario");
-
+      if (error) throw error;
+      
+      // Create user record in app_users with default role
       const { error: userError } = await supabase
         .from("app_users")
         .insert({
           email,
-          user_id: user.id,
+          user_id: '', // Will be updated when user signs up
           role: 'viewer'
         });
 
       if (userError) throw userError;
+      
+      return data;
     },
     onSuccess: () => {
-      toast.success("Usuario añadido correctamente");
+      toast.success("Se ha enviado un enlace de invitación al usuario");
       setNewUserEmail("");
       queryClient.invalidateQueries({ queryKey: ["app-users"] });
     },
