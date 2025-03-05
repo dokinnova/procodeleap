@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Settings, UserPlus, Eye, EyeOff } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -74,12 +73,17 @@ const Configuration = () => {
             // Intentamos buscar si algún usuario con esa dirección de correo se ha autenticado antes
             // y ya está en la tabla auth.users
             try {
-              // Añadimos el usuario a app_users sin user_id (se sincronizará cuando inicie sesión)
+              // Para los usuarios que ya existen en Auth pero no tienen entrada en app_users
+              // Usamos un valor temporal para user_id que se actualizará después
+              const tempUserId = '00000000-0000-0000-0000-000000000000';
+              
+              // Añadimos el usuario a app_users con un user_id temporal
               const { error: insertError } = await supabase
                 .from("app_users")
                 .insert({
                   email: email.toLowerCase(),
-                  role: userRole
+                  role: userRole,
+                  user_id: tempUserId
                 });
 
               if (insertError) {

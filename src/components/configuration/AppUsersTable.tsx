@@ -80,19 +80,45 @@ export const AppUsersTable = () => {
             toast.error("Error al sincronizar el usuario actual");
           } else {
             toast.success("Usuario actual sincronizado correctamente");
-            queryClient.invalidateQueries({ queryKey: ["app-users"] });
+          }
+        } else {
+          // Buscamos usuarios con email igual al actual pero con user_id temporal
+          const { data: tempUsers } = await supabase
+            .from("app_users")
+            .select("*")
+            .eq("email", currentUser.email.toLowerCase())
+            .eq("user_id", "00000000-0000-0000-0000-000000000000");
+
+          if (tempUsers && tempUsers.length > 0) {
+            // Actualizamos el user_id temporal con el actual
+            const { error: updateError } = await supabase
+              .from("app_users")
+              .update({ user_id: currentUser.id })
+              .eq("email", currentUser.email.toLowerCase())
+              .eq("user_id", "00000000-0000-0000-0000-000000000000");
+
+            if (updateError) {
+              console.error("Error al actualizar user_id temporal:", updateError);
+              toast.error("Error al actualizar sincronización de usuario");
+            } else {
+              toast.success("Usuario sincronizado correctamente");
+            }
           }
         }
       }
 
-      // Sincronizar registros existentes que tengan email pero no user_id
+      // Sincronizar registros existentes que tengan email pero con user_id temporal
       if (existingAppUsers) {
-        const incompleteUsers = existingAppUsers.filter(user => !user.user_id && user.email);
+        const incompleteUsers = existingAppUsers.filter(user => 
+          user.user_id === "00000000-0000-0000-0000-000000000000" && user.email);
+        
         if (incompleteUsers.length > 0) {
-          toast.info(`Sincronizando ${incompleteUsers.length} usuarios incompletos...`);
+          toast.info(`Hay ${incompleteUsers.length} usuarios pendientes de sincronización.`);
         }
       }
 
+      // Refrescar la consulta para mostrar los cambios
+      queryClient.invalidateQueries({ queryKey: ["app-users"] });
       toast.success("Sincronización completada");
     } catch (error: any) {
       console.error("Error general al sincronizar usuarios:", error);
@@ -121,6 +147,11 @@ export const AppUsersTable = () => {
 
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: string) => {
+      // No permitimos eliminar usuarios con user_id temporal
+      if (userId === "00000000-0000-0000-0000-000000000000") {
+        throw new Error("No se puede eliminar un usuario que aún no ha iniciado sesión");
+      }
+      
       const { error } = await supabase
         .from("app_users")
         .delete()
@@ -183,13 +214,24 @@ export const AppUsersTable = () => {
     return <div>Cargando usuarios...</div>;
   }
 
+  // Separar usuarios sincronizados y pendientes
+  const pendingUsers = appUsers?.filter(user => user.user_id === "00000000-0000-0000-0000-000000000000") || [];
+  const syncedUsers = appUsers?.filter(user => user.user_id !== "00000000-0000-0000-0000-000000000000") || [];
+
   return (
     <div className="space-y-4">
       {appUsers && (
         <div className="mb-4 p-3 bg-blue-50 rounded-md flex justify-between items-center">
-          <p className="text-blue-800 font-medium">
-            Total de usuarios registrados: <span className="font-bold">{appUsers.length}</span>
-          </p>
+          <div>
+            <p className="text-blue-800 font-medium">
+              Total de usuarios registrados: <span className="font-bold">{appUsers.length}</span>
+            </p>
+            {pendingUsers.length > 0 && (
+              <p className="text-amber-600 text-sm">
+                Usuarios pendientes de sincronización: <span className="font-bold">{pendingUsers.length}</span>
+              </p>
+            )}
+          </div>
           <Button 
             variant="outline" 
             size="sm" 
@@ -207,19 +249,20 @@ export const AppUsersTable = () => {
           <TableRow>
             <TableHead>Email</TableHead>
             <TableHead>Rol</TableHead>
+            <TableHead>Estado</TableHead>
             <TableHead>Acciones</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {appUsers?.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={3} className="text-center py-8 text-gray-500">
+              <TableCell colSpan={4} className="text-center py-8 text-gray-500">
                 No hay usuarios registrados
               </TableCell>
             </TableRow>
           ) : (
             appUsers?.map((user) => (
-              <TableRow key={user.id}>
+              <TableRow key={user.id} className={user.user_id === "00000000-0000-0000-0000-000000000000" ? "bg-amber-50" : ""}>
                 <TableCell>{user.email}</TableCell>
                 <TableCell>
                   {editingUser?.id === user.id ? (
@@ -250,6 +293,17 @@ export const AppUsersTable = () => {
                     }`}>
                       {user.role === 'admin' ? 'Administrador' : 
                       user.role === 'editor' ? 'Editor' : 'Visualizador'}
+                    </span>
+                  )}
+                </TableCell>
+                <TableCell>
+                  {user.user_id === "00000000-0000-0000-0000-000000000000" ? (
+                    <span className="px-2 py-1 rounded text-xs bg-amber-100 text-amber-800">
+                      Pendiente
+                    </span>
+                  ) : (
+                    <span className="px-2 py-1 rounded text-xs bg-green-100 text-green-800">
+                      Sincronizado
                     </span>
                   )}
                 </TableCell>
