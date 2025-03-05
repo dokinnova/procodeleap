@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Settings, UserPlus, Eye, EyeOff } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -54,7 +55,7 @@ const Configuration = () => {
         .single();
         
       if (!appUserError && existingAppUser) {
-        throw new Error("Este usuario ya existe en el sistema");
+        return { message: "Este usuario ya existe en el sistema" };
       }
 
       try {
@@ -68,15 +69,34 @@ const Configuration = () => {
         });
 
         if (error) {
-          // Si es un error de usuario ya existente, intentamos recuperar el ID
+          // Si es un error de usuario ya existente, intentamos añadirlo a app_users directamente
           if (error.message.includes("User already registered")) {
-            // El usuario existe en Auth pero no en app_users
-            // Como no podemos usar service_role aquí, no podemos obtener el ID directamente
-            
-            // Informamos que el usuario ya existe pero se añadirá cuando inicie sesión
-            return { 
-              message: "El usuario ya existe en Auth. Se añadirá a app_users cuando inicie sesión." 
-            };
+            // Intentamos buscar si algún usuario con esa dirección de correo se ha autenticado antes
+            // y ya está en la tabla auth.users
+            try {
+              // Añadimos el usuario a app_users sin user_id (se sincronizará cuando inicie sesión)
+              const { error: insertError } = await supabase
+                .from("app_users")
+                .insert({
+                  email: email.toLowerCase(),
+                  role: userRole
+                });
+
+              if (insertError) {
+                console.error("Error al insertar usuario en app_users:", insertError);
+                if (insertError.message.includes("violates foreign key constraint")) {
+                  return { message: "No se puede añadir el usuario hasta que inicie sesión por primera vez" };
+                }
+                throw insertError;
+              }
+              
+              return { 
+                message: "El usuario ya existe en Auth. Se ha añadido a app_users con el rol asignado. Se completará cuando inicie sesión." 
+              };
+            } catch (err) {
+              console.error("Error al comprobar usuario existente:", err);
+              throw new Error("Error al procesar usuario existente");
+            }
           } else {
             throw error;
           }
@@ -88,7 +108,7 @@ const Configuration = () => {
           const { error: userError } = await supabase
             .from("app_users")
             .insert({
-              email: email,
+              email: email.toLowerCase(),
               user_id: data.user.id,
               role: userRole
             });

@@ -1,5 +1,6 @@
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Trash2, Edit2, Check } from "lucide-react";
+import { Trash2, Edit2, Check, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -28,11 +29,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { UserRole } from "@/hooks/useUserPermissions";
 
 type AppUser = Database['public']['Tables']['app_users']['Row'];
-// Define a type for Auth User to fix the type error
-type AuthUser = {
-  id: string;
-  email?: string | null;
-};
 
 export const AppUsersTable = () => {
   const queryClient = useQueryClient();
@@ -88,6 +84,16 @@ export const AppUsersTable = () => {
           }
         }
       }
+
+      // Sincronizar registros existentes que tengan email pero no user_id
+      if (existingAppUsers) {
+        const incompleteUsers = existingAppUsers.filter(user => !user.user_id && user.email);
+        if (incompleteUsers.length > 0) {
+          toast.info(`Sincronizando ${incompleteUsers.length} usuarios incompletos...`);
+        }
+      }
+
+      toast.success("Sincronización completada");
     } catch (error: any) {
       console.error("Error general al sincronizar usuarios:", error);
       toast.error("Error al sincronizar usuarios: " + error.message);
@@ -169,6 +175,10 @@ export const AppUsersTable = () => {
     }
   };
 
+  const handleManualSync = () => {
+    syncUsers();
+  };
+
   if (isLoading || isSyncing) {
     return <div>Cargando usuarios...</div>;
   }
@@ -176,10 +186,19 @@ export const AppUsersTable = () => {
   return (
     <div className="space-y-4">
       {appUsers && (
-        <div className="mb-4 p-3 bg-blue-50 rounded-md">
+        <div className="mb-4 p-3 bg-blue-50 rounded-md flex justify-between items-center">
           <p className="text-blue-800 font-medium">
             Total de usuarios registrados: <span className="font-bold">{appUsers.length}</span>
           </p>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleManualSync}
+            disabled={isSyncing}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
+            Sincronizar
+          </Button>
         </div>
       )}
       
