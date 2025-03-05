@@ -7,7 +7,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AppUsersTable } from "@/components/configuration/AppUsersTable";
 import { LogoUploader } from "@/components/configuration/LogoUploader";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
@@ -114,42 +113,31 @@ const Configuration = () => {
         <h1 className="text-2xl font-bold text-gray-900">Configuración</h1>
       </div>
 
-      <Tabs defaultValue="general" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="general">General</TabsTrigger>
-          <TabsTrigger value="users">Usuarios</TabsTrigger>
-        </TabsList>
+      <Card className="p-6">
+        <h2 className="text-xl font-semibold mb-4">Logo del Sitio</h2>
+        <LogoUploader currentLogo={settings?.logo_url} />
+      </Card>
 
-        <TabsContent value="general" className="space-y-4">
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold mb-4">Logo del Sitio</h2>
-            <LogoUploader currentLogo={settings?.logo_url} />
-          </Card>
-        </TabsContent>
+      <Card className="p-6">
+        <h2 className="text-xl font-semibold mb-4">Añadir Usuario</h2>
+        <form onSubmit={handleAddUser} className="flex gap-2">
+          <Input
+            type="email"
+            placeholder="Email del nuevo usuario"
+            value={newUserEmail}
+            onChange={(e) => setNewUserEmail(e.target.value)}
+          />
+          <Button type="submit">
+            <UserPlus className="w-4 h-4 mr-2" />
+            Añadir
+          </Button>
+        </form>
+      </Card>
 
-        <TabsContent value="users" className="space-y-4">
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold mb-4">Añadir Usuario</h2>
-            <form onSubmit={handleAddUser} className="flex gap-2">
-              <Input
-                type="email"
-                placeholder="Email del nuevo usuario"
-                value={newUserEmail}
-                onChange={(e) => setNewUserEmail(e.target.value)}
-              />
-              <Button type="submit">
-                <UserPlus className="w-4 h-4 mr-2" />
-                Añadir
-              </Button>
-            </form>
-          </Card>
-
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold mb-4">Usuarios</h2>
-            <AppUsersTable />
-          </Card>
-        </TabsContent>
-      </Tabs>
+      <Card className="p-6">
+        <h2 className="text-xl font-semibold mb-4">Usuarios</h2>
+        <AppUsersTable />
+      </Card>
     </div>
   );
 };
