@@ -44,43 +44,89 @@ const Configuration = () => {
 
   const addUserMutation = useMutation({
     mutationFn: async ({ email, password, userRole }: { email: string, password: string, userRole: UserRole }) => {
-      // First check if user already exists in app_users
-      const { data: existingUser } = await supabase
-        .from("app_users")
-        .select("*")
-        .eq("email", email)
-        .single();
-        
-      if (existingUser) {
-        throw new Error("Este usuario ya existe en el sistema");
-      }
-      
-      // Use standard signup instead of admin API
-      const { data, error } = await supabase.auth.signUp({
+      // First check if user already exists in Supabase Auth
+      const { data: authUser, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
-        options: {
-          emailRedirectTo: window.location.origin
-        }
       });
-
-      if (error) throw error;
       
-      // Create user record in app_users with selected role
-      const { error: userError } = await supabase
-        .from("app_users")
-        .insert({
+      // Si el usuario existe en Auth pero no tiene error, es que ya está registrado
+      if (authUser?.user) {
+        console.log("Usuario ya existe en Auth:", authUser.user);
+        
+        // Check if the user exists in app_users
+        const { data: existingAppUser } = await supabase
+          .from("app_users")
+          .select("*")
+          .eq("email", email)
+          .single();
+          
+        if (existingAppUser) {
+          throw new Error("Este usuario ya existe en el sistema");
+        }
+        
+        // Si no existe en app_users, lo creamos con el rol seleccionado
+        const { error: userError } = await supabase
+          .from("app_users")
+          .insert({
+            email,
+            user_id: authUser.user.id,
+            role: userRole
+          });
+          
+        if (userError) throw userError;
+        
+        return { user: authUser.user };
+      }
+      
+      // Si el error es de credenciales incorrectas, significa que el usuario no existe
+      // o la contraseña es incorrecta, así que intentamos crear el usuario
+      if (authError && authError.message.includes("Invalid login credentials")) {
+        // Continuamos con el proceso normal de creación de usuario
+        // Check if user already exists in app_users
+        const { data: existingUser } = await supabase
+          .from("app_users")
+          .select("*")
+          .eq("email", email)
+          .single();
+          
+        if (existingUser) {
+          throw new Error("Este usuario ya existe en el sistema");
+        }
+        
+        // Use standard signup instead of admin API
+        const { data, error } = await supabase.auth.signUp({
           email,
-          user_id: data.user?.id,
-          role: userRole
+          password,
+          options: {
+            emailRedirectTo: window.location.origin
+          }
         });
 
-      if (userError) throw userError;
+        if (error) throw error;
+        
+        // Create user record in app_users with selected role
+        const { error: userError } = await supabase
+          .from("app_users")
+          .insert({
+            email,
+            user_id: data.user?.id,
+            role: userRole
+          });
+
+        if (userError) throw userError;
+        
+        return data;
+      }
       
-      return data;
+      // Si hay otro tipo de error, lo lanzamos
+      if (authError) throw authError;
+      
+      // Este punto no debería alcanzarse, pero por si acaso
+      throw new Error("Error inesperado al verificar el usuario");
     },
     onSuccess: () => {
-      toast.success("Usuario creado correctamente. Se ha enviado un correo de verificación.");
+      toast.success("Usuario añadido correctamente. Si es un usuario nuevo, se ha enviado un correo de verificación.");
       setNewUserEmail("");
       setNewUserPassword("");
       setNewUserRole("viewer");
