@@ -192,6 +192,14 @@ export const AppUsersTable = () => {
 
   return (
     <div className="space-y-4">
+      {appUsers && (
+        <div className="mb-4 p-3 bg-blue-50 rounded-md">
+          <p className="text-blue-800 font-medium">
+            Total de usuarios registrados: <span className="font-bold">{appUsers.length}</span>
+          </p>
+        </div>
+      )}
+      
       <Table>
         <TableHeader>
           <TableRow>
