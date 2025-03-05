@@ -29,6 +29,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { UserRole } from "@/hooks/useUserPermissions";
 
 type AppUser = Database['public']['Tables']['app_users']['Row'];
+// Define a type for Auth User to fix the type error
+type AuthUser = {
+  id: string;
+  email?: string | null;
+};
 
 export const AppUsersTable = () => {
   const queryClient = useQueryClient();
@@ -63,7 +68,8 @@ export const AppUsersTable = () => {
           const existingEmails = new Set(existingAppUsers.map(user => user.email));
           
           // Identificamos usuarios de Auth que no están en app_users
-          const missingUsers = authUsers.users.filter(authUser => 
+          // Agregamos una tipificación explícita para evitar el error de 'never'
+          const missingUsers = (authUsers.users as AuthUser[]).filter(authUser => 
             authUser.email && !existingEmails.has(authUser.email)
           );
           
