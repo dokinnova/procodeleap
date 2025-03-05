@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Trash2, Edit2, Check } from "lucide-react";
 import { toast } from "sonner";
@@ -53,61 +52,45 @@ export const AppUsersTable = () => {
       
       if (error) throw error;
       
-      // Intentamos obtener usuarios de Auth
-      try {
-        const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+      // Creamos un conjunto de emails para búsqueda rápida
+      const existingEmails = new Set();
+      if (existingAppUsers) {
+        existingAppUsers.forEach(user => {
+          if (user.email) {
+            existingEmails.add(user.email.toLowerCase());
+          }
+        });
+      }
+      
+      // Comprobamos si hay un usuario actualmente autenticado
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const currentUser = session.user;
         
-        if (authError) {
-          console.error("Error al obtener usuarios de Auth:", authError);
-          return existingAppUsers as AppUser[];
-        }
-        
-        if (authUsers && existingAppUsers) {
-          // Creamos un conjunto de IDs y emails de usuarios existentes para búsqueda rápida
-          const existingEmails = new Set(existingAppUsers.map(user => user.email?.toLowerCase()));
-          const existingUserIds = new Set(existingAppUsers.map(user => user.user_id));
+        // Verificamos si el usuario actual ya está en app_users
+        if (currentUser.email && !existingEmails.has(currentUser.email.toLowerCase())) {
+          console.log("Añadiendo usuario actual a app_users:", currentUser.email);
           
-          // Identificamos usuarios de Auth que no están en app_users
-          const missingUsers = (authUsers.users as AuthUser[]).filter(authUser => {
-            // Un usuario falta si su ID no está en app_users o si su email no está en app_users
-            return authUser.email && 
-                  (!existingUserIds.has(authUser.id) && 
-                   !existingEmails.has(authUser.email.toLowerCase()));
-          });
-          
-          // Si encontramos usuarios faltantes, los agregamos a app_users
-          if (missingUsers.length > 0) {
-            console.log("Sincronizando usuarios faltantes:", missingUsers);
+          const { error: insertError } = await supabase
+            .from("app_users")
+            .insert({
+              email: currentUser.email,
+              user_id: currentUser.id,
+              role: 'admin' as UserRole // El primer usuario que se añade es admin
+            });
             
-            for (const user of missingUsers) {
-              if (user.email) {
-                const { error: insertError } = await supabase
-                  .from("app_users")
-                  .insert({
-                    email: user.email,
-                    user_id: user.id,
-                    role: 'viewer' as UserRole // Rol predeterminado
-                  });
-                
-                if (insertError) {
-                  console.error("Error al insertar usuario:", insertError);
-                }
-              }
-            }
-            
-            // Notificamos que se han sincronizado usuarios
-            toast.success(`Se han sincronizado ${missingUsers.length} usuarios nuevos`);
-            
-            // Refrescamos los datos
+          if (insertError) {
+            console.error("Error al insertar usuario actual:", insertError);
+            toast.error("Error al sincronizar el usuario actual");
+          } else {
+            toast.success("Usuario actual sincronizado correctamente");
             queryClient.invalidateQueries({ queryKey: ["app-users"] });
           }
         }
-      } catch (authError) {
-        console.error("Error al acceder a auth.admin.listUsers:", authError);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error general al sincronizar usuarios:", error);
-      toast.error("Error al sincronizar usuarios");
+      toast.error("Error al sincronizar usuarios: " + error.message);
     } finally {
       setIsSyncing(false);
     }

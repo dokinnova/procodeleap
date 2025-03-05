@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Settings, UserPlus, Eye, EyeOff } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -58,70 +57,57 @@ const Configuration = () => {
         throw new Error("Este usuario ya existe en el sistema");
       }
 
-      // Intentamos crear un nuevo usuario en Auth
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: window.location.origin
-        }
-      });
-
-      if (error) {
-        // Si es un error de usuario ya existente, intentamos recuperar el ID
-        if (error.message.includes("User already registered")) {
-          // Obtenemos el ID del usuario existente en Auth
-          // Como no podemos usar admin.listUsers, buscamos en app_users por email
-          const { data: existingUser, error: existingUserError } = await supabase
-            .from("app_users")
-            .select("*")
-            .ilike("email", email)
-            .maybeSingle();
-
-          if (existingUserError) {
-            console.error("Error al buscar usuario existente:", existingUserError);
+      try {
+        // Intentamos crear un nuevo usuario en Auth
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: window.location.origin
           }
-
-          if (existingUser) {
-            throw new Error("Este usuario ya existe en el sistema");
-          } else {
-            // El usuario existe en Auth pero no en app_users
-            // Necesitamos crear el registro en app_users
-            // Pero no tenemos el ID, así que usaremos un placeholder temporal
-            const tempId = crypto.randomUUID();
-            
-            // Creamos el usuario en app_users con un ID temporal
-            const { error: insertError } = await supabase
-              .from("app_users")
-              .insert({
-                email: email,
-                user_id: tempId, // ID temporal que se actualizará cuando el usuario inicie sesión
-                role: userRole
-              });
-
-            if (insertError) throw insertError;
-            
-            // Notificamos que el usuario ya existía pero se ha añadido a app_users
-            return { message: "Usuario ya existente añadido al sistema" };
-          }
-        } else {
-          throw error;
-        }
-      }
-      
-      // Si llegamos aquí, el usuario se creó exitosamente
-      // Creamos el registro en app_users
-      const { error: userError } = await supabase
-        .from("app_users")
-        .insert({
-          email: email,
-          user_id: data.user?.id,
-          role: userRole
         });
 
-      if (userError) throw userError;
-      
-      return data as AddUserResult;
+        if (error) {
+          // Si es un error de usuario ya existente, intentamos recuperar el ID
+          if (error.message.includes("User already registered")) {
+            // El usuario existe en Auth pero no en app_users
+            // Como no podemos usar service_role aquí, no podemos obtener el ID directamente
+            
+            // Informamos que el usuario ya existe pero se añadirá cuando inicie sesión
+            return { 
+              message: "El usuario ya existe en Auth. Se añadirá a app_users cuando inicie sesión." 
+            };
+          } else {
+            throw error;
+          }
+        }
+        
+        // Si llegamos aquí, el usuario se creó exitosamente
+        // Creamos el registro en app_users solo si tenemos un user.id válido
+        if (data?.user?.id) {
+          const { error: userError } = await supabase
+            .from("app_users")
+            .insert({
+              email: email,
+              user_id: data.user.id,
+              role: userRole
+            });
+
+          if (userError) {
+            console.error("Error al insertar usuario en app_users:", userError);
+            // Si falla la inserción en app_users, devolvemos un mensaje pero no lanzamos error
+            // ya que el usuario ya se creó en Auth
+            return { 
+              message: "Usuario creado en Auth pero no se pudo añadir a app_users. Se sincronizará cuando inicie sesión." 
+            };
+          }
+        }
+        
+        return data as AddUserResult;
+      } catch (error: any) {
+        console.error("Error en el proceso de registro:", error);
+        throw error;
+      }
     },
     onSuccess: (data) => {
       // Check if data has a message property to determine its type
