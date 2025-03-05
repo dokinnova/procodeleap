@@ -23,7 +23,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Database } from "@/integrations/supabase/types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { UserRole } from "@/hooks/useUserPermissions";
@@ -40,43 +40,44 @@ export const AppUsersTable = () => {
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
   const [editingUser, setEditingUser] = useState<AppUser | null>(null);
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
-  const [syncingUsers, setSyncingUsers] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
 
-  const { data: appUsers, isLoading, refetch } = useQuery({
-    queryKey: ["app-users"],
-    queryFn: async () => {
-      // Intentar sincronizar usuarios de Auth con app_users si están faltando
+  // Función para sincronizar usuarios
+  const syncUsers = async () => {
+    setIsSyncing(true);
+    try {
+      // Primero obtenemos todos los usuarios de app_users
+      const { data: existingAppUsers, error } = await supabase
+        .from("app_users")
+        .select("*");
+      
+      if (error) throw error;
+      
+      // Intentamos obtener usuarios de Auth
       try {
-        // Primero obtenemos todos los usuarios de app_users
-        const { data: existingAppUsers, error } = await supabase
-          .from("app_users")
-          .select("*");
-        
-        if (error) throw error;
-        
-        // Buscamos usuarios en auth que no tienen entrada en app_users
         const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
         
         if (authError) {
           console.error("Error al obtener usuarios de Auth:", authError);
-          // Si no podemos acceder a Auth API, simplemente devolvemos los usuarios existentes
           return existingAppUsers as AppUser[];
         }
         
         if (authUsers && existingAppUsers) {
-          // Creamos un conjunto de correos electrónicos de usuarios existentes para búsqueda rápida
-          const existingEmails = new Set(existingAppUsers.map(user => user.email));
+          // Creamos un conjunto de IDs y emails de usuarios existentes para búsqueda rápida
+          const existingEmails = new Set(existingAppUsers.map(user => user.email?.toLowerCase()));
+          const existingUserIds = new Set(existingAppUsers.map(user => user.user_id));
           
           // Identificamos usuarios de Auth que no están en app_users
-          // Agregamos una tipificación explícita para evitar el error de 'never'
-          const missingUsers = (authUsers.users as AuthUser[]).filter(authUser => 
-            authUser.email && !existingEmails.has(authUser.email)
-          );
+          const missingUsers = (authUsers.users as AuthUser[]).filter(authUser => {
+            // Un usuario falta si su ID no está en app_users o si su email no está en app_users
+            return authUser.email && 
+                  (!existingUserIds.has(authUser.id) && 
+                   !existingEmails.has(authUser.email.toLowerCase()));
+          });
           
           // Si encontramos usuarios faltantes, los agregamos a app_users
           if (missingUsers.length > 0) {
-            console.log("Sincronizando usuarios faltantes:", missingUsers.length);
-            setSyncingUsers(true);
+            console.log("Sincronizando usuarios faltantes:", missingUsers);
             
             for (const user of missingUsers) {
               if (user.email) {
@@ -94,29 +95,38 @@ export const AppUsersTable = () => {
               }
             }
             
-            setSyncingUsers(false);
+            // Notificamos que se han sincronizado usuarios
+            toast.success(`Se han sincronizado ${missingUsers.length} usuarios nuevos`);
             
-            // Volvemos a obtener la lista actualizada de usuarios
-            const { data: updatedUsers, error: updatedError } = await supabase
-              .from("app_users")
-              .select("*");
-            
-            if (updatedError) throw updatedError;
-            return updatedUsers as AppUser[];
+            // Refrescamos los datos
+            queryClient.invalidateQueries({ queryKey: ["app-users"] });
           }
         }
-        
-        return existingAppUsers as AppUser[];
-      } catch (error) {
-        console.error("Error al sincronizar usuarios:", error);
-        // En caso de error, intentamos obtener al menos los usuarios existentes
-        const { data, error: fetchError } = await supabase
-          .from("app_users")
-          .select("*");
-        
-        if (fetchError) throw fetchError;
-        return data as AppUser[];
+      } catch (authError) {
+        console.error("Error al acceder a auth.admin.listUsers:", authError);
       }
+    } catch (error) {
+      console.error("Error general al sincronizar usuarios:", error);
+      toast.error("Error al sincronizar usuarios");
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  // Ejecutar sincronización al cargar el componente
+  useEffect(() => {
+    syncUsers();
+  }, []);
+
+  const { data: appUsers, isLoading } = useQuery({
+    queryKey: ["app-users"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("app_users")
+        .select("*");
+      
+      if (error) throw error;
+      return data as AppUser[];
     },
   });
 
@@ -176,27 +186,12 @@ export const AppUsersTable = () => {
     }
   };
 
-  const handleSyncUsers = () => {
-    refetch();
-  };
-
-  if (isLoading) {
+  if (isLoading || isSyncing) {
     return <div>Cargando usuarios...</div>;
   }
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
-        <Button 
-          onClick={handleSyncUsers}
-          disabled={syncingUsers}
-          variant="outline"
-          size="sm"
-        >
-          {syncingUsers ? "Sincronizando..." : "Sincronizar usuarios"}
-        </Button>
-      </div>
-      
       <Table>
         <TableHeader>
           <TableRow>

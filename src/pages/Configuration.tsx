@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Settings, UserPlus, Eye, EyeOff } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -44,89 +43,88 @@ const Configuration = () => {
 
   const addUserMutation = useMutation({
     mutationFn: async ({ email, password, userRole }: { email: string, password: string, userRole: UserRole }) => {
-      // First check if user already exists in Supabase Auth
-      const { data: authUser, error: authError } = await supabase.auth.signInWithPassword({
+      // Primero verificamos si el usuario ya existe en app_users
+      const { data: existingAppUser, error: appUserError } = await supabase
+        .from("app_users")
+        .select("*")
+        .eq("email", email.toLowerCase())
+        .single();
+        
+      if (!appUserError && existingAppUser) {
+        throw new Error("Este usuario ya existe en el sistema");
+      }
+
+      // Intentamos crear un nuevo usuario en Auth
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
-      });
-      
-      // Si el usuario existe en Auth pero no tiene error, es que ya está registrado
-      if (authUser?.user) {
-        console.log("Usuario ya existe en Auth:", authUser.user);
-        
-        // Check if the user exists in app_users
-        const { data: existingAppUser } = await supabase
-          .from("app_users")
-          .select("*")
-          .eq("email", email)
-          .single();
-          
-        if (existingAppUser) {
-          throw new Error("Este usuario ya existe en el sistema");
+        options: {
+          emailRedirectTo: window.location.origin
         }
-        
-        // Si no existe en app_users, lo creamos con el rol seleccionado
-        const { error: userError } = await supabase
-          .from("app_users")
-          .insert({
-            email,
-            user_id: authUser.user.id,
-            role: userRole
-          });
-          
-        if (userError) throw userError;
-        
-        return { user: authUser.user };
+      });
+
+      if (error) {
+        // Si es un error de usuario ya existente, intentamos recuperar el ID
+        if (error.message.includes("User already registered")) {
+          // Obtenemos el ID del usuario existente en Auth
+          // Como no podemos usar admin.listUsers, buscamos en app_users por email
+          const { data: existingUser, error: existingUserError } = await supabase
+            .from("app_users")
+            .select("*")
+            .ilike("email", email)
+            .maybeSingle();
+
+          if (existingUserError) {
+            console.error("Error al buscar usuario existente:", existingUserError);
+          }
+
+          if (existingUser) {
+            throw new Error("Este usuario ya existe en el sistema");
+          } else {
+            // El usuario existe en Auth pero no en app_users
+            // Necesitamos crear el registro en app_users
+            // Pero no tenemos el ID, así que usaremos un placeholder temporal
+            const tempId = crypto.randomUUID();
+            
+            // Creamos el usuario en app_users con un ID temporal
+            const { error: insertError } = await supabase
+              .from("app_users")
+              .insert({
+                email: email,
+                user_id: tempId, // ID temporal que se actualizará cuando el usuario inicie sesión
+                role: userRole
+              });
+
+            if (insertError) throw insertError;
+            
+            // Notificamos que el usuario ya existía pero se ha añadido a app_users
+            return { message: "Usuario ya existente añadido al sistema" };
+          }
+        } else {
+          throw error;
+        }
       }
       
-      // Si el error es de credenciales incorrectas, significa que el usuario no existe
-      // o la contraseña es incorrecta, así que intentamos crear el usuario
-      if (authError && authError.message.includes("Invalid login credentials")) {
-        // Continuamos con el proceso normal de creación de usuario
-        // Check if user already exists in app_users
-        const { data: existingUser } = await supabase
-          .from("app_users")
-          .select("*")
-          .eq("email", email)
-          .single();
-          
-        if (existingUser) {
-          throw new Error("Este usuario ya existe en el sistema");
-        }
-        
-        // Use standard signup instead of admin API
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: window.location.origin
-          }
+      // Si llegamos aquí, el usuario se creó exitosamente
+      // Creamos el registro en app_users
+      const { error: userError } = await supabase
+        .from("app_users")
+        .insert({
+          email: email,
+          user_id: data.user?.id,
+          role: userRole
         });
 
-        if (error) throw error;
-        
-        // Create user record in app_users with selected role
-        const { error: userError } = await supabase
-          .from("app_users")
-          .insert({
-            email,
-            user_id: data.user?.id,
-            role: userRole
-          });
-
-        if (userError) throw userError;
-        
-        return data;
-      }
+      if (userError) throw userError;
       
-      // Si hay otro tipo de error, lo lanzamos
-      if (authError) throw authError;
-      
-      // Este punto no debería alcanzarse, pero por si acaso
-      throw new Error("Error inesperado al verificar el usuario");
+      return data;
     },
-    onSuccess: () => {
-      toast.success("Usuario añadido correctamente. Si es un usuario nuevo, se ha enviado un correo de verificación.");
+    onSuccess: (data) => {
+      if (data.message) {
+        toast.success(data.message);
+      } else {
+        toast.success("Usuario añadido correctamente. Se ha enviado un correo de verificación.");
+      }
       setNewUserEmail("");
       setNewUserPassword("");
       setNewUserRole("viewer");
