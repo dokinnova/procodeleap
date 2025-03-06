@@ -50,8 +50,7 @@ export const DocumentsTable = ({
               </TableCell>
               <TableCell>{formatFileSize(document.file_size)}</TableCell>
               <TableCell>
-                {formatDistanceTo
-Now(new Date(document.created_at), { 
+                {formatDistanceToNow(new Date(document.created_at), { 
                   addSuffix: true,
                   locale: es
                 })}
