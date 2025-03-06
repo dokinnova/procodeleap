@@ -1,151 +1,22 @@
 
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Sponsor } from "@/types";
-import { useNavigate } from "react-router-dom";
-import { FileText } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { jsPDF } from "jspdf";
-// Import this way to properly initialize the plugin
-import autoTable from 'jspdf-autotable';
+import { SponsorsExportButton } from "./SponsorsExportButton";
+import { SponsorsTableContent } from "./SponsorsTableContent";
 
 interface SponsorsTableProps {
   sponsors: Sponsor[];
 }
 
 export const SponsorsTable = ({ sponsors }: SponsorsTableProps) => {
-  const navigate = useNavigate();
-  const { toast } = useToast();
-
-  const handleSponsorClick = (sponsor: Sponsor) => {
-    console.log("Navegando a padrino:", sponsor);
-    navigate(`/sponsors?selected=${sponsor.id}`);
-  };
-
-  const handlePrintSponsors = async () => {
-    toast({
-      title: "Generando PDF",
-      description: "Espere mientras se genera el documento...",
-    });
-
-    try {
-      console.log("Sponsors filtrados:", sponsors);
-      const doc = new jsPDF();
-      
-      // Add title
-      doc.setFontSize(18);
-      doc.text("Listado de Padrinos", 105, 15, { align: 'center' });
-      
-      // Add date
-      doc.setFontSize(12);
-      doc.text(`Fecha: ${new Date().toLocaleDateString('es-ES')}`, 105, 25, { align: 'center' });
-      
-      // Use autoTable directly
-      autoTable(doc, {
-        head: [['Nombre', 'Email', 'Teléfono', 'Contribución', 'Estado']],
-        body: sponsors.map(sponsor => [
-          `${sponsor.first_name} ${sponsor.last_name}`,
-          sponsor.email,
-          sponsor.phone || "No disponible",
-          `$${sponsor.contribution.toLocaleString("es-ES", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}/mes`,
-          sponsor.status === 'active' ? 'Activo' : 
-          sponsor.status === 'inactive' ? 'Inactivo' : 
-          sponsor.status === 'pending' ? 'Pendiente' : sponsor.status
-        ]),
-        startY: 35,
-        styles: { fontSize: 10, cellPadding: 5 },
-        headStyles: { fillColor: [41, 128, 185], textColor: 255 },
-        alternateRowStyles: { fillColor: [240, 240, 240] }
-      });
-      
-      // Add footer
-      const pageCount = doc.getNumberOfPages();
-      for(let i = 1; i <= pageCount; i++) {
-        doc.setPage(i);
-        const footer = `Documento generado el ${new Date().toLocaleDateString('es-ES')} a las ${new Date().toLocaleTimeString('es-ES')}`;
-        doc.setFontSize(8);
-        doc.setTextColor(150);
-        doc.text(footer, 195, 285, { align: 'right' });
-      }
-      
-      // Save the PDF
-      doc.save(`listado-padrinos-${new Date().toISOString().split('T')[0]}.pdf`);
-      
-      toast({
-        title: "PDF generado correctamente",
-        description: "El documento se ha descargado",
-        variant: "default",
-      });
-    } catch (error) {
-      console.error('Error al generar PDF:', error);
-      toast({
-        title: "Error",
-        description: "No se pudo generar el PDF",
-        variant: "destructive",
-      });
-    }
-  };
-
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <Button onClick={handlePrintSponsors} variant="outline" size="sm">
-          <FileText className="h-4 w-4 mr-2" />
-          Generar PDF
-        </Button>
+        <SponsorsExportButton sponsors={sponsors} />
       </div>
     
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nombre</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Teléfono</TableHead>
-              <TableHead>Contribución</TableHead>
-              <TableHead>Estado</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {sponsors.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center py-8 text-gray-500">
-                  No se encontraron padrinos
-                </TableCell>
-              </TableRow>
-            ) : (
-              sponsors.map((sponsor) => (
-                <TableRow 
-                  key={sponsor.id}
-                  onClick={() => handleSponsorClick(sponsor)}
-                  className="cursor-pointer hover:bg-gray-50"
-                >
-                  <TableCell className="font-medium">{`${sponsor.first_name} ${sponsor.last_name}`}</TableCell>
-                  <TableCell>{sponsor.email}</TableCell>
-                  <TableCell>{sponsor.phone || "No disponible"}</TableCell>
-                  <TableCell className="font-mono">
-                    ${sponsor.contribution.toLocaleString("es-ES", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
-                    /mes
-                  </TableCell>
-                  <TableCell>
-                    {sponsor.status === 'active' ? 'Activo' : 
-                    sponsor.status === 'inactive' ? 'Inactivo' : 
-                    sponsor.status === 'pending' ? 'Pendiente' : sponsor.status}
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      <SponsorsTableContent sponsors={sponsors} />
 
-      {/* Elemento oculto para impresión */}
+      {/* Elemento oculto para impresión - kept for backward compatibility */}
       <div id="sponsors-report-printable" className="hidden">
         <div className="p-8 max-w-[210mm] mx-auto bg-white">
           <div className="mb-8 text-center">
