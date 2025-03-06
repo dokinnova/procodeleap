@@ -15,7 +15,7 @@ export const BarChartDisplay = ({
   singleColor 
 }: BarChartDisplayProps) => {
   return (
-    <div className={`h-[${height}px] w-full`}>
+    <div style={{ height: `${height}px`, width: '100%' }}>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={data}

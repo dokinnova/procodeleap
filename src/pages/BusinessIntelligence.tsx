@@ -1,12 +1,14 @@
 
 import { useState } from "react";
-import { PieChart, BarChart, LineChart, Activity, Users, UserPlus, FilePieChart } from "lucide-react";
+import { PieChart, BarChart, LineChart, FilePieChart } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useProcessedBusinessData, COLORS } from "@/hooks/useProcessedBusinessData";
-import { MetricCard } from "@/components/business-intelligence/MetricCard";
 import { GeneralTab } from "@/components/business-intelligence/tabs/GeneralTab";
 import { ChildrenTab } from "@/components/business-intelligence/tabs/ChildrenTab";
 import { SponsorsTab } from "@/components/business-intelligence/tabs/SponsorsTab";
+import { ChildrenMetricCard } from "@/components/business-intelligence/metrics/ChildrenMetricCard";
+import { SponsorsMetricCard } from "@/components/business-intelligence/metrics/SponsorsMetricCard";
+import { ContributionsMetricCard } from "@/components/business-intelligence/metrics/ContributionsMetricCard";
 
 const BusinessIntelligence = () => {
   const [activeTab, setActiveTab] = useState("general");
@@ -45,31 +47,19 @@ const BusinessIntelligence = () => {
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <MetricCard
-          title="Niños Registrados"
-          value={totalChildren}
-          subtitle={`${assignedChildren} apadrinados (${Math.round((assignedChildren / totalChildren) * 100)}%)`}
-          icon={Users}
-          iconColor="text-blue-500"
-          gradient="from-blue-50 to-indigo-50"
+        <ChildrenMetricCard 
+          totalChildren={totalChildren} 
+          assignedChildren={assignedChildren} 
         />
         
-        <MetricCard
-          title="Padrinos Registrados"
-          value={totalSponsors}
-          subtitle={`${activeSponsors} activos (${Math.round((activeSponsors / totalSponsors) * 100)}%)`}
-          icon={UserPlus}
-          iconColor="text-green-500"
-          gradient="from-green-50 to-teal-50"
+        <SponsorsMetricCard 
+          totalSponsors={totalSponsors} 
+          activeSponsors={activeSponsors} 
         />
         
-        <MetricCard
-          title="Contribución Total"
-          value={`$${totalContributions.toLocaleString()}`}
-          subtitle={`${totalSponsorships} apadrinamientos activos`}
-          icon={Activity}
-          iconColor="text-purple-500"
-          gradient="from-purple-50 to-pink-50"
+        <ContributionsMetricCard 
+          totalContributions={totalContributions} 
+          totalSponsorships={totalSponsorships} 
         />
       </div>
 
