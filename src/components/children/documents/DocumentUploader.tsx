@@ -65,7 +65,7 @@ export const DocumentUploader = ({ onUpload, isUploading }: DocumentUploaderProp
           <Label htmlFor="document">Documento</Label>
           <Card
             className={cn(
-              "mt-1 flex flex-col items-center justify-center border-2 border-dashed p-6 text-center",
+              "mt-1 flex flex-col items-center justify-center border-2 border-dashed p-4 text-center",
               dragActive ? "border-primary bg-primary/10" : "border-gray-300",
               file ? "border-green-500 bg-green-50" : ""
             )}
@@ -77,7 +77,7 @@ export const DocumentUploader = ({ onUpload, isUploading }: DocumentUploaderProp
             {file ? (
               <div className="flex w-full items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <FileUpIcon className="h-6 w-6 text-green-500" />
+                  <FileUpIcon className="h-5 w-5 text-green-500" />
                   <div className="text-left">
                     <p className="text-sm font-medium">{file.name}</p>
                     <p className="text-xs text-muted-foreground">
@@ -90,17 +90,17 @@ export const DocumentUploader = ({ onUpload, isUploading }: DocumentUploaderProp
                   variant="ghost"
                   size="sm"
                   onClick={clearFile}
-                  className="h-8 w-8 p-0 text-muted-foreground"
+                  className="h-7 w-7 p-0 text-muted-foreground"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-3 w-3" />
                   <span className="sr-only">Eliminar archivo</span>
                 </Button>
               </div>
             ) : (
-              <div className="space-y-2">
-                <FileUpIcon className="mx-auto h-10 w-10 text-muted-foreground" />
+              <div className="space-y-1">
+                <FileUpIcon className="mx-auto h-8 w-8 text-muted-foreground" />
                 <div className="space-y-1">
-                  <p className="text-sm font-medium">
+                  <p className="text-xs font-medium">
                     Arrastre y suelte o haga clic para subir
                   </p>
                   <p className="text-xs text-muted-foreground">
@@ -118,6 +118,7 @@ export const DocumentUploader = ({ onUpload, isUploading }: DocumentUploaderProp
                   variant="outline"
                   size="sm"
                   onClick={() => document.getElementById("document")?.click()}
+                  className="text-xs py-1 h-7"
                 >
                   Seleccionar archivo
                 </Button>
@@ -126,24 +127,27 @@ export const DocumentUploader = ({ onUpload, isUploading }: DocumentUploaderProp
           </Card>
         </div>
 
-        <div>
-          <Label htmlFor="description">Descripción (opcional)</Label>
-          <Textarea
-            id="description"
-            placeholder="Describa el contenido del documento"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="mt-1"
-          />
-        </div>
+        <div className="flex items-center gap-3">
+          <div className="flex-1">
+            <Label htmlFor="description" className="text-sm">Descripción</Label>
+            <Textarea
+              id="description"
+              placeholder="Describa el contenido del documento"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="mt-1 text-sm h-10 resize-none py-2"
+            />
+          </div>
 
-        <Button 
-          type="submit" 
-          disabled={!file || isUploading}
-          className="w-full"
-        >
-          {isUploading ? "Subiendo..." : "Subir documento"}
-        </Button>
+          <Button 
+            type="submit" 
+            disabled={!file || isUploading}
+            className="mt-6 h-8 px-3 text-xs"
+            size="sm"
+          >
+            {isUploading ? "Subiendo..." : "Subir"}
+          </Button>
+        </div>
       </div>
     </form>
   );
