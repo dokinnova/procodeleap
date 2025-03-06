@@ -3,7 +3,7 @@ import { Baby, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { jsPDF } from "jspdf";
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import { useQuery } from "@tanstack/react-query";
 import { CHILDREN_QUERY_KEY } from "@/hooks/useChildrenData";
 
@@ -40,8 +40,8 @@ export const ChildrenHeader = () => {
       doc.setFontSize(12);
       doc.text(`Fecha: ${new Date().toLocaleDateString('es-ES')}`, 105, 25, { align: 'center' });
       
-      // Add table
-      (doc as any).autoTable({
+      // Use autoTable directly
+      autoTable(doc, {
         head: [['Nombre', 'Edad', 'Ubicación', 'Escuela']],
         body: children.map(child => [
           child.name,
@@ -56,7 +56,7 @@ export const ChildrenHeader = () => {
       });
       
       // Add footer
-      const pageCount = (doc as any).internal.getNumberOfPages();
+      const pageCount = doc.getNumberOfPages();
       for(let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
         const footer = `Documento generado el ${new Date().toLocaleDateString('es-ES')} a las ${new Date().toLocaleTimeString('es-ES')}`;

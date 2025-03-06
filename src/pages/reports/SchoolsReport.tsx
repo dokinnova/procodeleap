@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { jsPDF } from "jspdf";
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 
 const SchoolsReport = () => {
   const [search, setSearch] = useState("");
@@ -49,8 +49,8 @@ const SchoolsReport = () => {
       doc.setFontSize(12);
       doc.text(`Fecha: ${new Date().toLocaleDateString('es-ES')}`, 105, 25, { align: 'center' });
       
-      // Add table
-      (doc as any).autoTable({
+      // Use autoTable directly
+      autoTable(doc, {
         head: [['Nombre', 'Dirección']],
         body: filteredSchools.map(school => [
           school.name,
@@ -63,7 +63,7 @@ const SchoolsReport = () => {
       });
       
       // Add footer
-      const pageCount = (doc as any).internal.getNumberOfPages();
+      const pageCount = doc.getNumberOfPages();
       for(let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
         const footer = `Documento generado el ${new Date().toLocaleDateString('es-ES')} a las ${new Date().toLocaleTimeString('es-ES')}`;
