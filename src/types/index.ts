@@ -50,3 +50,18 @@ export interface ChildDocument {
   created_at: string;
   updated_at: string;
 }
+
+export interface Task {
+  id?: string;
+  title: string;
+  description: string | null;
+  status: 'pending' | 'in-progress' | 'completed';
+  due_date?: string | null;
+  created_at?: string;
+  completed_at?: string | null;
+  related_to?: 'child' | 'sponsor' | null;
+  child_id?: string | null;
+  sponsor_id?: string | null;
+  child?: Child | null;
+  sponsor?: Sponsor | null;
+}

@@ -1,5 +1,5 @@
 
-import { Users, UserPlus, School, Link as LinkIcon, Receipt, PieChart } from "lucide-react";
+import { Users, UserPlus, School, Link as LinkIcon, Receipt, PieChart, ClipboardList } from "lucide-react";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardCard } from "@/components/dashboard/DashboardCard";
 
@@ -50,11 +50,19 @@ const Index = () => {
         />
 
         <DashboardCard
+          to="/tasks"
+          icon={ClipboardList}
+          title="Gestión de Tareas"
+          description="Administra las tareas relacionadas con niños y padrinos"
+          variant="accent"
+        />
+
+        <DashboardCard
           to="/business-intelligence"
           icon={PieChart}
           title="Business Intelligence"
           description="Visualización de datos y métricas"
-          variant="accent"
+          variant="primary"
         />
       </div>
     </div>

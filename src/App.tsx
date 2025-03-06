@@ -22,6 +22,7 @@ import SponsorsReport from "./pages/reports/SponsorsReport";
 import SchoolsReport from "./pages/reports/SchoolsReport";
 import SponsorshipsReport from "./pages/reports/SponsorshipsReport";
 import BusinessIntelligence from "./pages/BusinessIntelligence";
+import Tasks from "./pages/Tasks";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +56,7 @@ const App = () => {
                     <Route path="/configuration" element={<Configuration />} />
                     <Route path="/receipts" element={<Receipts />} />
                     <Route path="/crm" element={<CRM />} />
+                    <Route path="/tasks" element={<Tasks />} />
                     <Route path="/reports/children" element={<ChildrenReport />} />
                     <Route path="/reports/sponsors" element={<SponsorsReport />} />
                     <Route path="/reports/schools" element={<SchoolsReport />} />
