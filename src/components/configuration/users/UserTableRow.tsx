@@ -54,15 +54,13 @@ export const UserTableRow = ({
     lastSignInDate = new Date().toISOString();
   }
 
-  // A user is considered to have never logged in only if:
-  // 1. They are confirmed (not pending)
-  // 2. We have no last_sign_in_at data or it's exactly the same as created_at
-  // 3. We're not using the creation date as a fallback
-  const hasNeverLoggedIn = !isPending && authUserData && 
-    (!authUserData.last_sign_in_at || authUserData.last_sign_in_at === authUserData.created_at);
+  // A user is considered to have never logged in ONLY if:
+  // 1. They are pending (temporary user_id) - these users haven't signed in yet
+  // Any user with a confirmed user_id has logged in at least once
+  const hasNeverLoggedIn = isPending;
 
   return (
-    <TableRow className={isPending || hasNeverLoggedIn ? "bg-amber-50" : ""}>
+    <TableRow className={hasNeverLoggedIn ? "bg-amber-50" : ""}>
       <TableCell>{user.email}</TableCell>
       <TableCell>
         <UserRoleEditor 
@@ -74,7 +72,7 @@ export const UserTableRow = ({
       <TableCell>
         <UserStatusBadge 
           isPending={isPending} 
-          isRegisteredButNotLoggedIn={hasNeverLoggedIn}
+          isRegisteredButNotLoggedIn={false}
         />
       </TableCell>
       <TableCell>
