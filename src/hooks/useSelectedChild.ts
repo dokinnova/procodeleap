@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Child } from "@/types";
@@ -9,6 +10,7 @@ export const useSelectedChild = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Handle child selection from location state (when navigating from other pages)
   useEffect(() => {
     if (location.state?.selectedChild) {
       const child = location.state.selectedChild;
@@ -31,6 +33,7 @@ export const useSelectedChild = () => {
           variant: "destructive",
         });
       } finally {
+        // Clear location state to avoid repeated setting
         navigate(location.pathname, { replace: true });
       }
     }
@@ -39,6 +42,7 @@ export const useSelectedChild = () => {
   const handleSetSelectedChild = (child: Child | null) => {
     console.log('Actualizando niño seleccionado:', child);
     if (child) {
+      // Ensure all required fields are present to avoid undefined values
       setSelectedChild({
         ...child,
         birth_date: child.birth_date || '',

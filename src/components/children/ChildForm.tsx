@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Child } from "@/types";
 import { useChildForm } from "@/hooks/useChildForm";
 import { ChildFormFields } from "./form/ChildFormFields";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSchoolsQuery } from "@/hooks/child-form/useSchoolsQuery";
 import { ChildFormError } from "./form/ChildFormError";
 import { ChildFormLoading } from "./form/ChildFormLoading";
@@ -22,6 +22,13 @@ export const ChildForm = ({ selectedChild, setSelectedChild }: ChildFormProps) =
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { data: schools = [], isError, isLoading, refetch } = useSchoolsQuery();
   const { checkPermission, canCreate, canEdit } = useUserPermissions();
+
+  // Add effect to log selectedChild changes
+  useEffect(() => {
+    if (selectedChild) {
+      console.log('ChildForm received selectedChild:', selectedChild);
+    }
+  }, [selectedChild]);
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

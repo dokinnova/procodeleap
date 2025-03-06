@@ -12,12 +12,14 @@ import { Child } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { CHILDREN_QUERY_KEY } from "@/hooks/useChildrenData";
 import { DocumentManager } from "@/components/children/documents/DocumentManager";
+import { useToast } from "@/hooks/use-toast";
 
 const Children = () => {
   const [search, setSearch] = useState("");
   const { selectedChild, setSelectedChild } = useSelectedChild();
   const queryClient = useQueryClient();
   const { data: children = [], isLoading, error, refetch } = useChildrenData();
+  const { toast } = useToast();
 
   // Effect to refetch children data when the component mounts or when a child is unselected
   useEffect(() => {
@@ -32,8 +34,24 @@ const Children = () => {
   }, [selectedChild]);
 
   const handleChildSelect = (child: Child) => {
-    console.log('Seleccionando niño:', child);
-    setSelectedChild(child);
+    try {
+      console.log('Seleccionando niño:', child);
+      // Ensure we're passing the complete child object with all required fields
+      const completeChild = children.find(c => c.id === child.id);
+      if (completeChild) {
+        setSelectedChild(completeChild);
+      } else {
+        setSelectedChild(child);
+        console.warn('Child not found in current children list');
+      }
+    } catch (error) {
+      console.error('Error al seleccionar niño:', error);
+      toast({
+        title: "Error",
+        description: "Hubo un problema al seleccionar el niño",
+        variant: "destructive",
+      });
+    }
   };
 
   if (error) {
