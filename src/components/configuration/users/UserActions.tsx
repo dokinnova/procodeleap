@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { Edit2, Trash2 } from "lucide-react";
+import { Edit2, Trash2, KeyRound } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,6 +19,7 @@ interface UserActionsProps {
   isCurrentUser: boolean;
   onEditClick: (user: AppUser) => void;
   onDeleteClick: (userId: string) => void;
+  onChangePasswordClick: (userId: string, email: string) => void;
   isEditingAny: boolean;
 }
 
@@ -27,6 +28,7 @@ export const UserActions = ({
   isCurrentUser, 
   onEditClick, 
   onDeleteClick,
+  onChangePasswordClick,
   isEditingAny
 }: UserActionsProps) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -40,6 +42,16 @@ export const UserActions = ({
         disabled={isEditingAny}
       >
         <Edit2 className="h-4 w-4" />
+      </Button>
+      
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={() => onChangePasswordClick(user.user_id, user.email)}
+        disabled={user.user_id === "00000000-0000-0000-0000-000000000000"}
+        title="Cambiar contraseña"
+      >
+        <KeyRound className="h-4 w-4" />
       </Button>
       
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>

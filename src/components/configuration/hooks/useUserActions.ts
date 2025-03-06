@@ -9,6 +9,7 @@ import { UserRole } from "@/hooks/useUserPermissions";
 export const useUserActions = () => {
   const queryClient = useQueryClient();
   const [editingUser, setEditingUser] = useState<AppUser | null>(null);
+  const [passwordChangeUser, setPasswordChangeUser] = useState<{ id: string; email: string } | null>(null);
 
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: string) => {
@@ -61,10 +62,19 @@ export const useUserActions = () => {
     deleteUserMutation.mutate(userId);
   };
 
+  const handleChangePasswordClick = (userId: string, email: string) => {
+    if (userId && email) {
+      setPasswordChangeUser({ id: userId, email });
+    }
+  };
+
   return {
     editingUser,
+    passwordChangeUser,
     handleEditClick,
     handleSaveRole,
     handleDeleteUser,
+    handleChangePasswordClick,
+    setPasswordChangeUser,
   };
 };

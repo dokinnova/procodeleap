@@ -16,6 +16,7 @@ interface UserTableRowProps {
   onEditClick: (user: AppUser) => void;
   onSaveRole: (userId: string, role: UserRole) => void;
   onDeleteClick: (userId: string) => void;
+  onChangePasswordClick: (userId: string, email: string) => void;
 }
 
 export const UserTableRow = ({
@@ -25,7 +26,8 @@ export const UserTableRow = ({
   editingUser,
   onEditClick,
   onSaveRole,
-  onDeleteClick
+  onDeleteClick,
+  onChangePasswordClick
 }: UserTableRowProps) => {
   // Un usuario está pendiente si tiene el user_id temporal
   const isPending = user.user_id === "00000000-0000-0000-0000-000000000000";
@@ -83,6 +85,7 @@ export const UserTableRow = ({
           isCurrentUser={isCurrentUser}
           onEditClick={onEditClick}
           onDeleteClick={onDeleteClick}
+          onChangePasswordClick={onChangePasswordClick}
           isEditingAny={editingUser !== null}
         />
       </TableCell>

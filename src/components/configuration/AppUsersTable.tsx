@@ -10,6 +10,7 @@ import { UserStats } from "./users/UserStats";
 import { UsersTableHeader } from "./users/UsersTableHeader";
 import { useUsersData } from "./hooks/useUsersData";
 import { useUserActions } from "./hooks/useUserActions";
+import { PasswordChangeDialog } from "./users/PasswordChangeDialog";
 
 export const AppUsersTable = () => {
   const { 
@@ -23,9 +24,12 @@ export const AppUsersTable = () => {
 
   const {
     editingUser,
+    passwordChangeUser,
     handleEditClick,
     handleSaveRole,
     handleDeleteUser,
+    handleChangePasswordClick,
+    setPasswordChangeUser
   } = useUserActions();
 
   if (isLoading || isSyncing) {
@@ -71,11 +75,23 @@ export const AppUsersTable = () => {
                 onEditClick={handleEditClick}
                 onSaveRole={handleSaveRole}
                 onDeleteClick={handleDeleteUser}
+                onChangePasswordClick={handleChangePasswordClick}
               />
             ))
           )}
         </TableBody>
       </Table>
+
+      {passwordChangeUser && (
+        <PasswordChangeDialog
+          open={!!passwordChangeUser}
+          onOpenChange={(open) => {
+            if (!open) setPasswordChangeUser(null);
+          }}
+          userId={passwordChangeUser.id}
+          userEmail={passwordChangeUser.email}
+        />
+      )}
     </div>
   );
 };
