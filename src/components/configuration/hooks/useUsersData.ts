@@ -1,8 +1,7 @@
-
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { AppUser, AuthUserInfo, syncUsers } from "../utils/userSync";
+import { AppUser, AuthUserInfo, syncUsers } from "../utils/user-sync";
 
 export const useUsersData = () => {
   const queryClient = useQueryClient();
