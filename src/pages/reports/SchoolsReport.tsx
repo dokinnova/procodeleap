@@ -39,15 +39,62 @@ const SchoolsReport = () => {
     });
 
     try {
+      // Obtener la configuración del sitio para el logo
+      const { data: siteSettings, error } = await supabase
+        .from('site_settings')
+        .select('*')
+        .single();
+      
+      if (error) {
+        console.error('Error al obtener la configuración del sitio:', error);
+      }
+      
       const doc = new jsPDF();
       
-      // Add title
-      doc.setFontSize(18);
-      doc.text("Listado de Colegios", 105, 15, { align: 'center' });
+      // Añadir banda gris en la parte superior (color más oscuro)
+      doc.setFillColor(64, 62, 67); // Color gris más oscuro (#403E43)
+      doc.rect(0, 0, doc.internal.pageSize.width, 40, 'F'); // Aumentar la altura para incluir el título
       
-      // Add date
-      doc.setFontSize(12);
-      doc.text(`Fecha: ${new Date().toLocaleDateString('es-ES')}`, 105, 25, { align: 'center' });
+      // Añadir logo y nombre de Coprodeli
+      if (siteSettings?.logo_url) {
+        // Convertir la URL del logo a una imagen y añadirla al PDF
+        const img = new Image();
+        img.src = siteSettings.logo_url;
+        
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = reject;
+        });
+        
+        // Añadir logo en la esquina superior izquierda
+        doc.addImage(img, 'PNG', 15, 10, 20, 20);
+        
+        // Añadir nombre de Coprodeli junto al logo (color blanco)
+        doc.setFontSize(16);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(255, 255, 255); // Color blanco
+        doc.text('Coprodeli', 40, 20);
+      } else {
+        // Si no hay logo, solo añadir el nombre
+        doc.setFontSize(16);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(255, 255, 255); // Color blanco
+        doc.text('Coprodeli', 15, 20);
+      }
+      
+      // Añadir título dentro de la banda gris (color blanco)
+      doc.setFontSize(18);
+      doc.setTextColor(255, 255, 255); // Color blanco
+      doc.text("Listado de Colegios", 105, 28, { align: 'center' });
+      
+      // Añadir fecha (también en blanco dentro de la banda gris)
+      doc.setFontSize(10);
+      doc.setTextColor(255, 255, 255); // Color blanco
+      doc.text(`Fecha: ${new Date().toLocaleDateString('es-ES')}`, 195, 18, { align: 'right' });
+      
+      // Restaurar color de texto a negro para el resto del documento
+      doc.setTextColor(0);
+      doc.setFont('helvetica', 'normal');
       
       // Use autoTable directly
       autoTable(doc, {
@@ -56,7 +103,7 @@ const SchoolsReport = () => {
           school.name,
           school.address || "No disponible"
         ]),
-        startY: 35,
+        startY: 50, // Ajustar posición inicial para dar espacio a la banda gris
         styles: { fontSize: 10, cellPadding: 5 },
         headStyles: { fillColor: [41, 128, 185], textColor: 255 },
         alternateRowStyles: { fillColor: [240, 240, 240] }
