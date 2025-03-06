@@ -1,4 +1,5 @@
-import { Users, UserPlus, School, Link as LinkIcon, Receipt } from "lucide-react";
+
+import { Users, UserPlus, School, Link as LinkIcon, Receipt, PieChart } from "lucide-react";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardCard } from "@/components/dashboard/DashboardCard";
 
@@ -46,6 +47,14 @@ const Index = () => {
           title="Gestión de Recibos"
           description="Administra los recibos y pagos"
           variant="secondary"
+        />
+
+        <DashboardCard
+          to="/business-intelligence"
+          icon={PieChart}
+          title="Business Intelligence"
+          description="Visualización de datos y métricas"
+          variant="accent"
         />
       </div>
     </div>

@@ -1,4 +1,5 @@
-import { Users, UserPlus, Settings, School, Receipt, Menu, X, Mail } from "lucide-react";
+
+import { Users, UserPlus, Settings, School, Receipt, Menu, X, Mail, PieChart } from "lucide-react";
 import { Button } from "./ui/button";
 import { NavigationLink } from "./navigation/NavigationLink";
 import { NavigationHeader } from "./navigation/NavigationHeader";
@@ -62,6 +63,10 @@ const Navigation = ({ isMobileMenuOpen, setIsMobileMenuOpen }: NavigationProps) 
 
           <NavigationLink to="/crm" icon={Mail} onClick={handleLinkClick}>
             CRM
+          </NavigationLink>
+          
+          <NavigationLink to="/business-intelligence" icon={PieChart} onClick={handleLinkClick}>
+            Business Intelligence
           </NavigationLink>
 
           <NavigationReports onLinkClick={handleLinkClick} />
