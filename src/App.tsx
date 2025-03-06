@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,6 +7,20 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Navigation from "./components/Navigation";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { useState } from "react";
+
+// Import all page components
+import Index from "./pages/Index";
+import Children from "./pages/Children";
+import Sponsors from "./pages/Sponsors";
+import Management from "./pages/Management";
+import Schools from "./pages/Schools";
+import Configuration from "./pages/Configuration";
+import Receipts from "./pages/Receipts";
+import CRM from "./pages/CRM";
+import ChildrenReport from "./pages/reports/ChildrenReport";
+import SponsorsReport from "./pages/reports/SponsorsReport";
+import SchoolsReport from "./pages/reports/SchoolsReport";
+import SponsorshipsReport from "./pages/reports/SponsorshipsReport";
 
 const queryClient = new QueryClient();
 
