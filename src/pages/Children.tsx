@@ -13,6 +13,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { CHILDREN_QUERY_KEY } from "@/hooks/useChildrenData";
 import { DocumentManager } from "@/components/children/documents/DocumentManager";
 import { useToast } from "@/hooks/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Edit, List } from "lucide-react";
 
 const Children = () => {
   const [search, setSearch] = useState("");
@@ -20,6 +22,14 @@ const Children = () => {
   const queryClient = useQueryClient();
   const { data: children = [], isLoading, error, refetch } = useChildrenData();
   const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState<string>("list");
+
+  // When a child is selected, switch to the edit tab
+  useEffect(() => {
+    if (selectedChild) {
+      setActiveTab("edit");
+    }
+  }, [selectedChild]);
 
   // Effect to refetch children data when the component mounts or when a child is unselected
   useEffect(() => {
@@ -67,28 +77,43 @@ const Children = () => {
       <ChildrenHeader />
 
       <div className="print:hidden">
-        <ChildForm 
-          selectedChild={selectedChild}
-          setSelectedChild={setSelectedChild}
-        />
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="mb-6 flex-wrap">
+            <TabsTrigger value="list" className="flex items-center gap-2">
+              <List className="h-4 w-4" /> Buscar Niños
+            </TabsTrigger>
+            <TabsTrigger value="edit" className="flex items-center gap-2">
+              <Edit className="h-4 w-4" /> {selectedChild ? `Editar: ${selectedChild.name}` : 'Registrar Niño'}
+            </TabsTrigger>
+          </TabsList>
 
-        {selectedChild && (
-          <div className="mt-8 border rounded-lg p-4 bg-white shadow-sm">
-            <DocumentManager 
-              childId={selectedChild.id}
-              childName={selectedChild.name}
+          <TabsContent value="list" className="mt-0">
+            <div>
+              <ChildrenTable 
+                children={children}
+                search={search}
+                setSearch={setSearch}
+                setSelectedChild={handleChildSelect}
+              />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="edit" className="mt-0">
+            <ChildForm 
+              selectedChild={selectedChild}
+              setSelectedChild={setSelectedChild}
             />
-          </div>
-        )}
 
-        <div className="mt-8">
-          <ChildrenTable 
-            children={children}
-            search={search}
-            setSearch={setSearch}
-            setSelectedChild={handleChildSelect}
-          />
-        </div>
+            {selectedChild && (
+              <div className="mt-8 border rounded-lg p-4 bg-white shadow-sm">
+                <DocumentManager 
+                  childId={selectedChild.id}
+                  childName={selectedChild.name}
+                />
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
 
       <PrintableChildrenList children={children} />
