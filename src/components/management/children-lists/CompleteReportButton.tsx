@@ -44,6 +44,10 @@ export const CompleteReportButton = ({
     try {
       const doc = new jsPDF();
       
+      // Añadir banda gris en la parte superior
+      doc.setFillColor(240, 240, 240); // Color gris claro
+      doc.rect(0, 0, doc.internal.pageSize.width, 35, 'F');
+      
       // Añadir logo y nombre de Coprodeli
       if (siteSettings?.logo_url) {
         // Convertir la URL del logo a una imagen y añadirla al PDF
