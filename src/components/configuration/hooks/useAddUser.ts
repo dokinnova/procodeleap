@@ -63,11 +63,14 @@ export const useAddUser = () => {
         
         // Send welcome email
         try {
-          // Get authenticated client session to include auth headers
-          const { data: session } = await supabase.auth.getSession();
+          // Get current auth session for API call
+          const { data: sessionData } = await supabase.auth.getSession();
           
-          // Log the session to debug
-          console.log("Current session for function call:", session);
+          if (!sessionData.session) {
+            console.warn("No active session found for API call. Will try admin call");
+          }
+          
+          console.log("Calling send-mass-email function...");
           
           const { data: emailData, error: emailError } = await supabase.functions.invoke('send-mass-email', {
             body: {
@@ -85,13 +88,15 @@ export const useAddUser = () => {
                   <p>Si tienes alguna pregunta, no dudes en contactar con el administrador del sistema.</p>
                 </div>
               `
-            }
+            },
+            // Explicitly specify method
+            method: 'POST'
           });
 
           if (emailError) {
-            console.error("Error details from send-mass-email function:", emailError);
+            console.error("Error sending welcome email:", emailError);
             console.error("Full error object:", JSON.stringify(emailError));
-            throw emailError;
+            throw new Error(`Error en el envío del email: ${JSON.stringify(emailError)}`);
           }
 
           console.log("Welcome email sent successfully:", emailData);

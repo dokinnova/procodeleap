@@ -21,8 +21,11 @@ interface EmailRequest {
 }
 
 const handler = async (req: Request): Promise<Response> => {
+  console.log("Email function triggered");
+  
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
+    console.log("Handling OPTIONS request");
     return new Response(null, { headers: corsHeaders });
   }
 
@@ -54,7 +57,7 @@ const handler = async (req: Request): Promise<Response> => {
           Authorization: `Bearer ${RESEND_API_KEY}`,
         },
         body: JSON.stringify({
-          from: "PROCODELI <no-reply@resend.dev>",
+          from: "PROCODELI <onboarding@resend.dev>",
           to: [recipient.email],
           subject: subject,
           html: `
