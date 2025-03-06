@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -129,21 +128,20 @@ export const DocumentUploader = ({ onUpload, isUploading }: DocumentUploaderProp
 
         <div className="flex items-center gap-3">
           <div className="flex-1">
-            <Label htmlFor="description" className="text-sm">Descripción</Label>
+            <Label htmlFor="description" className="text-xs">Descripción</Label>
             <Textarea
               id="description"
               placeholder="Describa el contenido del documento"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="mt-1 text-sm h-10 resize-none py-2"
+              className="mt-1 text-xs h-8 resize-none py-1"
             />
           </div>
 
           <Button 
             type="submit" 
             disabled={!file || isUploading}
-            className="mt-6 h-8 px-3 text-xs"
-            size="sm"
+            className="mt-6 h-10 px-4 text-sm"
           >
             {isUploading ? "Subiendo..." : "Subir"}
           </Button>
