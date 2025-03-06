@@ -131,7 +131,8 @@ export const useChildForm = (
         ...formData,
         school_id: formData.school_id || null,
         story: formData.story || null,
-        grade: formData.grade || null
+        grade: formData.grade || null,
+        priority: formData.priority || null
       };
 
       if (selectedChild) {
@@ -187,6 +188,7 @@ export const useChildForm = (
         grade: "",
         image_url: null,
         status: "pending",
+        priority: null,
       });
     } catch (error: any) {
       console.error('Error in form submission:', error);
