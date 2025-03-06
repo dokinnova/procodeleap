@@ -47,6 +47,15 @@ export const AuthFormWrapper = () => {
             button_label: 'Enviar instrucciones',
             loading_button_label: 'Enviando instrucciones...',
             link_text: '¿Olvidaste tu contraseña?'
+          },
+          sign_up: {
+            link_text: '',
+            email_label: '',
+            password_label: '',
+            button_label: '',
+            loading_button_label: '',
+            social_provider_text: '',
+            confirmation_text: ''
           }
         }
       }}
