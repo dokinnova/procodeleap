@@ -1,3 +1,4 @@
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ChildFormData } from "@/hooks/useChildForm";
@@ -9,6 +10,7 @@ interface PersonalInfoFieldsProps {
   location: string;
   grade: string;
   onInputChange: (field: keyof ChildFormData, value: any) => void;
+  readOnly?: boolean;
 }
 
 export const PersonalInfoFields = ({
@@ -18,6 +20,7 @@ export const PersonalInfoFields = ({
   location,
   grade,
   onInputChange,
+  readOnly = false
 }: PersonalInfoFieldsProps) => {
   return (
     <div className="grid grid-cols-2 gap-4">
@@ -28,6 +31,8 @@ export const PersonalInfoFields = ({
           value={name}
           onChange={(e) => onInputChange('name', e.target.value)}
           placeholder="Nombre completo"
+          readOnly={readOnly}
+          className={readOnly ? "bg-gray-100" : ""}
         />
       </div>
 
@@ -38,6 +43,8 @@ export const PersonalInfoFields = ({
           type="date"
           value={birthDate}
           onChange={(e) => onInputChange('birth_date', e.target.value)}
+          readOnly={readOnly}
+          className={readOnly ? "bg-gray-100" : ""}
         />
       </div>
 
@@ -49,6 +56,8 @@ export const PersonalInfoFields = ({
           value={age}
           onChange={(e) => onInputChange('age', parseInt(e.target.value))}
           placeholder="Edad"
+          readOnly={readOnly}
+          className={readOnly ? "bg-gray-100" : ""}
         />
       </div>
 
@@ -59,6 +68,8 @@ export const PersonalInfoFields = ({
           value={location}
           onChange={(e) => onInputChange('location', e.target.value)}
           placeholder="Ciudad o localidad"
+          readOnly={readOnly}
+          className={readOnly ? "bg-gray-100" : ""}
         />
       </div>
 
@@ -69,6 +80,8 @@ export const PersonalInfoFields = ({
           value={grade}
           onChange={(e) => onInputChange('grade', e.target.value)}
           placeholder="Curso escolar actual"
+          readOnly={readOnly}
+          className={readOnly ? "bg-gray-100" : ""}
         />
       </div>
     </div>

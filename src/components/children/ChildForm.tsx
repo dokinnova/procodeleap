@@ -9,7 +9,7 @@ import { useSchoolsQuery } from "@/hooks/child-form/useSchoolsQuery";
 import { ChildFormError } from "./form/ChildFormError";
 import { ChildFormLoading } from "./form/ChildFormLoading";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Info } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface ChildFormProps {
@@ -21,7 +21,7 @@ export const ChildForm = ({ selectedChild, setSelectedChild }: ChildFormProps) =
   const { formData, handleInputChange, handleSubmit } = useChildForm(selectedChild, setSelectedChild);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { data: schools = [], isError, isLoading, refetch } = useSchoolsQuery();
-  const { checkPermission, canCreate, canEdit } = useUserPermissions();
+  const { checkPermission, canCreate, canEdit, role } = useUserPermissions();
 
   // Add effect to log selectedChild changes
   useEffect(() => {
@@ -49,76 +49,89 @@ export const ChildForm = ({ selectedChild, setSelectedChild }: ChildFormProps) =
   if (isLoading) return <ChildFormLoading />;
   if (isError) return <ChildFormError onRetry={refetch} />;
 
-  // Check if user has permission to create/edit
-  const hasPermission = selectedChild ? canEdit : canCreate;
-
-  if (!hasPermission) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            {selectedChild ? 'Editar Niño' : 'Registrar Nuevo Niño'}
-          </CardTitle>
-          <CardDescription>
-            {selectedChild 
-              ? 'Modifica los datos del niño seleccionado' 
-              : 'Ingresa los datos para registrar un nuevo niño'}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Acceso Denegado</AlertTitle>
-            <AlertDescription>
-              No tienes permisos para {selectedChild ? 'editar' : 'crear'} registros.
-              Contacta al administrador para solicitar acceso.
-            </AlertDescription>
-          </Alert>
-        </CardContent>
-      </Card>
-    );
-  }
+  // All users can view data, but only users with correct permissions can edit/create
+  const hasEditPermission = selectedChild ? canEdit : canCreate;
+  const isReadOnly = selectedChild && !canEdit;
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>
-          {selectedChild ? 'Editar Niño' : 'Registrar Nuevo Niño'}
+          {selectedChild ? (hasEditPermission ? 'Editar Niño' : 'Detalles del Niño') : 'Registrar Nuevo Niño'}
         </CardTitle>
         <CardDescription>
           {selectedChild 
-            ? 'Modifica los datos del niño seleccionado' 
+            ? (hasEditPermission ? 'Modifica los datos del niño seleccionado' : 'Visualiza los datos del niño seleccionado')
             : 'Ingresa los datos para registrar un nuevo niño'}
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleFormSubmit} className="space-y-4">
-          <ChildFormFields
-            formData={formData}
-            schools={schools}
-            onInputChange={handleInputChange}
-          />
-
-          <div className="flex justify-end gap-2">
-            {selectedChild && (
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => setSelectedChild(null)}
-                disabled={isSubmitting}
-              >
-                Cancelar
-              </Button>
-            )}
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting 
-                ? 'Guardando...' 
-                : selectedChild 
-                  ? 'Actualizar' 
-                  : 'Registrar'}
-            </Button>
+        {!selectedChild && !canCreate ? (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Acceso Denegado</AlertTitle>
+            <AlertDescription>
+              No tienes permisos para crear registros.
+              Contacta al administrador para solicitar acceso.
+            </AlertDescription>
+          </Alert>
+        ) : isReadOnly ? (
+          <div className="space-y-4">
+            <Alert>
+              <Info className="h-4 w-4" />
+              <AlertTitle>Modo de Visualización</AlertTitle>
+              <AlertDescription>
+                Tienes permisos de visualización. No puedes editar la información.
+              </AlertDescription>
+            </Alert>
+            <form className="space-y-4">
+              <ChildFormFields
+                formData={formData}
+                schools={schools}
+                onInputChange={() => {}}
+                readOnly={true}
+              />
+              <div className="flex justify-end gap-2">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setSelectedChild(null)}
+                >
+                  Volver
+                </Button>
+              </div>
+            </form>
           </div>
-        </form>
+        ) : (
+          <form onSubmit={handleFormSubmit} className="space-y-4">
+            <ChildFormFields
+              formData={formData}
+              schools={schools}
+              onInputChange={handleInputChange}
+              readOnly={false}
+            />
+
+            <div className="flex justify-end gap-2">
+              {selectedChild && (
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setSelectedChild(null)}
+                  disabled={isSubmitting}
+                >
+                  Cancelar
+                </Button>
+              )}
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting 
+                  ? 'Guardando...' 
+                  : selectedChild 
+                    ? 'Actualizar' 
+                    : 'Registrar'}
+              </Button>
+            </div>
+          </form>
+        )}
       </CardContent>
     </Card>
   );
