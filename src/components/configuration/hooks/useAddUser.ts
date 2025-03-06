@@ -4,9 +4,6 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { UserRole } from "@/hooks/useUserPermissions";
 
-// Define a type for the return value of the mutation
-type AddUserResult = { user: any; session: any } | { message: string };
-
 type AddUserParams = {
   email: string;
   password: string;
@@ -26,11 +23,28 @@ export const useAddUser = () => {
         .single();
         
       if (!appUserError && existingAppUser) {
-        return { message: "Este usuario ya existe en el sistema" };
+        throw new Error("Este usuario ya existe en el sistema");
       }
 
       try {
-        // Try to create a new user in Auth
+        // Use a temporary user_id that will be updated later
+        const tempUserId = '00000000-0000-0000-0000-000000000000';
+        
+        // Add the user to app_users with a temporary user_id
+        const { error: insertError } = await supabase
+          .from("app_users")
+          .insert({
+            email: email.toLowerCase(),
+            role: userRole,
+            user_id: tempUserId
+          });
+
+        if (insertError) {
+          console.error("Error inserting user in app_users:", insertError);
+          throw insertError;
+        }
+
+        // Try to create the auth user
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -40,82 +54,21 @@ export const useAddUser = () => {
         });
 
         if (error) {
-          // If it's a user already exists error, try to add them to app_users directly
-          if (error.message.includes("User already registered")) {
-            // For users that already exist in Auth but not in app_users
-            // Use a temporary value for user_id that will be updated later
-            const tempUserId = '00000000-0000-0000-0000-000000000000';
-            
-            // Add the user to app_users with a temporary user_id
-            const { error: insertError } = await supabase
-              .from("app_users")
-              .insert({
-                email: email.toLowerCase(),
-                role: userRole,
-                user_id: tempUserId
-              });
-
-            if (insertError) {
-              console.error("Error inserting user in app_users:", insertError);
-              throw insertError;
-            }
-            
-            // Invalidar la cache para forzar una recarga de los usuarios
-            queryClient.invalidateQueries({ queryKey: ["app-users"] });
-            
-            return { 
-              message: "Usuario añadido. Estado: Pendiente de confirmación." 
-            };
-          } else {
+          if (!error.message.includes("User already registered")) {
             throw error;
           }
         }
         
-        // If we reach here, the user was created successfully in Auth
-        // Create the record in app_users only if we have a valid user.id
-        if (data?.user?.id) {
-          const { error: userError } = await supabase
-            .from("app_users")
-            .insert({
-              email: email.toLowerCase(),
-              user_id: data.user.id,
-              role: userRole
-            });
-
-          if (userError) {
-            console.error("Error inserting user in app_users:", userError);
-            return { 
-              message: "Usuario creado en Auth pero no se pudo añadir a app_users. Se sincronizará cuando inicie sesión." 
-            };
-          }
-        } else {
-          // Si no hay id de usuario, añadir con id temporal
-          const tempUserId = '00000000-0000-0000-0000-000000000000';
-          const { error: insertError } = await supabase
-            .from("app_users")
-            .insert({
-              email: email.toLowerCase(),
-              role: userRole,
-              user_id: tempUserId
-            });
-
-          if (insertError) {
-            console.error("Error inserting user in app_users:", insertError);
-            throw insertError;
-          }
-        }
-        
-        // Invalidar la cache para forzar una recarga de los usuarios
+        // Invalidate queries to force a refresh
         queryClient.invalidateQueries({ queryKey: ["app-users"] });
         
-        return data as AddUserResult;
+        return { message: "Usuario añadido. Estado: Pendiente de confirmación." };
       } catch (error: any) {
         console.error("Error in registration process:", error);
         throw error;
       }
     },
     onSuccess: (data) => {
-      // Check if data has a message property to determine its type
       if ('message' in data) {
         toast.success(data.message);
       } else {
