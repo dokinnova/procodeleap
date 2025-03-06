@@ -90,6 +90,7 @@ export type Database = {
           image_url: string | null
           location: string
           name: string
+          priority: string | null
           school_id: string | null
           status: Database["public"]["Enums"]["child_status"]
           story: string | null
@@ -103,6 +104,7 @@ export type Database = {
           image_url?: string | null
           location: string
           name: string
+          priority?: string | null
           school_id?: string | null
           status?: Database["public"]["Enums"]["child_status"]
           story?: string | null
@@ -116,6 +118,7 @@ export type Database = {
           image_url?: string | null
           location?: string
           name?: string
+          priority?: string | null
           school_id?: string | null
           status?: Database["public"]["Enums"]["child_status"]
           story?: string | null
