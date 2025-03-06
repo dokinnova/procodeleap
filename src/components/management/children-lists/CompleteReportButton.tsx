@@ -44,8 +44,8 @@ export const CompleteReportButton = ({
     try {
       const doc = new jsPDF();
       
-      // Añadir banda gris en la parte superior
-      doc.setFillColor(240, 240, 240); // Color gris claro
+      // Añadir banda gris en la parte superior (color más oscuro)
+      doc.setFillColor(64, 62, 67); // Color gris más oscuro (#403E43)
       doc.rect(0, 0, doc.internal.pageSize.width, 35, 'F');
       
       // Añadir logo y nombre de Coprodeli
@@ -62,17 +62,21 @@ export const CompleteReportButton = ({
         // Añadir logo en la esquina superior izquierda
         doc.addImage(img, 'PNG', 15, 10, 20, 20);
         
-        // Añadir nombre de Coprodeli junto al logo
+        // Añadir nombre de Coprodeli junto al logo (color blanco)
         doc.setFontSize(16);
         doc.setFont('helvetica', 'bold');
+        doc.setTextColor(255, 255, 255); // Color blanco
         doc.text('Coprodeli', 40, 20);
         doc.setFont('helvetica', 'normal');
+        doc.setTextColor(0); // Restaurar color de texto a negro para el resto del documento
       } else {
         // Si no hay logo, solo añadir el nombre
         doc.setFontSize(16);
         doc.setFont('helvetica', 'bold');
+        doc.setTextColor(255, 255, 255); // Color blanco
         doc.text('Coprodeli', 15, 20);
         doc.setFont('helvetica', 'normal');
+        doc.setTextColor(0); // Restaurar color de texto a negro para el resto del documento
       }
       
       // Add title (ahora centrado horizontalmente pero bajado un poco para dar espacio al logo)
