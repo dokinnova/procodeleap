@@ -8,7 +8,7 @@ interface SponsorsMetricCardProps {
 }
 
 export const SponsorsMetricCard = ({ totalSponsors, activeSponsors }: SponsorsMetricCardProps) => {
-  const activePercentage = totalSponsors > 0 
+  const porcentajeActivos = totalSponsors > 0 
     ? Math.round((activeSponsors / totalSponsors) * 100) 
     : 0;
 
@@ -16,7 +16,7 @@ export const SponsorsMetricCard = ({ totalSponsors, activeSponsors }: SponsorsMe
     <MetricCard
       title="Padrinos Registrados"
       value={totalSponsors}
-      subtitle={`${activeSponsors} activos (${activePercentage}%)`}
+      subtitle={`${activeSponsors} activos (${porcentajeActivos}%)`}
       icon={UserPlus}
       iconColor="text-green-500"
       gradient="from-green-50 to-teal-50"

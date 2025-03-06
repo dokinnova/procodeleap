@@ -8,7 +8,7 @@ interface ChildrenMetricCardProps {
 }
 
 export const ChildrenMetricCard = ({ totalChildren, assignedChildren }: ChildrenMetricCardProps) => {
-  const assignedPercentage = totalChildren > 0 
+  const porcentajeAsignados = totalChildren > 0 
     ? Math.round((assignedChildren / totalChildren) * 100) 
     : 0;
 
@@ -16,7 +16,7 @@ export const ChildrenMetricCard = ({ totalChildren, assignedChildren }: Children
     <MetricCard
       title="Niños Registrados"
       value={totalChildren}
-      subtitle={`${assignedChildren} apadrinados (${assignedPercentage}%)`}
+      subtitle={`${assignedChildren} apadrinados (${porcentajeAsignados}%)`}
       icon={Users}
       iconColor="text-blue-500"
       gradient="from-blue-50 to-indigo-50"
