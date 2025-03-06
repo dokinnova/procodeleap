@@ -1,3 +1,4 @@
+
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
@@ -37,7 +38,7 @@ export const AuthFormWrapper = () => {
             button_label: 'Iniciar sesión',
             loading_button_label: 'Iniciando sesión...',
             social_provider_text: 'Iniciar sesión con {{provider}}',
-            link_text: '¿Ya tienes una cuenta? Inicia sesión',
+            // Remove link_text to hide the sign-up link
           },
           sign_up: {
             email_label: 'Correo electrónico',
@@ -47,7 +48,7 @@ export const AuthFormWrapper = () => {
             button_label: 'Registrarse',
             loading_button_label: 'Registrando...',
             social_provider_text: 'Registrarse con {{provider}}',
-            link_text: '¿No tienes una cuenta? Regístrate',
+            // Remove link_text to hide the sign-in link
           },
           forgotten_password: {
             email_label: 'Correo electrónico',
@@ -62,6 +63,10 @@ export const AuthFormWrapper = () => {
       theme="light"
       providers={[]}
       redirectTo={redirectTo}
+      // Hide sign up view to only allow sign in
+      view="sign_in"
+      // Disable sign up feature
+      disableSignUp={true}
     />
   );
 };
