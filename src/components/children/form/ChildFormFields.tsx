@@ -37,7 +37,7 @@ export const ChildFormFields = ({
           <PersonalInfoFields name={formData.name} birthDate={formData.birth_date} age={formData.age} location={formData.location} grade={formData.grade || ''} onInputChange={onInputChange} readOnly={readOnly} />
         </div>
 
-        <div className="flex-grow bg-white p-5 rounded-lg shadow-sm border border-gray-100 max-h-[400px] flex flex-col px-[26px] py-[19px]">
+        <div className="flex-grow bg-white p-5 rounded-lg shadow-sm border border-gray-100 max-h-[400px] flex flex-col px-[26px] mx-[8px] py-[14px] my-[105px]">
           <StoryField story={formData.story} onInputChange={onInputChange} readOnly={readOnly} />
         </div>
       </div>
