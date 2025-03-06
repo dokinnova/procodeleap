@@ -59,36 +59,45 @@ export const useAddUser = () => {
           }
         }
 
+        console.log("User created successfully, sending welcome email");
+        
         // Send welcome email
-        const { error: emailError } = await supabase.functions.invoke('send-mass-email', {
-          body: {
-            recipients: [{ email, name: email.split('@')[0] }],
-            subject: 'Bienvenido a PROCODELI',
-            content: `
-              <div>
-                <h2>¡Bienvenido a PROCODELI!</h2>
-                <p>Tu cuenta ha sido creada exitosamente con el rol de ${
-                  userRole === 'admin' ? 'administrador' : 
-                  userRole === 'editor' ? 'editor' : 
-                  'visualizador'
-                }.</p>
-                <p>Ya puedes acceder al sistema usando tu email y contraseña.</p>
-                <p>Si tienes alguna pregunta, no dudes en contactar con el administrador del sistema.</p>
-              </div>
-            `
-          }
-        });
+        try {
+          const { data: emailData, error: emailError } = await supabase.functions.invoke('send-mass-email', {
+            body: {
+              recipients: [{ email, name: email.split('@')[0] }],
+              subject: 'Bienvenido a PROCODELI',
+              content: `
+                <div>
+                  <h2>¡Bienvenido a PROCODELI!</h2>
+                  <p>Tu cuenta ha sido creada exitosamente con el rol de ${
+                    userRole === 'admin' ? 'administrador' : 
+                    userRole === 'editor' ? 'editor' : 
+                    'visualizador'
+                  }.</p>
+                  <p>Ya puedes acceder al sistema usando tu email y contraseña.</p>
+                  <p>Si tienes alguna pregunta, no dudes en contactar con el administrador del sistema.</p>
+                </div>
+              `
+            }
+          });
 
-        if (emailError) {
-          console.error("Error sending welcome email:", emailError);
+          if (emailError) {
+            console.error("Error details from send-mass-email function:", emailError);
+            throw emailError;
+          }
+
+          console.log("Welcome email sent successfully:", emailData);
+        } catch (emailErr: any) {
+          console.error("Error sending welcome email:", emailErr);
           // Don't throw here, as the user creation was successful
-          toast.error("No se pudo enviar el email de bienvenida, pero el usuario fue creado correctamente");
+          toast.error(`No se pudo enviar el email de bienvenida: ${emailErr.message || 'Error desconocido'}`);
         }
         
         // Invalidate queries to force a refresh
         queryClient.invalidateQueries({ queryKey: ["app-users"] });
         
-        return { message: "Usuario añadido. Estado: Pendiente de confirmación." };
+        return { message: "Usuario añadido. Se ha enviado un email de bienvenida." };
       } catch (error: any) {
         console.error("Error in registration process:", error);
         throw error;
