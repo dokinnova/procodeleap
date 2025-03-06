@@ -16,9 +16,7 @@ interface DocumentManagerProps {
 }
 
 export const DocumentManager = ({ childId, childName }: DocumentManagerProps) => {
-  // Use optional chaining to prevent the destructuring error
-  const sessionData = useAuthSession();
-  const session = sessionData?.session;
+  const { session, loading } = useAuthSession();
   const { toast } = useToast();
   const [selectedDoc, setSelectedDoc] = useState<ChildDocument | null>(null);
   
@@ -49,6 +47,20 @@ export const DocumentManager = ({ childId, childName }: DocumentManagerProps) =>
       });
     }
   }, [isError, error, toast]);
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Documentos</CardTitle>
+          <CardDescription>Cargando información...</CardDescription>
+        </CardHeader>
+        <CardContent className="flex justify-center py-6">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (!session) {
     return (
