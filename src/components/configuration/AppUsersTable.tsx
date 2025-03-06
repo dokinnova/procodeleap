@@ -2,6 +2,8 @@
 import {
   Table,
   TableBody,
+  TableCell,
+  TableRow
 } from "@/components/ui/table";
 import { UserTableRow } from "./users/UserTableRow";
 import { UserStats } from "./users/UserStats";
