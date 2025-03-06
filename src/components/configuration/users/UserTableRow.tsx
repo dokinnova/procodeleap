@@ -35,9 +35,18 @@ export const UserTableRow = ({
     try {
       return format(new Date(lastSignIn), "dd/MM/yyyy HH:mm:ss", { locale: es });
     } catch (e) {
+      console.error("Error formateando fecha:", e, "Valor recibido:", lastSignIn);
       return "Fecha inválida";
     }
   };
+
+  // Para depuración - Ver qué datos tenemos para este usuario
+  const authUserData = authUsers[user.user_id];
+  console.log(`Usuario ${user.email}:`, { 
+    user_id: user.user_id, 
+    authUserData: authUserData,
+    lastSignIn: authUserData?.last_sign_in_at 
+  });
 
   return (
     <TableRow className={isPending ? "bg-amber-50" : ""}>
@@ -53,11 +62,9 @@ export const UserTableRow = ({
         <UserStatusBadge isPending={isPending} />
       </TableCell>
       <TableCell>
-        {!isPending && 
-         authUsers[user.user_id] && 
-         'last_sign_in_at' in authUsers[user.user_id] ? 
-          formatLastSignIn(authUsers[user.user_id].last_sign_in_at) : 
-          "Pendiente"}
+        {!isPending && authUserData ? 
+          formatLastSignIn(authUserData.last_sign_in_at) : 
+          isPending ? "Pendiente" : "Información no disponible"}
       </TableCell>
       <TableCell>
         <UserActions 
