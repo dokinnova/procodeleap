@@ -65,8 +65,6 @@ export const AuthFormWrapper = () => {
       redirectTo={redirectTo}
       // Hide sign up view to only allow sign in
       view="sign_in"
-      // Disable sign up feature
-      disableSignUp={true}
     />
   );
 };
