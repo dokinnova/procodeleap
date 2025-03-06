@@ -1,6 +1,6 @@
 
 import { jsPDF } from "jspdf";
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import { Child } from "@/types";
 
 export const generateChildrenReportPdf = (children: Child[]) => {
@@ -15,8 +15,8 @@ export const generateChildrenReportPdf = (children: Child[]) => {
     doc.setFontSize(12);
     doc.text(`Fecha: ${new Date().toLocaleDateString('es-ES')}`, 105, 25, { align: 'center' });
     
-    // Add table
-    (doc as any).autoTable({
+    // Add table using autoTable directly
+    autoTable(doc, {
       head: [['Nombre', 'Edad', 'Ubicación', 'Escuela']],
       body: children.map(child => [
         child.name,
@@ -31,7 +31,7 @@ export const generateChildrenReportPdf = (children: Child[]) => {
     });
     
     // Add footer
-    const pageCount = (doc as any).internal.getNumberOfPages();
+    const pageCount = doc.getNumberOfPages();
     for(let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
       const footer = `Documento generado el ${new Date().toLocaleDateString('es-ES')} a las ${new Date().toLocaleTimeString('es-ES')}`;

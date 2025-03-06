@@ -6,7 +6,8 @@ import { FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { jsPDF } from "jspdf";
-import 'jspdf-autotable';
+// Import this way to properly initialize the plugin
+import autoTable from 'jspdf-autotable';
 
 interface SponsorsTableProps {
   sponsors: Sponsor[];
@@ -28,6 +29,7 @@ export const SponsorsTable = ({ sponsors }: SponsorsTableProps) => {
     });
 
     try {
+      console.log("Sponsors filtrados:", sponsors);
       const doc = new jsPDF();
       
       // Add title
@@ -38,8 +40,8 @@ export const SponsorsTable = ({ sponsors }: SponsorsTableProps) => {
       doc.setFontSize(12);
       doc.text(`Fecha: ${new Date().toLocaleDateString('es-ES')}`, 105, 25, { align: 'center' });
       
-      // Add table
-      (doc as any).autoTable({
+      // Use autoTable directly
+      autoTable(doc, {
         head: [['Nombre', 'Email', 'Teléfono', 'Contribución', 'Estado']],
         body: sponsors.map(sponsor => [
           `${sponsor.first_name} ${sponsor.last_name}`,
@@ -60,7 +62,7 @@ export const SponsorsTable = ({ sponsors }: SponsorsTableProps) => {
       });
       
       // Add footer
-      const pageCount = (doc as any).internal.getNumberOfPages();
+      const pageCount = doc.getNumberOfPages();
       for(let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
         const footer = `Documento generado el ${new Date().toLocaleDateString('es-ES')} a las ${new Date().toLocaleTimeString('es-ES')}`;
