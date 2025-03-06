@@ -54,7 +54,7 @@ export const AuthFormWrapper = () => {
       providers={[]}
       redirectTo={redirectTo}
       view="sign_in"
-      showLinks={false}
+      showLinks={true}
     />
   );
 };
