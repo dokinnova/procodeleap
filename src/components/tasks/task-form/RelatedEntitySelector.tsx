@@ -57,7 +57,7 @@ export const RelatedEntitySelector = ({
         <Label>Relacionada con</Label>
         <Select
           value={relatedTo}
-          onValueChange={(value: 'child' | 'sponsor' | '') => onRelatedToChange(value)}
+          onValueChange={(value: any) => onRelatedToChange(value === "none" ? "" : value)}
         >
           <SelectTrigger>
             <SelectValue placeholder="Seleccionar relación" />
