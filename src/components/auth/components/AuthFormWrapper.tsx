@@ -38,7 +38,7 @@ export const AuthFormWrapper = () => {
             button_label: 'Iniciar sesión',
             loading_button_label: 'Iniciando sesión...',
             social_provider_text: 'Iniciar sesión con {{provider}}',
-            link_text: '', // Empty to hide the sign-up link
+            link_text: ''
           },
           forgotten_password: {
             email_label: 'Correo electrónico',
@@ -46,15 +46,15 @@ export const AuthFormWrapper = () => {
             email_input_placeholder: 'Tu correo electrónico',
             button_label: 'Enviar instrucciones',
             loading_button_label: 'Enviando instrucciones...',
-            link_text: '¿Olvidaste tu contraseña?',
+            link_text: '¿Olvidaste tu contraseña?'
           }
-        },
+        }
       }}
       theme="light"
       providers={[]}
       redirectTo={redirectTo}
-      // Only allow sign in view, not sign up
       view="sign_in"
+      showLinks={false}
     />
   );
 };
