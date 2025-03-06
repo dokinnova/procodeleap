@@ -9,6 +9,7 @@ export const useUsersData = () => {
   const [isSyncing, setIsSyncing] = useState(false);
   const [authUsers, setAuthUsers] = useState<Record<string, AuthUserInfo>>({});
 
+  // Consulta para obtener todos los usuarios de app_users, sin filtrar
   const { data: appUsers, isLoading } = useQuery({
     queryKey: ["app-users"],
     queryFn: async () => {
@@ -17,6 +18,7 @@ export const useUsersData = () => {
         .select("*");
       
       if (error) throw error;
+      console.log("Usuarios cargados:", data);
       return data as AppUser[];
     },
   });

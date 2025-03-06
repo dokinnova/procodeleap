@@ -27,6 +27,7 @@ export const UserTableRow = ({
   onSaveRole,
   onDeleteClick
 }: UserTableRowProps) => {
+  // Un usuario está pendiente si tiene el user_id temporal
   const isPending = user.user_id === "00000000-0000-0000-0000-000000000000";
   const isEditing = editingUser?.id === user.id;
   const authUserData = authUsers[user.user_id];
@@ -41,26 +42,20 @@ export const UserTableRow = ({
     }
   };
 
-  // If the user has a non-temporary user_id, they're confirmed,
-  // so we should show at least their creation date as last sign in
+  // Si el usuario tiene un user_id no temporal, está confirmado
   let lastSignInDate = authUserData?.last_sign_in_at;
   if (!isPending && !lastSignInDate) {
-    // For confirmed users without auth data, use their creation date
+    // Para usuarios confirmados sin datos de auth, usar su fecha de creación
     lastSignInDate = user.created_at;
   }
   
-  // For current user without auth data, use current date
+  // Para el usuario actual sin datos de auth, usar la fecha actual
   if (isCurrentUser && !lastSignInDate) {
     lastSignInDate = new Date().toISOString();
   }
 
-  // A user is considered to have never logged in ONLY if:
-  // 1. They are pending (temporary user_id) - these users haven't signed in yet
-  // Any user with a confirmed user_id has logged in at least once
-  const hasNeverLoggedIn = isPending;
-
   return (
-    <TableRow className={hasNeverLoggedIn ? "bg-amber-50" : ""}>
+    <TableRow className={isPending ? "bg-amber-50" : ""}>
       <TableCell>{user.email}</TableCell>
       <TableCell>
         <UserRoleEditor 
@@ -71,7 +66,7 @@ export const UserTableRow = ({
       </TableCell>
       <TableCell>
         <UserStatusBadge 
-          isPending={isPending} 
+          isPending={isPending}
           isRegisteredButNotLoggedIn={false}
         />
       </TableCell>

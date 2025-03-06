@@ -29,14 +29,24 @@ export const AppUsersTable = () => {
   } = useUserActions();
 
   if (isLoading || isSyncing) {
-    return <div>Loading users...</div>;
+    return <div>Cargando usuarios...</div>;
   }
+
+  console.log("Renderizando usuarios:", appUsers);
+  
+  // Asegurarse de que appUsers es un array antes de intentar renderizarlo
+  const usersToRender = Array.isArray(appUsers) ? appUsers : [];
+  
+  // Verificar si hay usuarios pendientes
+  const pendingUsers = usersToRender.filter(user => 
+    user.user_id === "00000000-0000-0000-0000-000000000000"
+  );
 
   return (
     <div className="space-y-4">
       <UserStats 
-        users={appUsers}
-        pendingUsers={appUsers?.filter(user => user.user_id === "00000000-0000-0000-0000-000000000000") || []}
+        users={usersToRender}
+        pendingUsers={pendingUsers}
         isSyncing={isSyncing}
         onSyncClick={handleManualSync}
       />
@@ -44,14 +54,14 @@ export const AppUsersTable = () => {
       <Table>
         <UsersTableHeader />
         <TableBody>
-          {appUsers?.length === 0 ? (
+          {usersToRender.length === 0 ? (
             <TableRow>
               <TableCell colSpan={5} className="text-center py-8 text-gray-500">
                 No hay usuarios registrados
               </TableCell>
             </TableRow>
           ) : (
-            appUsers?.map((user) => (
+            usersToRender.map((user) => (
               <UserTableRow
                 key={user.id}
                 user={user}

@@ -57,11 +57,11 @@ export const useAddUser = () => {
 
             if (insertError) {
               console.error("Error inserting user in app_users:", insertError);
-              if (insertError.message.includes("violates foreign key constraint")) {
-                return { message: "Usuario añadido. Pendiente de confirmación." };
-              }
               throw insertError;
             }
+            
+            // Invalidar la cache para forzar una recarga de los usuarios
+            queryClient.invalidateQueries({ queryKey: ["app-users"] });
             
             return { 
               message: "Usuario añadido. Estado: Pendiente de confirmación." 
@@ -71,7 +71,7 @@ export const useAddUser = () => {
           }
         }
         
-        // If we reach here, the user was created successfully
+        // If we reach here, the user was created successfully in Auth
         // Create the record in app_users only if we have a valid user.id
         if (data?.user?.id) {
           const { error: userError } = await supabase
@@ -84,13 +84,29 @@ export const useAddUser = () => {
 
           if (userError) {
             console.error("Error inserting user in app_users:", userError);
-            // If inserting into app_users fails, return a message but don't throw an error
-            // since the user was already created in Auth
             return { 
               message: "Usuario creado en Auth pero no se pudo añadir a app_users. Se sincronizará cuando inicie sesión." 
             };
           }
+        } else {
+          // Si no hay id de usuario, añadir con id temporal
+          const tempUserId = '00000000-0000-0000-0000-000000000000';
+          const { error: insertError } = await supabase
+            .from("app_users")
+            .insert({
+              email: email.toLowerCase(),
+              role: userRole,
+              user_id: tempUserId
+            });
+
+          if (insertError) {
+            console.error("Error inserting user in app_users:", insertError);
+            throw insertError;
+          }
         }
+        
+        // Invalidar la cache para forzar una recarga de los usuarios
+        queryClient.invalidateQueries({ queryKey: ["app-users"] });
         
         return data as AddUserResult;
       } catch (error: any) {
