@@ -9,8 +9,12 @@ export const useAuthSession = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log("useAuthSession: Inicializando efecto");
+    
+    // Función para verificar la sesión actual
     const checkSession = async () => {
       try {
+        console.log("useAuthSession: Verificando sesión...");
         const { data: { session: currentSession }, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -31,20 +35,29 @@ export const useAuthSession = () => {
       }
     };
 
+    // Verificar sesión al montar el componente
     checkSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    // Suscribirse a cambios en el estado de autenticación
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
       console.log("Cambio en el estado de autenticación:", _event);
-      setSession(session);
       
-      if (!session && !loading) {
+      // Actualizar el estado de la sesión
+      setSession(newSession);
+      
+      // Si no hay sesión y ya ha cargado, redirigir a la página de autenticación
+      if (!newSession && !loading) {
         console.log("Sesión terminada, redirigiendo a /auth");
-        navigate('/auth');
+        navigate('/auth', { replace: true });
       }
     });
 
-    return () => subscription.unsubscribe();
-  }, [navigate]);
+    // Limpiar la suscripción al desmontar
+    return () => {
+      console.log("useAuthSession: Limpiando suscripción");
+      subscription.unsubscribe();
+    };
+  }, [navigate, loading]);
 
   return { session, loading };
 };

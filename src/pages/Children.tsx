@@ -27,6 +27,10 @@ const Children = () => {
     }
   }, [selectedChild, queryClient]);
 
+  useEffect(() => {
+    console.log('Children component: Selected child:', selectedChild);
+  }, [selectedChild]);
+
   const handleChildSelect = (child: Child) => {
     console.log('Seleccionando niño:', child);
     setSelectedChild(child);

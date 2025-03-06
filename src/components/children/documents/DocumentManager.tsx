@@ -24,7 +24,8 @@ export const DocumentManager = ({ childId, childName }: DocumentManagerProps) =>
   useEffect(() => {
     console.log("DocumentManager montado con childId:", childId);
     console.log("Session:", session);
-  }, [childId, session]);
+    console.log("Loading:", loading);
+  }, [childId, session, loading]);
   
   const { 
     documents, 
@@ -53,7 +54,7 @@ export const DocumentManager = ({ childId, childName }: DocumentManagerProps) =>
       <Card>
         <CardHeader>
           <CardTitle>Documentos</CardTitle>
-          <CardDescription>Cargando información...</CardDescription>
+          <CardDescription>Cargando información de sesión...</CardDescription>
         </CardHeader>
         <CardContent className="flex justify-center py-6">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -74,7 +75,7 @@ export const DocumentManager = ({ childId, childName }: DocumentManagerProps) =>
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Acceso denegado</AlertTitle>
             <AlertDescription>
-              Debe iniciar sesión para administrar documentos.
+              Debe iniciar sesión para administrar documentos. Si ya ha iniciado sesión, por favor, actualice la página.
             </AlertDescription>
           </Alert>
         </CardContent>
