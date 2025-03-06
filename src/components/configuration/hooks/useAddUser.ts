@@ -72,7 +72,7 @@ export const useAddUser = () => {
         try {
           console.log("Using admin session for sending email");
           
-          const { data: emailData, error: emailError } = await supabase.functions.invoke('send-mass-email', {
+          const response = await supabase.functions.invoke('send-mass-email', {
             body: {
               recipients: [{ email, name: email.split('@')[0] }],
               subject: 'Bienvenido a PROCODELI',
@@ -92,17 +92,32 @@ export const useAddUser = () => {
             method: 'POST'
           });
 
+          const { data: emailData, error: emailError } = response;
+
+          console.log("Email function response:", response);
+
           if (emailError) {
             console.error("Error sending welcome email:", emailError);
             console.error("Full error object:", JSON.stringify(emailError));
             throw new Error(`Error en el envío del email: ${JSON.stringify(emailError)}`);
           }
 
-          console.log("Welcome email sent successfully:", emailData);
+          console.log("Welcome email function response:", emailData);
           
-          // If emailData contains a validation error about test emails, show a more helpful message
-          if (emailData?.results?.[0]?.error?.message?.includes("You can only send testing emails to your own email address")) {
-            toast.warning("Usuario creado pero el email de bienvenida solo puede enviarse al propietario de la cuenta Resend durante las pruebas. Configura un dominio verificado en Resend para enviar a cualquier dirección.");
+          // If there's a specific error message about domain validation
+          if (emailData?.error?.includes("Resend sólo permite enviar emails al propietario")) {
+            toast.warning(emailData.error);
+            return { message: "Usuario añadido. " + emailData.error };
+          }
+          
+          // Check for errors in email results
+          if (emailData?.results?.[0]?.error) {
+            const errorMsg = typeof emailData.results[0].error === 'string' 
+              ? emailData.results[0].error
+              : JSON.stringify(emailData.results[0].error);
+            console.warn("Email error from results:", errorMsg);
+            toast.warning(`Usuario añadido pero hubo un problema con el email: ${errorMsg}`);
+            return { message: `Usuario añadido. Error en el envío del email: ${errorMsg}` };
           }
         } catch (emailErr: any) {
           console.error("Error sending welcome email:", emailErr);
