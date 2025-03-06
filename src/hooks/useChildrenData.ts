@@ -34,8 +34,14 @@ export const useChildrenData = () => {
           return [];
         }
         
-        console.log('Children data fetched successfully:', data);
-        return data as Child[];
+        // Make sure each child has the priority field
+        const childrenWithPriority = data.map(child => ({
+          ...child,
+          priority: child.priority || null
+        }));
+        
+        console.log('Children data fetched successfully:', childrenWithPriority);
+        return childrenWithPriority as Child[];
       } catch (error) {
         console.error('Error in query function:', error);
         toast({

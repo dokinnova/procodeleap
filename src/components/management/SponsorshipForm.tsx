@@ -1,3 +1,4 @@
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Child, Sponsor } from "@/types";
 import { useQuery } from "@tanstack/react-query";
@@ -49,7 +50,12 @@ export const SponsorshipForm = ({
           .from("children")
           .select("*")
           .neq('status', 'baja');
-        return allChildren || [];
+        
+        // Ensure priority field is present
+        return (allChildren || []).map(child => ({
+          ...child,
+          priority: child.priority || null
+        })) as Child[];
       }
 
       if (selectedChild) {
@@ -59,7 +65,12 @@ export const SponsorshipForm = ({
             .from("children")
             .select("*")
             .neq('status', 'baja');
-          return allChildren || [];
+          
+          // Ensure priority field is present
+          return (allChildren || []).map(child => ({
+            ...child,
+            priority: child.priority || null
+          })) as Child[];
         }
         sponsoredChildIds.length = 0;
         sponsoredChildIds.push(...filteredIds);
@@ -71,7 +82,11 @@ export const SponsorshipForm = ({
         .not("id", "in", `(${sponsoredChildIds.join(",")})`)
         .neq('status', 'baja');
 
-      return children || [];
+      // Ensure priority field is present
+      return (children || []).map(child => ({
+        ...child,
+        priority: child.priority || null
+      })) as Child[];
     },
   });
 

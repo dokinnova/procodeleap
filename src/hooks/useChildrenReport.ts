@@ -36,8 +36,14 @@ export const useChildrenReport = () => {
           return [];
         }
 
-        console.log('Niños obtenidos exitosamente:', data.length, 'registros');
-        return data as Child[];
+        // Make sure each child has the priority field
+        const childrenWithPriority = data.map(child => ({
+          ...child,
+          priority: child.priority || null
+        }));
+
+        console.log('Niños obtenidos exitosamente:', childrenWithPriority.length, 'registros');
+        return childrenWithPriority as Child[];
       } catch (error: any) {
         console.error('Error en la consulta de niños:', error);
         toast({

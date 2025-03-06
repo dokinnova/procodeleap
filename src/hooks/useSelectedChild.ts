@@ -24,6 +24,7 @@ export const useSelectedChild = () => {
           grade: child.grade || '',
           image_url: child.image_url || null,
           status: child.status || 'pending',
+          priority: child.priority || null, // Ensure priority field is set
         });
       } catch (error) {
         console.error('Error al establecer el niño seleccionado:', error);
@@ -51,6 +52,7 @@ export const useSelectedChild = () => {
         grade: child.grade || '',
         image_url: child.image_url || null,
         status: child.status || 'pending',
+        priority: child.priority || null, // Ensure priority field is set
       });
     } else {
       setSelectedChild(null);

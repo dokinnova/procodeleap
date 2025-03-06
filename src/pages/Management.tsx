@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,7 +21,12 @@ const Management = () => {
         .select("*");
       
       if (error) throw error;
-      return data || [];
+      
+      // Make sure each child has the priority field
+      return (data || []).map(child => ({
+        ...child,
+        priority: child.priority || null
+      })) as Child[];
     },
   });
 
