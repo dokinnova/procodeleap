@@ -95,6 +95,24 @@ export const useUserPermissions = (): PermissionsResult => {
   const canEdit = role === 'admin' || role === 'editor';
   const canDelete = role === 'admin';
 
+  // If someone tries to access functionality they don't have permission for,
+  // show a toast message
+  const checkPermission = (action: 'create' | 'edit' | 'delete'): boolean => {
+    const hasPermission = action === 'create' ? canCreate : 
+                         action === 'edit' ? canEdit : 
+                         action === 'delete' ? canDelete : false;
+    
+    if (!hasPermission) {
+      toast.error(`No tienes permisos para ${
+        action === 'create' ? 'crear' : 
+        action === 'edit' ? 'editar' : 
+        'eliminar'
+      } registros`);
+    }
+    
+    return hasPermission;
+  };
+
   return {
     canCreate,
     canEdit,
@@ -102,5 +120,6 @@ export const useUserPermissions = (): PermissionsResult => {
     role,
     isLoading,
     isError,
+    checkPermission,
   };
 };

@@ -1,8 +1,10 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { School } from "@/pages/Schools";
+import { useUserPermissions } from "@/hooks/useUserPermissions";
 
 interface SchoolFormProps {
   formData: {
@@ -22,6 +24,19 @@ export const SchoolForm = ({
   handleSubmit,
   handleCancel,
 }: SchoolFormProps) => {
+  const { checkPermission } = useUserPermissions();
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Check if user has permission before proceeding
+    if (!checkPermission(selectedSchool ? 'edit' : 'create')) {
+      return;
+    }
+
+    await handleSubmit(e);
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -35,7 +50,7 @@ export const SchoolForm = ({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleFormSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="name">Nombre del colegio</Label>
             <Input
