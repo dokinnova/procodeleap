@@ -63,6 +63,12 @@ export const useAddUser = () => {
         
         // Send welcome email
         try {
+          // Get authenticated client session to include auth headers
+          const { data: session } = await supabase.auth.getSession();
+          
+          // Log the session to debug
+          console.log("Current session for function call:", session);
+          
           const { data: emailData, error: emailError } = await supabase.functions.invoke('send-mass-email', {
             body: {
               recipients: [{ email, name: email.split('@')[0] }],
@@ -84,12 +90,14 @@ export const useAddUser = () => {
 
           if (emailError) {
             console.error("Error details from send-mass-email function:", emailError);
+            console.error("Full error object:", JSON.stringify(emailError));
             throw emailError;
           }
 
           console.log("Welcome email sent successfully:", emailData);
         } catch (emailErr: any) {
           console.error("Error sending welcome email:", emailErr);
+          console.error("Full error object:", JSON.stringify(emailErr));
           // Don't throw here, as the user creation was successful
           toast.error(`No se pudo enviar el email de bienvenida: ${emailErr.message || 'Error desconocido'}`);
         }

@@ -27,6 +27,9 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // Log request headers for debugging
+    console.log("Request headers:", Object.fromEntries([...req.headers.entries()]));
+    
     const { recipients, subject, content }: EmailRequest = await req.json();
     
     if (!RESEND_API_KEY) {
