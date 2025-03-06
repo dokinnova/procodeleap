@@ -54,9 +54,9 @@ export const ChildForm = ({ selectedChild, setSelectedChild }: ChildFormProps) =
   const isReadOnly = selectedChild && !canEdit;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>
+    <Card className="bg-gradient-to-b from-white to-gray-50 shadow-md">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-xl text-primary">
           {selectedChild ? (hasEditPermission ? 'Editar Niño' : 'Detalles del Niño') : 'Registrar Nuevo Niño'}
         </CardTitle>
         <CardDescription>
@@ -65,7 +65,7 @@ export const ChildForm = ({ selectedChild, setSelectedChild }: ChildFormProps) =
             : 'Ingresa los datos para registrar un nuevo niño'}
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-4">
         {!selectedChild && !canCreate ? (
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
@@ -76,15 +76,15 @@ export const ChildForm = ({ selectedChild, setSelectedChild }: ChildFormProps) =
             </AlertDescription>
           </Alert>
         ) : isReadOnly ? (
-          <div className="space-y-4">
-            <Alert>
+          <div className="space-y-6">
+            <Alert className="mb-4">
               <Info className="h-4 w-4" />
               <AlertTitle>Modo de Visualización</AlertTitle>
               <AlertDescription>
                 Tienes permisos de visualización. No puedes editar la información.
               </AlertDescription>
             </Alert>
-            <form className="space-y-4">
+            <form className="space-y-8">
               <ChildFormFields
                 formData={formData}
                 schools={schools}
@@ -103,7 +103,7 @@ export const ChildForm = ({ selectedChild, setSelectedChild }: ChildFormProps) =
             </form>
           </div>
         ) : (
-          <form onSubmit={handleFormSubmit} className="space-y-4">
+          <form onSubmit={handleFormSubmit} className="space-y-8">
             <ChildFormFields
               formData={formData}
               schools={schools}
@@ -111,7 +111,7 @@ export const ChildForm = ({ selectedChild, setSelectedChild }: ChildFormProps) =
               readOnly={false}
             />
 
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-end gap-3 pt-2">
               {selectedChild && (
                 <Button 
                   type="button" 
@@ -122,7 +122,7 @@ export const ChildForm = ({ selectedChild, setSelectedChild }: ChildFormProps) =
                   Cancelar
                 </Button>
               )}
-              <Button type="submit" disabled={isSubmitting}>
+              <Button type="submit" disabled={isSubmitting} className="px-6">
                 {isSubmitting 
                   ? 'Guardando...' 
                   : selectedChild 

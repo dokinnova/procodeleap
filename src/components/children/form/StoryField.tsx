@@ -10,8 +10,8 @@ interface StoryFieldProps {
 
 export const StoryField = ({ story, onInputChange, readOnly = false }: StoryFieldProps) => {
   return (
-    <div className="space-y-2 md:col-span-2 flex flex-col h-full">
-      <Label htmlFor="story">Historia</Label>
+    <div className="space-y-2 flex flex-col h-full">
+      <Label htmlFor="story" className="font-medium">Historia</Label>
       <Textarea
         id="story"
         placeholder="Historia del niño"

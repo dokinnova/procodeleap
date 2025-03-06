@@ -21,41 +21,49 @@ export const ChildFormFields = ({
   readOnly = false 
 }: ChildFormFieldsProps) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div className="space-y-6">
-        <PhotoField
-          currentPhotoUrl={formData.image_url}
-          onPhotoUploaded={(url) => onInputChange('image_url', url)}
-          readOnly={readOnly}
-        />
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="space-y-8">
+        <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100">
+          <PhotoField
+            currentPhotoUrl={formData.image_url}
+            onPhotoUploaded={(url) => onInputChange('image_url', url)}
+            readOnly={readOnly}
+          />
+        </div>
         
-        <StatusAndSchoolFields
-          status={formData.status}
-          schoolId={formData.school_id}
-          schools={schools}
-          onInputChange={onInputChange}
-          readOnly={readOnly}
-        />
+        <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100">
+          <StatusAndSchoolFields
+            status={formData.status}
+            schoolId={formData.school_id}
+            schools={schools}
+            onInputChange={onInputChange}
+            readOnly={readOnly}
+          />
+        </div>
         
-        <PriorityField
-          priority={formData.priority}
-          onInputChange={onInputChange}
-          readOnly={readOnly}
-        />
+        <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100">
+          <PriorityField
+            priority={formData.priority}
+            onInputChange={onInputChange}
+            readOnly={readOnly}
+          />
+        </div>
       </div>
 
-      <div className="space-y-6 flex flex-col">
-        <PersonalInfoFields
-          name={formData.name}
-          birthDate={formData.birth_date}
-          age={formData.age}
-          location={formData.location}
-          grade={formData.grade || ''}
-          onInputChange={onInputChange}
-          readOnly={readOnly}
-        />
+      <div className="space-y-8 flex flex-col">
+        <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100">
+          <PersonalInfoFields
+            name={formData.name}
+            birthDate={formData.birth_date}
+            age={formData.age}
+            location={formData.location}
+            grade={formData.grade || ''}
+            onInputChange={onInputChange}
+            readOnly={readOnly}
+          />
+        </div>
 
-        <div className="flex-grow max-h-[400px]">
+        <div className="flex-grow bg-white p-5 rounded-lg shadow-sm border border-gray-100 max-h-[400px] flex flex-col">
           <StoryField
             story={formData.story}
             onInputChange={onInputChange}
