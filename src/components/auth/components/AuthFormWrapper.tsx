@@ -38,17 +38,7 @@ export const AuthFormWrapper = () => {
             button_label: 'Iniciar sesión',
             loading_button_label: 'Iniciando sesión...',
             social_provider_text: 'Iniciar sesión con {{provider}}',
-            // Remove link_text to hide the sign-up link
-          },
-          sign_up: {
-            email_label: 'Correo electrónico',
-            password_label: 'Contraseña',
-            email_input_placeholder: 'Tu correo electrónico',
-            password_input_placeholder: 'Tu contraseña',
-            button_label: 'Registrarse',
-            loading_button_label: 'Registrando...',
-            social_provider_text: 'Registrarse con {{provider}}',
-            // Remove link_text to hide the sign-in link
+            link_text: '', // Empty to hide the sign-up link
           },
           forgotten_password: {
             email_label: 'Correo electrónico',
@@ -63,7 +53,7 @@ export const AuthFormWrapper = () => {
       theme="light"
       providers={[]}
       redirectTo={redirectTo}
-      // Hide sign up view to only allow sign in
+      // Only allow sign in view, not sign up
       view="sign_in"
     />
   );
