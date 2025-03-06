@@ -1,11 +1,19 @@
 
-import { Baby, Printer } from "lucide-react";
+import { Baby, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import generatePdf from "react-to-pdf";
+import { jsPDF } from "jspdf";
+import 'jspdf-autotable';
+import { useQuery } from "@tanstack/react-query";
+import { CHILDREN_QUERY_KEY } from "@/hooks/useChildrenData";
 
 export const ChildrenHeader = () => {
   const { toast } = useToast();
+  const { data: children = [] } = useQuery({
+    queryKey: [CHILDREN_QUERY_KEY],
+    enabled: false,
+    initialData: [],
+  });
 
   const handlePrint = () => {
     window.print();
@@ -21,41 +29,50 @@ export const ChildrenHeader = () => {
       description: "Espere mientras se genera el documento...",
     });
 
-    const options = {
-      filename: `listado-ninos-${new Date().toISOString().split('T')[0]}.pdf`,
-      page: {
-        margin: 20,
-        format: 'a4',
-      },
-      overrides: {
-        pdf: {
-          compress: true
-        },
-        canvas: {
-          useCORS: true
-        }
-      }
-    };
-
     try {
-      // Mostrar temporalmente el elemento de impresión
-      const printableElement = document.querySelector('.print\\:block');
-      if (printableElement) {
-        printableElement.classList.remove('hidden');
-        printableElement.classList.add('block');
-        
-        await generatePdf(() => printableElement as HTMLElement, options);
-        
-        // Restaurar el estado anterior
-        printableElement.classList.add('hidden');
-        printableElement.classList.remove('block');
-        
-        toast({
-          title: "PDF generado correctamente",
-          description: "El documento se ha descargado",
-          variant: "default",
-        });
+      const doc = new jsPDF();
+      
+      // Add title
+      doc.setFontSize(18);
+      doc.text("Listado de Niños Registrados", 105, 15, { align: 'center' });
+      
+      // Add date
+      doc.setFontSize(12);
+      doc.text(`Fecha: ${new Date().toLocaleDateString('es-ES')}`, 105, 25, { align: 'center' });
+      
+      // Add table
+      (doc as any).autoTable({
+        head: [['Nombre', 'Edad', 'Ubicación', 'Escuela']],
+        body: children.map(child => [
+          child.name,
+          `${child.age} años`,
+          child.location,
+          child.school_id || 'No asignada'
+        ]),
+        startY: 35,
+        styles: { fontSize: 10, cellPadding: 5 },
+        headStyles: { fillColor: [41, 128, 185], textColor: 255 },
+        alternateRowStyles: { fillColor: [240, 240, 240] }
+      });
+      
+      // Add footer
+      const pageCount = (doc as any).internal.getNumberOfPages();
+      for(let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        const footer = `Documento generado el ${new Date().toLocaleDateString('es-ES')} a las ${new Date().toLocaleTimeString('es-ES')}`;
+        doc.setFontSize(8);
+        doc.setTextColor(150);
+        doc.text(footer, 195, 285, { align: 'right' });
       }
+      
+      // Save the PDF
+      doc.save(`listado-ninos-${new Date().toISOString().split('T')[0]}.pdf`);
+      
+      toast({
+        title: "PDF generado correctamente",
+        description: "El documento se ha descargado",
+        variant: "default",
+      });
     } catch (error) {
       console.error('Error al generar PDF:', error);
       toast({
@@ -74,11 +91,11 @@ export const ChildrenHeader = () => {
       </div>
       <div className="flex gap-2">
         <Button onClick={handleGeneratePdf} variant="outline">
-          <Printer className="h-4 w-4 mr-2" />
+          <FileText className="h-4 w-4 mr-2" />
           Generar PDF
         </Button>
         <Button onClick={handlePrint} variant="outline">
-          <Printer className="h-4 w-4 mr-2" />
+          <FileText className="h-4 w-4 mr-2" />
           Imprimir Listado
         </Button>
       </div>

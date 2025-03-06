@@ -1,13 +1,14 @@
 
 import { useQuery } from "@tanstack/react-query";
-import { FileText, Printer, Search } from "lucide-react";
+import { FileText, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import generatePdf from "react-to-pdf";
+import { jsPDF } from "jspdf";
+import 'jspdf-autotable';
 
 const SchoolsReport = () => {
   const [search, setSearch] = useState("");
@@ -37,32 +38,48 @@ const SchoolsReport = () => {
       description: "Espere mientras se genera el documento...",
     });
 
-    const options = {
-      filename: `listado-colegios-${new Date().toISOString().split('T')[0]}.pdf`,
-      page: {
-        margin: 20,
-        format: 'a4',
-      },
-      overrides: {
-        pdf: {
-          compress: true
-        },
-        canvas: {
-          useCORS: true
-        }
-      }
-    };
-
     try {
-      const targetElement = document.getElementById('schools-report-printable');
-      if (targetElement) {
-        await generatePdf(() => targetElement, options);
-        toast({
-          title: "PDF generado correctamente",
-          description: "El documento se ha descargado",
-          variant: "default",
-        });
+      const doc = new jsPDF();
+      
+      // Add title
+      doc.setFontSize(18);
+      doc.text("Listado de Colegios", 105, 15, { align: 'center' });
+      
+      // Add date
+      doc.setFontSize(12);
+      doc.text(`Fecha: ${new Date().toLocaleDateString('es-ES')}`, 105, 25, { align: 'center' });
+      
+      // Add table
+      (doc as any).autoTable({
+        head: [['Nombre', 'Dirección']],
+        body: filteredSchools.map(school => [
+          school.name,
+          school.address || "No disponible"
+        ]),
+        startY: 35,
+        styles: { fontSize: 10, cellPadding: 5 },
+        headStyles: { fillColor: [41, 128, 185], textColor: 255 },
+        alternateRowStyles: { fillColor: [240, 240, 240] }
+      });
+      
+      // Add footer
+      const pageCount = (doc as any).internal.getNumberOfPages();
+      for(let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        const footer = `Documento generado el ${new Date().toLocaleDateString('es-ES')} a las ${new Date().toLocaleTimeString('es-ES')}`;
+        doc.setFontSize(8);
+        doc.setTextColor(150);
+        doc.text(footer, 195, 285, { align: 'right' });
       }
+      
+      // Save the PDF
+      doc.save(`listado-colegios-${new Date().toISOString().split('T')[0]}.pdf`);
+      
+      toast({
+        title: "PDF generado correctamente",
+        description: "El documento se ha descargado",
+        variant: "default",
+      });
     } catch (error) {
       console.error('Error al generar PDF:', error);
       toast({
@@ -89,7 +106,7 @@ const SchoolsReport = () => {
           <h1 className="text-2xl font-bold text-gray-900">Listado de Colegios</h1>
         </div>
         <Button onClick={handlePrint} variant="outline">
-          <Printer className="h-4 w-4 mr-2" />
+          <FileText className="h-4 w-4 mr-2" />
           Generar PDF
         </Button>
       </div>

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,10 +6,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-import { AlertCircle, Printer } from "lucide-react";
+import { AlertCircle, Download, FileText } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { CHILDREN_QUERY_KEY } from "@/hooks/useChildrenData";
-import generatePdf from "react-to-pdf";
+import { jsPDF } from "jspdf";
+import 'jspdf-autotable';
 
 const ChildrenReport = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -79,32 +79,45 @@ const ChildrenReport = () => {
       description: "Espere mientras se genera el documento...",
     });
 
-    const options = {
-      filename: `reporte-ninos-${new Date().toISOString().split('T')[0]}.pdf`,
-      page: {
-        margin: 20,
-        format: 'a4',
-      },
-      overrides: {
-        pdf: {
-          compress: true
-        },
-        canvas: {
-          useCORS: true
-        }
-      }
-    };
-
     try {
-      const targetElement = document.getElementById('children-report-printable');
-      if (targetElement) {
-        await generatePdf(() => targetElement, options);
-        toast({
-          title: "PDF generado correctamente",
-          description: "El documento se ha descargado",
-          variant: "default",
-        });
+      const doc = new jsPDF();
+      
+      doc.setFontSize(18);
+      doc.text("Reporte de Niños", 105, 15, { align: 'center' });
+      
+      doc.setFontSize(12);
+      doc.text(`Fecha: ${new Date().toLocaleDateString('es-ES')}`, 105, 25, { align: 'center' });
+      
+      (doc as any).autoTable({
+        head: [['Nombre', 'Edad', 'Ubicación', 'Escuela']],
+        body: filteredChildren.map(child => [
+          child.name,
+          `${child.age} años`,
+          child.location,
+          child.schools?.name || 'No asignada'
+        ]),
+        startY: 35,
+        styles: { fontSize: 10, cellPadding: 5 },
+        headStyles: { fillColor: [41, 128, 185], textColor: 255 },
+        alternateRowStyles: { fillColor: [240, 240, 240] }
+      });
+      
+      const pageCount = (doc as any).internal.getNumberOfPages();
+      for(let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        const footer = `Documento generado el ${new Date().toLocaleDateString('es-ES')} a las ${new Date().toLocaleTimeString('es-ES')}`;
+        doc.setFontSize(8);
+        doc.setTextColor(150);
+        doc.text(footer, 195, 285, { align: 'right' });
       }
+      
+      doc.save(`reporte-ninos-${new Date().toISOString().split('T')[0]}.pdf`);
+      
+      toast({
+        title: "PDF generado correctamente",
+        description: "El documento se ha descargado",
+        variant: "default",
+      });
     } catch (error) {
       console.error('Error al generar PDF:', error);
       toast({
@@ -177,7 +190,7 @@ const ChildrenReport = () => {
             </CardDescription>
           </div>
           <Button onClick={handleGeneratePdf} variant="outline" size="sm">
-            <Printer className="h-4 w-4 mr-2" />
+            <FileText className="h-4 w-4 mr-2" />
             Generar PDF
           </Button>
         </CardHeader>
@@ -237,7 +250,6 @@ const ChildrenReport = () => {
         </CardContent>
       </Card>
 
-      {/* Elemento oculto para impresión */}
       <div id="children-report-printable" className="hidden">
         <div className="p-8 max-w-[210mm] mx-auto bg-white">
           <div className="mb-8 text-center">
