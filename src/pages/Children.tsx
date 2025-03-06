@@ -51,7 +51,7 @@ const Children = () => {
         />
 
         {selectedChild && (
-          <div className="mt-8">
+          <div className="mt-8 border rounded-lg p-4 bg-white shadow-sm">
             <DocumentManager 
               childId={selectedChild.id}
               childName={selectedChild.name}

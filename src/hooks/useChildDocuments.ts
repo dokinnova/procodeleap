@@ -12,18 +12,25 @@ export const useChildDocuments = (childId: string) => {
 
   const fetchDocuments = async () => {
     try {
+      console.log('Fetching documents for child:', childId);
       const { data, error } = await supabase
         .from('child_documents')
         .select('*')
         .eq('child_id', childId)
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching documents:', error);
+        throw error;
+      }
+      
+      console.log('Documents fetched successfully:', data);
       return data as ChildDocument[];
     } catch (error: any) {
+      console.error('Error in fetchDocuments:', error);
       toast({
         title: "Error al cargar documentos",
-        description: error.message,
+        description: error.message || "No se pudieron cargar los documentos",
         variant: "destructive",
       });
       throw error;
@@ -47,6 +54,8 @@ export const useChildDocuments = (childId: string) => {
         throw new Error("No se ha encontrado una sesión de usuario");
       }
       
+      console.log('Uploading document for child:', childId);
+      
       // 2. Subir archivo al bucket
       const fileExt = file.name.split('.').pop();
       const fileName = `${childId}/${Date.now()}.${fileExt}`;
@@ -56,7 +65,10 @@ export const useChildDocuments = (childId: string) => {
         .from('child_documents')
         .upload(filePath, file);
       
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Error uploading file:', uploadError);
+        throw uploadError;
+      }
       
       // 3. Guardar metadatos en la tabla
       const { error: dbError } = await supabase
@@ -73,6 +85,7 @@ export const useChildDocuments = (childId: string) => {
       
       if (dbError) {
         // Si hay error en la BD, eliminar el archivo subido
+        console.error('Error inserting document metadata:', dbError);
         await supabase.storage
           .from('child_documents')
           .remove([filePath]);
@@ -80,14 +93,17 @@ export const useChildDocuments = (childId: string) => {
         throw dbError;
       }
       
+      console.log('Document uploaded successfully');
+      
       // 4. Refetch para actualizar la lista
       queryClient.invalidateQueries({ queryKey: [CHILD_DOCUMENTS_QUERY_KEY, childId] });
       
       return { success: true };
     } catch (error: any) {
+      console.error('Error in uploadDocument:', error);
       toast({
         title: "Error al subir documento",
-        description: error.message,
+        description: error.message || "No se pudo subir el documento",
         variant: "destructive",
       });
       throw error;
@@ -96,12 +112,17 @@ export const useChildDocuments = (childId: string) => {
 
   const deleteDocument = async (document: ChildDocument) => {
     try {
+      console.log('Deleting document:', document.id);
+      
       // 1. Eliminar archivo del storage
       const { error: storageError } = await supabase.storage
         .from('child_documents')
         .remove([document.file_path]);
       
-      if (storageError) throw storageError;
+      if (storageError) {
+        console.error('Error removing file from storage:', storageError);
+        throw storageError;
+      }
       
       // 2. Eliminar metadatos de la tabla
       const { error: dbError } = await supabase
@@ -109,16 +130,22 @@ export const useChildDocuments = (childId: string) => {
         .delete()
         .eq('id', document.id);
       
-      if (dbError) throw dbError;
+      if (dbError) {
+        console.error('Error deleting document metadata:', dbError);
+        throw dbError;
+      }
+      
+      console.log('Document deleted successfully');
       
       // 3. Refetch para actualizar la lista
       queryClient.invalidateQueries({ queryKey: [CHILD_DOCUMENTS_QUERY_KEY, childId] });
       
       return { success: true };
     } catch (error: any) {
+      console.error('Error in deleteDocument:', error);
       toast({
         title: "Error al eliminar documento",
-        description: error.message,
+        description: error.message || "No se pudo eliminar el documento",
         variant: "destructive",
       });
       throw error;
@@ -130,6 +157,8 @@ export const useChildDocuments = (childId: string) => {
     queryKey: [CHILD_DOCUMENTS_QUERY_KEY, childId],
     queryFn: fetchDocuments,
     enabled: !!childId,
+    retry: 1,
+    staleTime: 30000, // 30 segundos
   });
 
   // 5. Mutaciones para subir y eliminar
@@ -140,6 +169,7 @@ export const useChildDocuments = (childId: string) => {
         title: "Documento subido",
         description: "El documento se ha subido correctamente",
       });
+      queryClient.invalidateQueries({ queryKey: [CHILD_DOCUMENTS_QUERY_KEY, childId] });
     },
   });
 
@@ -150,6 +180,7 @@ export const useChildDocuments = (childId: string) => {
         title: "Documento eliminado",
         description: "El documento se ha eliminado correctamente",
       });
+      queryClient.invalidateQueries({ queryKey: [CHILD_DOCUMENTS_QUERY_KEY, childId] });
     },
   });
 

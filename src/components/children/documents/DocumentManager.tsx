@@ -1,13 +1,14 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useChildDocuments } from "@/hooks/useChildDocuments";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DocumentUploader } from "./DocumentUploader";
 import { DocumentsList } from "./DocumentsList";
 import { ChildDocument } from "@/types";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Info } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useAuthSession } from "@/hooks/useAuthSession";
+import { useToast } from "@/hooks/use-toast";
 
 interface DocumentManagerProps {
   childId: string;
@@ -18,18 +19,36 @@ export const DocumentManager = ({ childId, childName }: DocumentManagerProps) =>
   // Use optional chaining to prevent the destructuring error
   const sessionData = useAuthSession();
   const session = sessionData?.session;
+  const { toast } = useToast();
+  const [selectedDoc, setSelectedDoc] = useState<ChildDocument | null>(null);
+  
+  // Mostrar logs para debug
+  useEffect(() => {
+    console.log("DocumentManager montado con childId:", childId);
+    console.log("Session:", session);
+  }, [childId, session]);
   
   const { 
     documents, 
     isLoading, 
     isError, 
+    error,
     uploadDocument, 
     isUploading, 
     deleteDocument,
     isDeleting
   } = useChildDocuments(childId);
-  
-  const [selectedDoc, setSelectedDoc] = useState<ChildDocument | null>(null);
+
+  useEffect(() => {
+    if (isError && error) {
+      console.error("Error al cargar documentos:", error);
+      toast({
+        title: "Error al cargar documentos",
+        description: "No se pudieron cargar los documentos del niño",
+        variant: "destructive",
+      });
+    }
+  }, [isError, error, toast]);
 
   if (!session) {
     return (
@@ -52,15 +71,17 @@ export const DocumentManager = ({ childId, childName }: DocumentManagerProps) =>
   }
 
   const handleUpload = (file: File, description: string) => {
+    console.log("Subiendo documento:", file.name);
     uploadDocument({ file, description, childId });
   };
 
   const handleDelete = (document: ChildDocument) => {
+    console.log("Eliminando documento:", document.filename);
     deleteDocument(document);
   };
 
   return (
-    <Card className="mt-6">
+    <Card>
       <CardHeader>
         <CardTitle>Documentos de {childName}</CardTitle>
         <CardDescription>
@@ -72,6 +93,16 @@ export const DocumentManager = ({ childId, childName }: DocumentManagerProps) =>
           onUpload={handleUpload} 
           isUploading={isUploading}
         />
+        
+        {isError && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>
+              Ocurrió un error al cargar los documentos. Por favor, inténtelo de nuevo.
+            </AlertDescription>
+          </Alert>
+        )}
         
         <DocumentsList 
           documents={documents} 
