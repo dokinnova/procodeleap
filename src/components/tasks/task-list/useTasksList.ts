@@ -25,10 +25,11 @@ export const useTasksList = ({ tasks, onTaskSelect, onTasksUpdated }: UseTasksLi
 
   const handleStatusChange = async (task: Task, completed: boolean) => {
     try {
+      const updatedStatus = completed ? 'completed' : 'pending';
       const { error } = await supabase
         .from('tasks')
         .update({ 
-          status: completed ? 'completed' : 'pending',
+          status: updatedStatus,
           completed_at: completed ? new Date().toISOString() : null
         })
         .eq('id', task.id);
