@@ -30,27 +30,27 @@ export const DocumentsList = ({
   const [documentToDelete, setDocumentToDelete] = useState<ChildDocument | null>(null);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
-  const handleDownload = async (document: ChildDocument) => {
+  const handleDownload = async (childDocument: ChildDocument) => {
     try {
-      setDownloadingId(document.id);
+      setDownloadingId(childDocument.id);
       
       const { data, error } = await supabase.storage
         .from('child_documents')
-        .download(document.file_path);
+        .download(childDocument.file_path);
       
       if (error) throw error;
       
       // Crear URL del blob y descargar
       const url = URL.createObjectURL(data);
-      const a = document.createElement('a');
+      const a = window.document.createElement('a');
       a.href = url;
-      a.download = document.filename;
-      document.body.appendChild(a);
+      a.download = childDocument.filename;
+      window.document.body.appendChild(a);
       a.click();
       
       // Limpiar
       URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      window.document.body.removeChild(a);
     } catch (error) {
       console.error('Error al descargar:', error);
     } finally {
@@ -73,13 +73,13 @@ export const DocumentsList = ({
   };
 
   // Función para visualizar documentos (abre en nueva pestaña)
-  const handleView = async (document: ChildDocument) => {
+  const handleView = async (childDocument: ChildDocument) => {
     try {
-      setDownloadingId(document.id);
+      setDownloadingId(childDocument.id);
       
       const { data, error } = await supabase.storage
         .from('child_documents')
-        .createSignedUrl(document.file_path, 60);
+        .createSignedUrl(childDocument.file_path, 60);
       
       if (error) throw error;
       
