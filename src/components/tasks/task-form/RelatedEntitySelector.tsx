@@ -63,9 +63,9 @@ export const RelatedEntitySelector = ({
             <SelectValue placeholder="Seleccionar relación" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Sin relación</SelectItem>
             <SelectItem value="child">Niño</SelectItem>
             <SelectItem value="sponsor">Padrino</SelectItem>
+            <SelectItem value="none">Sin relación</SelectItem>
           </SelectContent>
         </Select>
       </div>

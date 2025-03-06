@@ -27,11 +27,11 @@ export const useTasksList = ({ tasks, onTaskSelect, onTasksUpdated }: UseTasksLi
     try {
       const updatedStatus = completed ? 'completed' : 'pending';
       const { error } = await supabase
-        .from('tasks')
+        .from("tasks" as any)
         .update({ 
           status: updatedStatus,
           completed_at: completed ? new Date().toISOString() : null
-        })
+        } as any)
         .eq('id', task.id);
       
       if (error) throw error;
@@ -57,7 +57,7 @@ export const useTasksList = ({ tasks, onTaskSelect, onTasksUpdated }: UseTasksLi
     
     try {
       const { error } = await supabase
-        .from('tasks')
+        .from("tasks" as any)
         .delete()
         .eq('id', taskToDelete.id);
       

@@ -21,7 +21,7 @@ const Tasks = () => {
         .order("due_date", { ascending: true });
       
       if (error) throw error;
-      return data as Task[];
+      return data as unknown as Task[];
     },
   });
 

@@ -50,8 +50,8 @@ export const useTaskForm = (
       if (task?.id) {
         // Update existing task
         const { error } = await supabase
-          .from("tasks")
-          .update(formData)
+          .from("tasks" as any)
+          .update(formData as any)
           .eq("id", task.id);
         
         if (error) throw error;
@@ -63,8 +63,8 @@ export const useTaskForm = (
       } else {
         // Create new task
         const { error } = await supabase
-          .from("tasks")
-          .insert(formData);
+          .from("tasks" as any)
+          .insert(formData as any);
         
         if (error) throw error;
         
