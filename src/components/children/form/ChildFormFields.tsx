@@ -5,6 +5,7 @@ import { PhotoField } from "./PhotoField";
 import { PersonalInfoFields } from "./PersonalInfoFields";
 import { StatusAndSchoolFields } from "./StatusAndSchoolFields";
 import { StoryField } from "./StoryField";
+import { PriorityField } from "./PriorityField";
 
 interface ChildFormFieldsProps {
   formData: ChildFormData;
@@ -32,6 +33,12 @@ export const ChildFormFields = ({
           status={formData.status}
           schoolId={formData.school_id}
           schools={schools}
+          onInputChange={onInputChange}
+          readOnly={readOnly}
+        />
+        
+        <PriorityField
+          priority={formData.priority}
           onInputChange={onInputChange}
           readOnly={readOnly}
         />

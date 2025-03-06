@@ -17,6 +17,7 @@ export interface ChildFormData {
   grade: string;
   image_url: string | null;
   status: 'assigned' | 'assignable' | 'inactive' | 'pending' | 'baja';
+  priority: 'high' | 'medium' | 'low' | null;
 }
 
 export const useChildForm = (
@@ -33,6 +34,7 @@ export const useChildForm = (
     grade: selectedChild?.grade || "",
     image_url: selectedChild?.image_url || null,
     status: selectedChild?.status || "pending",
+    priority: selectedChild?.priority || null,
   });
 
   // Add an effect to update form data when selectedChild changes
@@ -49,6 +51,7 @@ export const useChildForm = (
         grade: selectedChild.grade || "",
         image_url: selectedChild.image_url || null,
         status: selectedChild.status || "pending",
+        priority: selectedChild.priority || null,
       });
     } else {
       // Reset form when no child is selected
@@ -62,6 +65,7 @@ export const useChildForm = (
         grade: "",
         image_url: null,
         status: "pending",
+        priority: null,
       });
     }
   }, [selectedChild]);
