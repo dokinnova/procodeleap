@@ -58,6 +58,32 @@ export const useAddUser = () => {
             throw error;
           }
         }
+
+        // Send welcome email
+        const { error: emailError } = await supabase.functions.invoke('send-mass-email', {
+          body: {
+            recipients: [{ email, name: email.split('@')[0] }],
+            subject: 'Bienvenido a PROCODELI',
+            content: `
+              <div>
+                <h2>¡Bienvenido a PROCODELI!</h2>
+                <p>Tu cuenta ha sido creada exitosamente con el rol de ${
+                  userRole === 'admin' ? 'administrador' : 
+                  userRole === 'editor' ? 'editor' : 
+                  'visualizador'
+                }.</p>
+                <p>Ya puedes acceder al sistema usando tu email y contraseña.</p>
+                <p>Si tienes alguna pregunta, no dudes en contactar con el administrador del sistema.</p>
+              </div>
+            `
+          }
+        });
+
+        if (emailError) {
+          console.error("Error sending welcome email:", emailError);
+          // Don't throw here, as the user creation was successful
+          toast.error("No se pudo enviar el email de bienvenida, pero el usuario fue creado correctamente");
+        }
         
         // Invalidate queries to force a refresh
         queryClient.invalidateQueries({ queryKey: ["app-users"] });
