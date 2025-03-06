@@ -50,6 +50,10 @@ const handler = async (req: Request): Promise<Response> => {
     // Send emails in parallel
     const emailPromises = recipients.map(async recipient => {
       console.log(`Sending email to ${recipient.email}`);
+      
+      // Use the validated domain address format from Resend documentation
+      // Note: For testing, Resend only allows sending to the account owner's email
+      // or emails on verified domains
       const response = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: {
@@ -57,7 +61,7 @@ const handler = async (req: Request): Promise<Response> => {
           Authorization: `Bearer ${RESEND_API_KEY}`,
         },
         body: JSON.stringify({
-          from: "PROCODELI <onboarding@resend.dev>",
+          from: "onboarding@resend.dev",
           to: [recipient.email],
           subject: subject,
           html: `

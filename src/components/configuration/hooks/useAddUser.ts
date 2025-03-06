@@ -61,16 +61,16 @@ export const useAddUser = () => {
 
         console.log("User created successfully, sending welcome email");
         
-        // Send welcome email
+        // Send welcome email - with administrator rights
+        const adminSessionResponse = await supabase.auth.getSession();
+        if (!adminSessionResponse.data.session) {
+          console.error("No admin session available for sending welcome email");
+          toast.error("No se pudo enviar el email de bienvenida: No hay sesión activa");
+          return { message: "Usuario añadido, pero no se pudo enviar el email de bienvenida." };
+        }
+        
         try {
-          // Get current auth session for API call
-          const { data: sessionData } = await supabase.auth.getSession();
-          
-          if (!sessionData.session) {
-            console.warn("No active session found for API call. Will try admin call");
-          }
-          
-          console.log("Calling send-mass-email function...");
+          console.log("Using admin session for sending email");
           
           const { data: emailData, error: emailError } = await supabase.functions.invoke('send-mass-email', {
             body: {
@@ -89,7 +89,6 @@ export const useAddUser = () => {
                 </div>
               `
             },
-            // Explicitly specify method
             method: 'POST'
           });
 
@@ -100,6 +99,11 @@ export const useAddUser = () => {
           }
 
           console.log("Welcome email sent successfully:", emailData);
+          
+          // If emailData contains a validation error about test emails, show a more helpful message
+          if (emailData?.results?.[0]?.error?.message?.includes("You can only send testing emails to your own email address")) {
+            toast.warning("Usuario creado pero el email de bienvenida solo puede enviarse al propietario de la cuenta Resend durante las pruebas. Configura un dominio verificado en Resend para enviar a cualquier dirección.");
+          }
         } catch (emailErr: any) {
           console.error("Error sending welcome email:", emailErr);
           console.error("Full error object:", JSON.stringify(emailErr));
