@@ -12,6 +12,7 @@ type PermissionsResult = {
   role: UserRole | null;
   isLoading: boolean;
   isError: boolean;
+  checkPermission: (action: 'create' | 'edit' | 'delete') => boolean;
 }
 
 export const useUserPermissions = (): PermissionsResult => {

@@ -21,7 +21,7 @@ export const ChildForm = ({ selectedChild, setSelectedChild }: ChildFormProps) =
   const { formData, handleInputChange, handleSubmit } = useChildForm(selectedChild, setSelectedChild);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { data: schools = [], isError, isLoading, refetch } = useSchoolsQuery();
-  const { checkPermission } = useUserPermissions();
+  const { checkPermission, canCreate, canEdit } = useUserPermissions();
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
