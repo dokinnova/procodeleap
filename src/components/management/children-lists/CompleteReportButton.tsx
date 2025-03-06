@@ -5,6 +5,8 @@ import { useToast } from "@/hooks/use-toast";
 import { jsPDF } from "jspdf";
 import 'jspdf-autotable';
 import { Child } from "@/types";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CompleteReportButtonProps {
   childrenWithoutSponsorship: Child[];
@@ -19,6 +21,20 @@ export const CompleteReportButton = ({
 }: CompleteReportButtonProps) => {
   const { toast } = useToast();
 
+  // Obtener el logo y la configuración del sitio
+  const { data: siteSettings } = useQuery({
+    queryKey: ['site-settings'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('site_settings')
+        .select('*')
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const handlePrintAllLists = async () => {
     toast({
       title: "Generando PDF completo",
@@ -28,21 +44,48 @@ export const CompleteReportButton = ({
     try {
       const doc = new jsPDF();
       
-      // Add title
+      // Añadir logo y nombre de Coprodeli
+      if (siteSettings?.logo_url) {
+        // Convertir la URL del logo a una imagen y añadirla al PDF
+        const img = new Image();
+        img.src = siteSettings.logo_url;
+        
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = reject;
+        });
+        
+        // Añadir logo en la esquina superior izquierda
+        doc.addImage(img, 'PNG', 15, 10, 20, 20);
+        
+        // Añadir nombre de Coprodeli junto al logo
+        doc.setFontSize(16);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Coprodeli', 40, 20);
+        doc.setFont('helvetica', 'normal');
+      } else {
+        // Si no hay logo, solo añadir el nombre
+        doc.setFontSize(16);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Coprodeli', 15, 20);
+        doc.setFont('helvetica', 'normal');
+      }
+      
+      // Add title (ahora centrado horizontalmente pero bajado un poco para dar espacio al logo)
       doc.setFontSize(18);
-      doc.text("Reporte Completo de Apadrinamientos", 105, 15, { align: 'center' });
+      doc.text("Reporte Completo de Apadrinamientos", 105, 35, { align: 'center' });
       
-      // Add date
+      // Add date (bajado también)
       doc.setFontSize(12);
-      doc.text(`Fecha: ${new Date().toLocaleDateString('es-ES')}`, 105, 25, { align: 'center' });
+      doc.text(`Fecha: ${new Date().toLocaleDateString('es-ES')}`, 105, 45, { align: 'center' });
       
-      // Add section title - Niños sin Padrinos
+      // Add section title - Niños sin Padrinos (ajustado hacia abajo)
       doc.setFontSize(14);
       doc.setTextColor(41, 128, 185);
-      doc.text("Niños sin Padrinos", 15, 35);
+      doc.text("Niños sin Padrinos", 15, 55);
       doc.setTextColor(0);
       
-      // Add table - Niños sin Padrinos
+      // Add table - Niños sin Padrinos (ajustado hacia abajo)
       (doc as any).autoTable({
         head: [['Nombre', 'Edad', 'Ubicación', 'Estado']],
         body: childrenWithoutSponsorship.map(child => [
@@ -51,14 +94,14 @@ export const CompleteReportButton = ({
           child.location,
           'Pendiente'
         ]),
-        startY: 40,
+        startY: 60,
         styles: { fontSize: 10, cellPadding: 5 },
         headStyles: { fillColor: [41, 128, 185], textColor: 255 },
         alternateRowStyles: { fillColor: [240, 240, 240] }
       });
       
       // Get the last position
-      const finalY = (doc as any).previousAutoTable.finalY || 40;
+      const finalY = (doc as any).previousAutoTable.finalY || 60;
       
       // Add section title - Niños con Padrinos
       doc.setFontSize(14);

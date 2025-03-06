@@ -2,20 +2,58 @@
 import { jsPDF } from "jspdf";
 import autoTable from 'jspdf-autotable';
 import { Child } from "@/types";
+import { supabase } from "@/integrations/supabase/client";
 
-export const generateChildrenReportPdf = (children: Child[]) => {
+export const generateChildrenReportPdf = async (children: Child[]) => {
   try {
+    // Obtener la configuración del sitio para el logo
+    const { data: siteSettings, error } = await supabase
+      .from('site_settings')
+      .select('*')
+      .single();
+    
+    if (error) {
+      console.error('Error al obtener la configuración del sitio:', error);
+    }
+    
     const doc = new jsPDF();
     
-    // Add title
+    // Añadir logo y nombre de Coprodeli
+    if (siteSettings?.logo_url) {
+      // Convertir la URL del logo a una imagen y añadirla al PDF
+      const img = new Image();
+      img.src = siteSettings.logo_url;
+      
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+      });
+      
+      // Añadir logo en la esquina superior izquierda
+      doc.addImage(img, 'PNG', 15, 10, 20, 20);
+      
+      // Añadir nombre de Coprodeli junto al logo
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Coprodeli', 40, 20);
+      doc.setFont('helvetica', 'normal');
+    } else {
+      // Si no hay logo, solo añadir el nombre
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Coprodeli', 15, 20);
+      doc.setFont('helvetica', 'normal');
+    }
+    
+    // Add title (ajustado hacia abajo para dar espacio al logo)
     doc.setFontSize(18);
-    doc.text("Reporte de Niños", 105, 15, { align: 'center' });
+    doc.text("Reporte de Niños", 105, 35, { align: 'center' });
     
-    // Add date
+    // Add date (ajustado hacia abajo)
     doc.setFontSize(12);
-    doc.text(`Fecha: ${new Date().toLocaleDateString('es-ES')}`, 105, 25, { align: 'center' });
+    doc.text(`Fecha: ${new Date().toLocaleDateString('es-ES')}`, 105, 45, { align: 'center' });
     
-    // Add table using autoTable directly
+    // Add table using autoTable directly (ajustado hacia abajo)
     autoTable(doc, {
       head: [['ID', 'Nombre', 'Edad', 'Ubicación', 'Escuela']],
       body: children.map(child => [
@@ -25,7 +63,7 @@ export const generateChildrenReportPdf = (children: Child[]) => {
         child.location,
         child.schools?.name || 'No asignada'
       ]),
-      startY: 35,
+      startY: 55,
       styles: { fontSize: 8, cellPadding: 4 }, // Reducir tamaño de fuente y padding
       headStyles: { fillColor: [41, 128, 185], textColor: 255, fontSize: 9 }, // Encabezado un poco más grande
       alternateRowStyles: { fillColor: [240, 240, 240] }

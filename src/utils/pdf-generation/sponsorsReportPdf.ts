@@ -2,7 +2,7 @@
 import { jsPDF } from "jspdf";
 import autoTable from 'jspdf-autotable';
 import { Sponsor } from "@/types";
-import { Toast } from "@/components/ui/toast";
+import { supabase } from "@/integrations/supabase/client";
 
 type ToastFunction = (props: any) => { id: string; dismiss: () => void; update: (props: any) => void };
 
@@ -13,17 +13,54 @@ export const generateSponsorsPdf = async (sponsors: Sponsor[], toast: ToastFunct
   });
 
   try {
+    // Obtener la configuración del sitio para el logo
+    const { data: siteSettings, error } = await supabase
+      .from('site_settings')
+      .select('*')
+      .single();
+    
+    if (error) {
+      console.error('Error al obtener la configuración del sitio:', error);
+    }
+    
     const doc = new jsPDF();
     
-    // Add title
+    // Añadir logo y nombre de Coprodeli
+    if (siteSettings?.logo_url) {
+      // Convertir la URL del logo a una imagen y añadirla al PDF
+      const img = new Image();
+      img.src = siteSettings.logo_url;
+      
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+      });
+      
+      // Añadir logo en la esquina superior izquierda
+      doc.addImage(img, 'PNG', 15, 10, 20, 20);
+      
+      // Añadir nombre de Coprodeli junto al logo
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Coprodeli', 40, 20);
+      doc.setFont('helvetica', 'normal');
+    } else {
+      // Si no hay logo, solo añadir el nombre
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Coprodeli', 15, 20);
+      doc.setFont('helvetica', 'normal');
+    }
+    
+    // Add title (ajustado hacia abajo para dar espacio al logo)
     doc.setFontSize(18);
-    doc.text("Listado de Padrinos", 105, 15, { align: 'center' });
+    doc.text("Listado de Padrinos", 105, 35, { align: 'center' });
     
-    // Add date
+    // Add date (ajustado hacia abajo)
     doc.setFontSize(12);
-    doc.text(`Fecha: ${new Date().toLocaleDateString('es-ES')}`, 105, 25, { align: 'center' });
+    doc.text(`Fecha: ${new Date().toLocaleDateString('es-ES')}`, 105, 45, { align: 'center' });
     
-    // Use autoTable directly
+    // Use autoTable directly (ajustado hacia abajo)
     autoTable(doc, {
       head: [['Nombre', 'Email', 'Teléfono', 'Contribución', 'Estado']],
       body: sponsors.map(sponsor => [
@@ -38,7 +75,7 @@ export const generateSponsorsPdf = async (sponsors: Sponsor[], toast: ToastFunct
         sponsor.status === 'inactive' ? 'Inactivo' : 
         sponsor.status === 'pending' ? 'Pendiente' : sponsor.status
       ]),
-      startY: 35,
+      startY: 55,
       styles: { fontSize: 10, cellPadding: 5 },
       headStyles: { fillColor: [41, 128, 185], textColor: 255 },
       alternateRowStyles: { fillColor: [240, 240, 240] }
