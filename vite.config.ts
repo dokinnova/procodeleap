@@ -13,9 +13,12 @@ let currentVersion = '1.0.0';
 try {
   if (fs.existsSync(versionFile)) {
     currentVersion = fs.readFileSync(versionFile, 'utf-8').trim();
+  } else {
+    // Create initial version file if it doesn't exist
+    fs.writeFileSync(versionFile, currentVersion);
   }
 } catch (error) {
-  console.warn('Error reading version file:', error);
+  console.warn('Error reading/writing version file:', error);
 }
 
 // Increment patch version for builds
@@ -23,18 +26,28 @@ const incrementVersion = () => {
   const parts = currentVersion.split('.').map(Number);
   parts[2] += 1;
   const newVersion = parts.join('.');
-  fs.writeFileSync(versionFile, newVersion);
-  console.log(`🔖 App version incremented to ${newVersion}`);
-  return newVersion;
+  try {
+    fs.writeFileSync(versionFile, newVersion);
+    console.log(`🔖 App version incremented to ${newVersion}`);
+    return newVersion;
+  } catch (error) {
+    console.error('Error writing version file:', error);
+    return currentVersion;
+  }
 };
 
 // Ensure the version is available to the app
 const updateVersionEnv = () => {
   const nextVersion = incrementVersion();
-  fs.writeFileSync(
-    path.resolve(__dirname, 'src/version.ts'),
-    `export const APP_VERSION = '${nextVersion}';\n`
-  );
+  try {
+    fs.writeFileSync(
+      path.resolve(__dirname, 'src/version.ts'),
+      `// This file is auto-generated during builds\nexport const APP_VERSION = '${nextVersion}';\n`
+    );
+    console.log('✨ Version file updated successfully');
+  } catch (error) {
+    console.error('Error updating version.ts:', error);
+  }
 };
 
 // https://vitejs.dev/config/
