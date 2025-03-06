@@ -64,17 +64,17 @@ const BusinessIntelligence = () => {
       </div>
 
       <Tabs defaultValue="general" value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-3 mb-4">
-          <TabsTrigger value="general">
-            <PieChart className="h-4 w-4 mr-2" />
+        <TabsList className="grid grid-cols-3 mb-6 w-full">
+          <TabsTrigger value="general" className="flex items-center gap-2 text-base font-medium transition-all">
+            <PieChart className="h-5 w-5" />
             General
           </TabsTrigger>
-          <TabsTrigger value="children">
-            <BarChart className="h-4 w-4 mr-2" />
+          <TabsTrigger value="children" className="flex items-center gap-2 text-base font-medium transition-all">
+            <BarChart className="h-5 w-5" />
             Niños
           </TabsTrigger>
-          <TabsTrigger value="sponsors">
-            <LineChart className="h-4 w-4 mr-2" />
+          <TabsTrigger value="sponsors" className="flex items-center gap-2 text-base font-medium transition-all">
+            <LineChart className="h-5 w-5" />
             Padrinos
           </TabsTrigger>
         </TabsList>
