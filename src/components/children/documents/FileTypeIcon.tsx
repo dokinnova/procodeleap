@@ -2,13 +2,13 @@
 import { 
   FileIcon, 
   FileImageIcon, 
-  FilePdfIcon, 
   FileTextIcon, 
   FileSpreadsheetIcon,
   FileArchiveIcon,
   FileAudioIcon,
   FileVideoIcon,
-  FileCodeIcon
+  FileCodeIcon,
+  FilePdf
 } from "lucide-react";
 
 interface FileTypeIconProps {
@@ -20,7 +20,7 @@ export const FileTypeIcon = ({ fileType }: FileTypeIconProps) => {
   if (fileType.includes('image')) {
     return <FileImageIcon className="h-4 w-4 text-blue-500" />;
   } else if (fileType.includes('pdf')) {
-    return <FilePdfIcon className="h-4 w-4 text-red-500" />;
+    return <FilePdf className="h-4 w-4 text-red-500" />;
   } else if (fileType.includes('word') || fileType.includes('document') || fileType.includes('text/')) {
     return <FileTextIcon className="h-4 w-4 text-indigo-500" />;
   } else if (fileType.includes('excel') || fileType.includes('sheet') || fileType.includes('csv')) {
