@@ -44,7 +44,7 @@ export const ChildFormFields = ({
         />
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-6 flex flex-col">
         <PersonalInfoFields
           name={formData.name}
           birthDate={formData.birth_date}
@@ -55,11 +55,13 @@ export const ChildFormFields = ({
           readOnly={readOnly}
         />
 
-        <StoryField
-          story={formData.story}
-          onInputChange={onInputChange}
-          readOnly={readOnly}
-        />
+        <div className="flex-grow max-h-[400px]">
+          <StoryField
+            story={formData.story}
+            onInputChange={onInputChange}
+            readOnly={readOnly}
+          />
+        </div>
       </div>
     </div>
   );
