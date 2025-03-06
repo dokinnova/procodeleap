@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -49,6 +48,22 @@ export const AppUsersTable = () => {
       return data.session;
     },
   });
+
+  // Efecto para actualizar authUsers cuando tenemos el usuario de sesión actual
+  useEffect(() => {
+    if (sessionData?.user) {
+      const currentUser = sessionData.user;
+      setAuthUsers(prevAuthUsers => ({
+        ...prevAuthUsers,
+        [currentUser.id]: {
+          id: currentUser.id,
+          email: currentUser.email || '',
+          last_sign_in_at: currentUser.last_sign_in_at || new Date().toISOString(),
+          created_at: currentUser.created_at || new Date().toISOString()
+        }
+      }));
+    }
+  }, [sessionData]);
 
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: string) => {

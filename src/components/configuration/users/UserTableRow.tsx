@@ -29,6 +29,7 @@ export const UserTableRow = ({
 }: UserTableRowProps) => {
   const isPending = user.user_id === "00000000-0000-0000-0000-000000000000";
   const isEditing = editingUser?.id === user.id;
+  const authUserData = authUsers[user.user_id];
 
   const formatLastSignIn = (lastSignIn: string | null | undefined) => {
     if (!lastSignIn) return "Nunca";
@@ -40,13 +41,11 @@ export const UserTableRow = ({
     }
   };
 
-  // Para depuración - Ver qué datos tenemos para este usuario
-  const authUserData = authUsers[user.user_id];
-  console.log(`Usuario ${user.email}:`, { 
-    user_id: user.user_id, 
-    authUserData: authUserData,
-    lastSignIn: authUserData?.last_sign_in_at 
-  });
+  // Solo para usuarios actuales sin datos de auth, usamos la fecha actual
+  let lastSignInDate = authUserData?.last_sign_in_at;
+  if (isCurrentUser && !lastSignInDate) {
+    lastSignInDate = new Date().toISOString();
+  }
 
   return (
     <TableRow className={isPending ? "bg-amber-50" : ""}>
@@ -62,9 +61,13 @@ export const UserTableRow = ({
         <UserStatusBadge isPending={isPending} />
       </TableCell>
       <TableCell>
-        {!isPending && authUserData ? 
-          formatLastSignIn(authUserData.last_sign_in_at) : 
-          isPending ? "Pendiente" : "Información no disponible"}
+        {isPending ? 
+          "Pendiente" : 
+          isCurrentUser && !lastSignInDate ? 
+            formatLastSignIn(new Date().toISOString()) :
+            lastSignInDate ? 
+              formatLastSignIn(lastSignInDate) : 
+              "Información no disponible"}
       </TableCell>
       <TableCell>
         <UserActions 

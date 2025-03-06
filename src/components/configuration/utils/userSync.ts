@@ -83,6 +83,22 @@ export const syncUsers = async (
           }
         }
       }
+
+      // Actualizar información de última autenticación para el usuario actual
+      // Esto garantiza que siempre tengamos al menos la información del usuario actual
+      if (currentUser.id) {
+        const userInfo: AuthUserInfo = {
+          id: currentUser.id,
+          email: currentUser.email || '',
+          last_sign_in_at: currentUser.last_sign_in_at || new Date().toISOString(),
+          created_at: currentUser.created_at || new Date().toISOString()
+        };
+        
+        setAuthUsers(prevUsers => ({
+          ...prevUsers,
+          [currentUser.id]: userInfo
+        }));
+      }
     }
 
     // Sincronizar registros existentes que tengan email pero con user_id temporal
@@ -126,6 +142,22 @@ export const syncUsers = async (
     } catch (authError) {
       console.warn("No se pudo acceder a la información de auth.users:", authError);
       // Esto es normal si el usuario no tiene permisos de administrador
+      
+      // En este caso, obtenemos al menos la información del usuario actual
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const currentUser = session.user;
+        const userMap: Record<string, AuthUserInfo> = {};
+        
+        userMap[currentUser.id] = {
+          id: currentUser.id,
+          email: currentUser.email || '',
+          last_sign_in_at: currentUser.last_sign_in_at || new Date().toISOString(),
+          created_at: currentUser.created_at || new Date().toISOString()
+        };
+        
+        setAuthUsers(userMap);
+      }
     }
 
     // Refrescar la consulta para mostrar los cambios
