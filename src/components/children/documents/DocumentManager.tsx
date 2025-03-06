@@ -15,7 +15,10 @@ interface DocumentManagerProps {
 }
 
 export const DocumentManager = ({ childId, childName }: DocumentManagerProps) => {
-  const { session } = useAuthSession();
+  // Use optional chaining to prevent the destructuring error
+  const sessionData = useAuthSession();
+  const session = sessionData?.session;
+  
   const { 
     documents, 
     isLoading, 
