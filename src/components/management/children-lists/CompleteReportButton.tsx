@@ -46,7 +46,7 @@ export const CompleteReportButton = ({
       
       // Añadir banda gris en la parte superior (color más oscuro)
       doc.setFillColor(64, 62, 67); // Color gris más oscuro (#403E43)
-      doc.rect(0, 0, doc.internal.pageSize.width, 35, 'F');
+      doc.rect(0, 0, doc.internal.pageSize.width, 40, 'F'); // Aumentar la altura para incluir el título
       
       // Añadir logo y nombre de Coprodeli
       if (siteSettings?.logo_url) {
@@ -67,30 +67,32 @@ export const CompleteReportButton = ({
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(255, 255, 255); // Color blanco
         doc.text('Coprodeli', 40, 20);
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(0); // Restaurar color de texto a negro para el resto del documento
       } else {
         // Si no hay logo, solo añadir el nombre
         doc.setFontSize(16);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(255, 255, 255); // Color blanco
         doc.text('Coprodeli', 15, 20);
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(0); // Restaurar color de texto a negro para el resto del documento
       }
       
-      // Add title (ahora centrado horizontalmente pero bajado un poco para dar espacio al logo)
+      // Añadir título dentro de la banda gris (color blanco)
       doc.setFontSize(18);
-      doc.text("Reporte Completo de Apadrinamientos", 105, 35, { align: 'center' });
+      doc.setTextColor(255, 255, 255); // Color blanco
+      doc.text("Reporte Completo de Apadrinamientos", 105, 28, { align: 'center' });
       
-      // Add date (bajado también)
-      doc.setFontSize(12);
-      doc.text(`Fecha: ${new Date().toLocaleDateString('es-ES')}`, 105, 45, { align: 'center' });
+      // Añadir fecha (también en blanco dentro de la banda gris)
+      doc.setFontSize(10);
+      doc.setTextColor(255, 255, 255); // Color blanco
+      doc.text(`Fecha: ${new Date().toLocaleDateString('es-ES')}`, 195, 18, { align: 'right' });
+      
+      // Restaurar color de texto a negro para el resto del documento
+      doc.setTextColor(0);
+      doc.setFont('helvetica', 'normal');
       
       // Add section title - Niños sin Padrinos (ajustado hacia abajo)
       doc.setFontSize(14);
       doc.setTextColor(41, 128, 185);
-      doc.text("Niños sin Padrinos", 15, 55);
+      doc.text("Niños sin Padrinos", 15, 50);
       doc.setTextColor(0);
       
       // Add table - Niños sin Padrinos (ajustado hacia abajo)
@@ -102,7 +104,7 @@ export const CompleteReportButton = ({
           child.location,
           'Pendiente'
         ]),
-        startY: 60,
+        startY: 55,
         styles: { fontSize: 10, cellPadding: 5 },
         headStyles: { fillColor: [41, 128, 185], textColor: 255 },
         alternateRowStyles: { fillColor: [240, 240, 240] }

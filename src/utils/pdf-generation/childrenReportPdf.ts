@@ -20,7 +20,7 @@ export const generateChildrenReportPdf = async (children: Child[]) => {
     
     // Añadir banda gris en la parte superior (color más oscuro)
     doc.setFillColor(64, 62, 67); // Color gris más oscuro (#403E43)
-    doc.rect(0, 0, doc.internal.pageSize.width, 35, 'F');
+    doc.rect(0, 0, doc.internal.pageSize.width, 40, 'F'); // Aumentar la altura para incluir el título
     
     // Añadir logo y nombre de Coprodeli
     if (siteSettings?.logo_url) {
@@ -41,25 +41,27 @@ export const generateChildrenReportPdf = async (children: Child[]) => {
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(255, 255, 255); // Color blanco
       doc.text('Coprodeli', 40, 20);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(0); // Restaurar color de texto a negro para el resto del documento
     } else {
       // Si no hay logo, solo añadir el nombre
       doc.setFontSize(16);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(255, 255, 255); // Color blanco
       doc.text('Coprodeli', 15, 20);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(0); // Restaurar color de texto a negro para el resto del documento
     }
     
-    // Add title (ajustado hacia abajo para dar espacio al logo)
+    // Añadir título dentro de la banda gris (color blanco)
     doc.setFontSize(18);
-    doc.text("Reporte de Niños", 105, 35, { align: 'center' });
+    doc.setTextColor(255, 255, 255); // Color blanco
+    doc.text("Reporte de Niños", 105, 28, { align: 'center' });
     
-    // Add date (ajustado hacia abajo)
-    doc.setFontSize(12);
-    doc.text(`Fecha: ${new Date().toLocaleDateString('es-ES')}`, 105, 45, { align: 'center' });
+    // Añadir fecha (también en blanco dentro de la banda gris)
+    doc.setFontSize(10);
+    doc.setTextColor(255, 255, 255); // Color blanco
+    doc.text(`Fecha: ${new Date().toLocaleDateString('es-ES')}`, 195, 18, { align: 'right' });
+    
+    // Restaurar color de texto a negro para el resto del documento
+    doc.setTextColor(0);
+    doc.setFont('helvetica', 'normal');
     
     // Add table using autoTable directly (ajustado hacia abajo)
     autoTable(doc, {
@@ -71,7 +73,7 @@ export const generateChildrenReportPdf = async (children: Child[]) => {
         child.location,
         child.schools?.name || 'No asignada'
       ]),
-      startY: 55,
+      startY: 50, // Ajustar posición inicial para dar espacio
       styles: { fontSize: 8, cellPadding: 4 }, // Reducir tamaño de fuente y padding
       headStyles: { fillColor: [41, 128, 185], textColor: 255, fontSize: 9 }, // Encabezado un poco más grande
       alternateRowStyles: { fillColor: [240, 240, 240] }
