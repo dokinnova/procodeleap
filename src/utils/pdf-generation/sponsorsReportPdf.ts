@@ -2,9 +2,11 @@
 import { jsPDF } from "jspdf";
 import autoTable from 'jspdf-autotable';
 import { Sponsor } from "@/types";
-import { useToast } from "@/hooks/use-toast";
+import { Toast } from "@/components/ui/toast";
 
-export const generateSponsorsPdf = async (sponsors: Sponsor[], toast: ReturnType<typeof useToast>) => {
+type ToastFunction = (props: any) => { id: string; dismiss: () => void; update: (props: any) => void };
+
+export const generateSponsorsPdf = async (sponsors: Sponsor[], toast: ToastFunction) => {
   toast({
     title: "Generando PDF",
     description: "Espere mientras se genera el documento...",
