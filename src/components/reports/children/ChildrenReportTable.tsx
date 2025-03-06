@@ -21,6 +21,9 @@ export const ChildrenReportTable = ({ filteredChildren }: ChildrenReportTablePro
         <TableHeader className="bg-gray-50">
           <TableRow>
             <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              ID
+            </TableHead>
+            <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Nombre
             </TableHead>
             <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -41,6 +44,9 @@ export const ChildrenReportTable = ({ filteredChildren }: ChildrenReportTablePro
               onClick={() => handleChildClick(child)}
               className="hover:bg-gray-50 cursor-pointer transition-colors duration-150"
             >
+              <TableCell className="px-6 py-4 whitespace-nowrap font-mono text-xs">
+                {child.id.substring(0, 8)}
+              </TableCell>
               <TableCell className="px-6 py-4 whitespace-nowrap">{child.name}</TableCell>
               <TableCell className="px-6 py-4 whitespace-nowrap">{child.age} años</TableCell>
               <TableCell className="px-6 py-4 whitespace-nowrap">{child.location}</TableCell>
@@ -51,7 +57,7 @@ export const ChildrenReportTable = ({ filteredChildren }: ChildrenReportTablePro
           ))}
           {filteredChildren.length === 0 && (
             <TableRow>
-              <TableCell colSpan={4} className="px-6 py-4 text-center text-gray-500">
+              <TableCell colSpan={5} className="px-6 py-4 text-center text-gray-500">
                 No se encontraron niños
               </TableCell>
             </TableRow>

@@ -25,16 +25,17 @@ export const PrintableChildrenList = ({ children }: PrintableChildrenListProps) 
       
       // Add table using autoTable directly
       autoTable(doc, {
-        head: [['Nombre', 'Edad', 'Ubicación', 'Escuela']],
+        head: [['ID', 'Nombre', 'Edad', 'Ubicación', 'Escuela']],
         body: children.map(child => [
+          child.id.substring(0, 8),
           child.name,
           `${child.age} años`,
           child.location,
           child.school_id || 'No asignada'
         ]),
         startY: 35,
-        styles: { fontSize: 10, cellPadding: 5 },
-        headStyles: { fillColor: [41, 128, 185], textColor: 255 },
+        styles: { fontSize: 8, cellPadding: 4 },
+        headStyles: { fillColor: [41, 128, 185], textColor: 255, fontSize: 9 },
         alternateRowStyles: { fillColor: [240, 240, 240] }
       });
       

@@ -17,24 +17,26 @@ export const ChildrenPrintableView = ({ filteredChildren }: ChildrenPrintableVie
         <table className="w-full border-collapse">
           <thead>
             <tr className="border-b-2 border-gray-800">
-              <th className="py-2 text-left font-bold">Nombre</th>
-              <th className="py-2 text-left font-bold">Edad</th>
-              <th className="py-2 text-left font-bold">Ubicación</th>
-              <th className="py-2 text-left font-bold">Escuela</th>
+              <th className="py-2 text-left font-bold text-xs">ID</th>
+              <th className="py-2 text-left font-bold text-xs">Nombre</th>
+              <th className="py-2 text-left font-bold text-xs">Edad</th>
+              <th className="py-2 text-left font-bold text-xs">Ubicación</th>
+              <th className="py-2 text-left font-bold text-xs">Escuela</th>
             </tr>
           </thead>
           <tbody>
             {filteredChildren.map((child) => (
               <tr key={child.id} className="border-b border-gray-300">
-                <td className="py-2">{child.name}</td>
-                <td className="py-2">{child.age} años</td>
-                <td className="py-2">{child.location}</td>
-                <td className="py-2">{child.schools?.name || 'No asignada'}</td>
+                <td className="py-2 text-xs font-mono">{child.id.substring(0, 8)}</td>
+                <td className="py-2 text-xs">{child.name}</td>
+                <td className="py-2 text-xs">{child.age} años</td>
+                <td className="py-2 text-xs">{child.location}</td>
+                <td className="py-2 text-xs">{child.schools?.name || 'No asignada'}</td>
               </tr>
             ))}
             {filteredChildren.length === 0 && (
               <tr>
-                <td colSpan={4} className="text-center py-8 text-gray-500">
+                <td colSpan={5} className="text-center py-8 text-gray-500 text-xs">
                   No se encontraron niños
                 </td>
               </tr>

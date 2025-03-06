@@ -17,16 +17,17 @@ export const generateChildrenReportPdf = (children: Child[]) => {
     
     // Add table using autoTable directly
     autoTable(doc, {
-      head: [['Nombre', 'Edad', 'Ubicación', 'Escuela']],
+      head: [['ID', 'Nombre', 'Edad', 'Ubicación', 'Escuela']],
       body: children.map(child => [
+        child.id.substring(0, 8), // Mostrar solo los primeros 8 caracteres del ID
         child.name,
         `${child.age} años`,
         child.location,
         child.schools?.name || 'No asignada'
       ]),
       startY: 35,
-      styles: { fontSize: 10, cellPadding: 5 },
-      headStyles: { fillColor: [41, 128, 185], textColor: 255 },
+      styles: { fontSize: 8, cellPadding: 4 }, // Reducir tamaño de fuente y padding
+      headStyles: { fillColor: [41, 128, 185], textColor: 255, fontSize: 9 }, // Encabezado un poco más grande
       alternateRowStyles: { fillColor: [240, 240, 240] }
     });
     
