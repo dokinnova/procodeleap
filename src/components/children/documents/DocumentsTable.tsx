@@ -6,6 +6,7 @@ import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { FileTypeIcon } from "./FileTypeIcon";
 import { DocumentActions } from "./DocumentActions";
+import { Badge } from "@/components/ui/badge";
 
 interface DocumentsTableProps {
   documents: ChildDocument[];
@@ -21,23 +22,25 @@ export const DocumentsTable = ({
   deletingId
 }: DocumentsTableProps) => {
   return (
-    <div className="rounded-md border">
+    <div className="rounded-md border overflow-hidden">
       <Table>
-        <TableHeader>
+        <TableHeader className="bg-gray-50">
           <TableRow>
-            <TableHead>Nombre</TableHead>
-            <TableHead>Descripción</TableHead>
-            <TableHead>Tamaño</TableHead>
-            <TableHead>Fecha</TableHead>
-            <TableHead className="text-right">Acciones</TableHead>
+            <TableHead className="font-semibold">Nombre</TableHead>
+            <TableHead className="font-semibold">Descripción</TableHead>
+            <TableHead className="font-semibold">Tamaño</TableHead>
+            <TableHead className="font-semibold">Fecha</TableHead>
+            <TableHead className="text-right font-semibold">Acciones</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {documents.map((document) => (
-            <TableRow key={document.id}>
+            <TableRow key={document.id} className="hover:bg-gray-50">
               <TableCell className="font-medium">
                 <div className="flex items-center space-x-2">
-                  <FileTypeIcon fileType={document.file_type} />
+                  <div className="bg-gray-100 p-1.5 rounded">
+                    <FileTypeIcon fileType={document.file_type} />
+                  </div>
                   <span className="max-w-[200px] truncate" title={document.filename}>
                     {document.filename}
                   </span>
@@ -48,7 +51,11 @@ export const DocumentsTable = ({
                   {document.description || '-'}
                 </span>
               </TableCell>
-              <TableCell>{formatFileSize(document.file_size)}</TableCell>
+              <TableCell>
+                <Badge variant="outline" className="font-normal">
+                  {formatFileSize(document.file_size)}
+                </Badge>
+              </TableCell>
               <TableCell>
                 {formatDistanceToNow(new Date(document.created_at), { 
                   addSuffix: true,
