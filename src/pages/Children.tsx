@@ -51,18 +51,22 @@ const Children = () => {
         />
 
         {selectedChild && (
-          <DocumentManager 
-            childId={selectedChild.id}
-            childName={selectedChild.name}
-          />
+          <div className="mt-8">
+            <DocumentManager 
+              childId={selectedChild.id}
+              childName={selectedChild.name}
+            />
+          </div>
         )}
 
-        <ChildrenTable 
-          children={children}
-          search={search}
-          setSearch={setSearch}
-          setSelectedChild={handleChildSelect}
-        />
+        <div className="mt-8">
+          <ChildrenTable 
+            children={children}
+            search={search}
+            setSearch={setSearch}
+            setSelectedChild={handleChildSelect}
+          />
+        </div>
       </div>
 
       <PrintableChildrenList children={children} />
