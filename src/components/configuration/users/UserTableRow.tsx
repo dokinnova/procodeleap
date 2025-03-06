@@ -54,8 +54,11 @@ export const UserTableRow = ({
     lastSignInDate = new Date().toISOString();
   }
 
+  // Determine if the user is registered but has never logged in
+  const isRegisteredButNotLoggedIn = !isPending && (!lastSignInDate || lastSignInDate === user.created_at);
+
   return (
-    <TableRow className={isPending ? "bg-amber-50" : ""}>
+    <TableRow className={isPending || isRegisteredButNotLoggedIn ? "bg-amber-50" : ""}>
       <TableCell>{user.email}</TableCell>
       <TableCell>
         <UserRoleEditor 
@@ -65,7 +68,10 @@ export const UserTableRow = ({
         />
       </TableCell>
       <TableCell>
-        <UserStatusBadge isPending={isPending} />
+        <UserStatusBadge 
+          isPending={isPending} 
+          isRegisteredButNotLoggedIn={isRegisteredButNotLoggedIn}
+        />
       </TableCell>
       <TableCell>
         {isPending ? 
