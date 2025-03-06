@@ -13,7 +13,7 @@ export const UserStatusBadge = ({
 }: UserStatusBadgeProps) => {
   if (isPending) {
     return (
-      <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 flex items-center gap-1">
+      <Badge variant="outline" className="bg-red-100 text-red-800 border-red-300 flex items-center gap-1">
         <Clock className="h-3 w-3" />
         Pendiente
       </Badge>

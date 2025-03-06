@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -164,15 +163,12 @@ export const AppUsersTable = () => {
     return <div>Loading users...</div>;
   }
 
-  // Separate synchronized and pending users
-  const pendingUsers = appUsers?.filter(user => user.user_id === "00000000-0000-0000-0000-000000000000") || [];
-  const syncedUsers = appUsers?.filter(user => user.user_id !== "00000000-0000-0000-0000-000000000000") || [];
-
+  // Display all users, including pending ones
   return (
     <div className="space-y-4">
       <UserStats 
         users={appUsers}
-        pendingUsers={pendingUsers}
+        pendingUsers={appUsers?.filter(user => user.user_id === "00000000-0000-0000-0000-000000000000") || []}
         isSyncing={isSyncing}
         onSyncClick={handleManualSync}
       />

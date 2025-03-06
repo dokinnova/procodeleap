@@ -18,7 +18,7 @@ export const useAddUser = () => {
   
   const addUserMutation = useMutation({
     mutationFn: async ({ email, password, userRole }: AddUserParams) => {
-      // Primero verificamos si el usuario ya existe en app_users
+      // First check if the user already exists in app_users
       const { data: existingAppUser, error: appUserError } = await supabase
         .from("app_users")
         .select("*")
@@ -30,7 +30,7 @@ export const useAddUser = () => {
       }
 
       try {
-        // Intentamos crear un nuevo usuario en Auth
+        // Try to create a new user in Auth
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -40,46 +40,39 @@ export const useAddUser = () => {
         });
 
         if (error) {
-          // Si es un error de usuario ya existente, intentamos añadirlo a app_users directamente
+          // If it's a user already exists error, try to add them to app_users directly
           if (error.message.includes("User already registered")) {
-            // Intentamos buscar si algún usuario con esa dirección de correo se ha autenticado antes
-            // y ya está en la tabla auth.users
-            try {
-              // Para los usuarios que ya existen en Auth pero no tienen entrada en app_users
-              // Usamos un valor temporal para user_id que se actualizará después
-              const tempUserId = '00000000-0000-0000-0000-000000000000';
-              
-              // Añadimos el usuario a app_users con un user_id temporal
-              const { error: insertError } = await supabase
-                .from("app_users")
-                .insert({
-                  email: email.toLowerCase(),
-                  role: userRole,
-                  user_id: tempUserId
-                });
+            // For users that already exist in Auth but not in app_users
+            // Use a temporary value for user_id that will be updated later
+            const tempUserId = '00000000-0000-0000-0000-000000000000';
+            
+            // Add the user to app_users with a temporary user_id
+            const { error: insertError } = await supabase
+              .from("app_users")
+              .insert({
+                email: email.toLowerCase(),
+                role: userRole,
+                user_id: tempUserId
+              });
 
-              if (insertError) {
-                console.error("Error al insertar usuario en app_users:", insertError);
-                if (insertError.message.includes("violates foreign key constraint")) {
-                  return { message: "Usuario añadido. Pendiente de confirmación." };
-                }
-                throw insertError;
+            if (insertError) {
+              console.error("Error inserting user in app_users:", insertError);
+              if (insertError.message.includes("violates foreign key constraint")) {
+                return { message: "Usuario añadido. Pendiente de confirmación." };
               }
-              
-              return { 
-                message: "Usuario añadido. Estado: Pendiente de confirmación." 
-              };
-            } catch (err) {
-              console.error("Error al comprobar usuario existente:", err);
-              throw new Error("Error al procesar usuario existente");
+              throw insertError;
             }
+            
+            return { 
+              message: "Usuario añadido. Estado: Pendiente de confirmación." 
+            };
           } else {
             throw error;
           }
         }
         
-        // Si llegamos aquí, el usuario se creó exitosamente
-        // Creamos el registro en app_users solo si tenemos un user.id válido
+        // If we reach here, the user was created successfully
+        // Create the record in app_users only if we have a valid user.id
         if (data?.user?.id) {
           const { error: userError } = await supabase
             .from("app_users")
@@ -90,9 +83,9 @@ export const useAddUser = () => {
             });
 
           if (userError) {
-            console.error("Error al insertar usuario en app_users:", userError);
-            // Si falla la inserción en app_users, devolvemos un mensaje pero no lanzamos error
-            // ya que el usuario ya se creó en Auth
+            console.error("Error inserting user in app_users:", userError);
+            // If inserting into app_users fails, return a message but don't throw an error
+            // since the user was already created in Auth
             return { 
               message: "Usuario creado en Auth pero no se pudo añadir a app_users. Se sincronizará cuando inicie sesión." 
             };
@@ -101,7 +94,7 @@ export const useAddUser = () => {
         
         return data as AddUserResult;
       } catch (error: any) {
-        console.error("Error en el proceso de registro:", error);
+        console.error("Error in registration process:", error);
         throw error;
       }
     },
