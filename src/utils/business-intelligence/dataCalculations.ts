@@ -21,7 +21,7 @@ export const calculateChildrenStatusDistribution = (childrenData: any[] | undefi
 
   return Object.entries(distribucion).map(([name, value]) => ({ 
     name, 
-    value: value as number 
+    value: Number(value) 
   }));
 };
 
@@ -59,7 +59,7 @@ export const calculateSponsorshipsByMonth = (sponsorshipsData: any[] | undefined
   return Object.entries(sponsorshipsByMonth)
     .map(([name, value]) => ({ 
       name, 
-      value: value as number 
+      value: Number(value) 
     }))
     .sort((a, b) => {
       const [mesA, añoA] = a.name.split('/');
