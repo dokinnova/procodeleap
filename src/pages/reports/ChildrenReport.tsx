@@ -7,9 +7,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Printer } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { CHILDREN_QUERY_KEY } from "@/hooks/useChildrenData";
+import generatePdf from "react-to-pdf";
 
 const ChildrenReport = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -72,6 +73,48 @@ const ChildrenReport = () => {
     navigate('/children', { state: { selectedChild: child } });
   };
 
+  const handleGeneratePdf = async () => {
+    toast({
+      title: "Generando PDF",
+      description: "Espere mientras se genera el documento...",
+    });
+
+    const options = {
+      filename: `reporte-ninos-${new Date().toISOString().split('T')[0]}.pdf`,
+      page: {
+        margin: 20,
+        format: 'a4',
+      },
+      overrides: {
+        pdf: {
+          compress: true
+        },
+        canvas: {
+          useCORS: true
+        }
+      }
+    };
+
+    try {
+      const targetElement = document.getElementById('children-report-printable');
+      if (targetElement) {
+        await generatePdf(() => targetElement, options);
+        toast({
+          title: "PDF generado correctamente",
+          description: "El documento se ha descargado",
+          variant: "default",
+        });
+      }
+    } catch (error) {
+      console.error('Error al generar PDF:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo generar el PDF",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (isLoading) {
     return (
       <Card>
@@ -126,11 +169,17 @@ const ChildrenReport = () => {
   return (
     <div className="space-y-4">
       <Card>
-        <CardHeader>
-          <CardTitle>Reporte de Niños</CardTitle>
-          <CardDescription>
-            Listado completo de niños registrados en el sistema
-          </CardDescription>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>Reporte de Niños</CardTitle>
+            <CardDescription>
+              Listado completo de niños registrados en el sistema
+            </CardDescription>
+          </div>
+          <Button onClick={handleGeneratePdf} variant="outline" size="sm">
+            <Printer className="h-4 w-4 mr-2" />
+            Generar PDF
+          </Button>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -187,6 +236,48 @@ const ChildrenReport = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Elemento oculto para impresión */}
+      <div id="children-report-printable" className="hidden">
+        <div className="p-8 max-w-[210mm] mx-auto bg-white">
+          <div className="mb-8 text-center">
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Reporte de Niños</h1>
+            <p className="text-sm text-gray-500">Fecha: {new Date().toLocaleDateString('es-ES')}</p>
+          </div>
+          
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="border-b-2 border-gray-800">
+                <th className="py-2 text-left font-bold">Nombre</th>
+                <th className="py-2 text-left font-bold">Edad</th>
+                <th className="py-2 text-left font-bold">Ubicación</th>
+                <th className="py-2 text-left font-bold">Escuela</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredChildren.map((child) => (
+                <tr key={child.id} className="border-b border-gray-300">
+                  <td className="py-2">{child.name}</td>
+                  <td className="py-2">{child.age} años</td>
+                  <td className="py-2">{child.location}</td>
+                  <td className="py-2">{child.schools?.name || 'No asignada'}</td>
+                </tr>
+              ))}
+              {filteredChildren.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="text-center py-8 text-gray-500">
+                    No se encontraron niños
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+          
+          <div className="mt-8 text-xs text-gray-400 text-right">
+            <p>Documento generado el {new Date().toLocaleDateString('es-ES')} a las {new Date().toLocaleTimeString('es-ES')}</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

@@ -1,13 +1,17 @@
+
 import { useQuery } from "@tanstack/react-query";
-import { FileText, Search } from "lucide-react";
+import { FileText, Printer, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+import generatePdf from "react-to-pdf";
 
 const SchoolsReport = () => {
   const [search, setSearch] = useState("");
+  const { toast } = useToast();
 
   const { data: schools = [], isLoading } = useQuery({
     queryKey: ["schools-report"],
@@ -27,8 +31,46 @@ const SchoolsReport = () => {
     (school.address && school.address.toLowerCase().includes(search.toLowerCase()))
   );
 
-  const handlePrint = () => {
-    window.print();
+  const handlePrint = async () => {
+    toast({
+      title: "Generando PDF",
+      description: "Espere mientras se genera el documento...",
+    });
+
+    const options = {
+      filename: `listado-colegios-${new Date().toISOString().split('T')[0]}.pdf`,
+      page: {
+        margin: 20,
+        format: 'a4',
+      },
+      overrides: {
+        pdf: {
+          compress: true
+        },
+        canvas: {
+          useCORS: true
+        }
+      }
+    };
+
+    try {
+      const targetElement = document.getElementById('schools-report-printable');
+      if (targetElement) {
+        await generatePdf(() => targetElement, options);
+        toast({
+          title: "PDF generado correctamente",
+          description: "El documento se ha descargado",
+          variant: "default",
+        });
+      }
+    } catch (error) {
+      console.error('Error al generar PDF:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo generar el PDF",
+        variant: "destructive",
+      });
+    }
   };
 
   if (isLoading) {
@@ -47,7 +89,8 @@ const SchoolsReport = () => {
           <h1 className="text-2xl font-bold text-gray-900">Listado de Colegios</h1>
         </div>
         <Button onClick={handlePrint} variant="outline">
-          Imprimir Reporte
+          <Printer className="h-4 w-4 mr-2" />
+          Generar PDF
         </Button>
       </div>
 
@@ -61,6 +104,7 @@ const SchoolsReport = () => {
         />
       </div>
 
+      {/* Tabla visible en la interfaz */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <Table>
           <TableHeader>
@@ -85,6 +129,44 @@ const SchoolsReport = () => {
             )}
           </TableBody>
         </Table>
+      </div>
+
+      {/* Elemento oculto para impresión */}
+      <div id="schools-report-printable" className="hidden">
+        <div className="p-8 max-w-[210mm] mx-auto bg-white">
+          <div className="mb-8 text-center">
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Listado de Colegios</h1>
+            <p className="text-sm text-gray-500">Fecha: {new Date().toLocaleDateString('es-ES')}</p>
+          </div>
+          
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="border-b-2 border-gray-800">
+                <th className="py-2 text-left font-bold">Nombre</th>
+                <th className="py-2 text-left font-bold">Dirección</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredSchools.map((school) => (
+                <tr key={school.id} className="border-b border-gray-300">
+                  <td className="py-2">{school.name}</td>
+                  <td className="py-2">{school.address || "No disponible"}</td>
+                </tr>
+              ))}
+              {filteredSchools.length === 0 && (
+                <tr>
+                  <td colSpan={2} className="text-center py-8 text-gray-500">
+                    No se encontraron colegios con los filtros seleccionados
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+          
+          <div className="mt-8 text-xs text-gray-400 text-right">
+            <p>Documento generado el {new Date().toLocaleDateString('es-ES')} a las {new Date().toLocaleTimeString('es-ES')}</p>
+          </div>
+        </div>
       </div>
     </div>
   );
