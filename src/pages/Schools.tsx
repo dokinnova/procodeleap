@@ -1,11 +1,13 @@
+
 import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { School as SchoolIcon } from "lucide-react";
+import { School as SchoolIcon, List, Edit } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthForm } from "@/components/auth/AuthForm";
 import { SchoolForm } from "@/components/schools/SchoolForm";
 import { SchoolsTable } from "@/components/schools/SchoolsTable";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export interface School {
   id: string;
@@ -22,6 +24,7 @@ const Schools = () => {
     name: '',
     address: ''
   });
+  const [activeTab, setActiveTab] = useState<string>("list");
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -36,6 +39,13 @@ const Schools = () => {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Cuando se selecciona un colegio, cambiar a la pestaña de edición
+  useEffect(() => {
+    if (selectedSchool) {
+      setActiveTab("edit");
+    }
+  }, [selectedSchool]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -140,20 +150,35 @@ const Schools = () => {
         <h1 className="text-2xl font-bold text-gray-900">Colegios Registrados</h1>
       </div>
 
-      <SchoolForm
-        formData={formData}
-        selectedSchool={selectedSchool}
-        handleInputChange={handleInputChange}
-        handleSubmit={handleSubmit}
-        handleCancel={handleCancel}
-      />
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="mb-6 flex-wrap">
+          <TabsTrigger value="list" className="flex items-center gap-2">
+            <List className="h-4 w-4" /> Buscar Colegios
+          </TabsTrigger>
+          <TabsTrigger value="edit" className="flex items-center gap-2">
+            <Edit className="h-4 w-4" /> {selectedSchool ? `Editar: ${selectedSchool.name}` : 'Registrar Colegio'}
+          </TabsTrigger>
+        </TabsList>
 
-      <SchoolsTable
-        schools={schools}
-        search={search}
-        setSearch={setSearch}
-        onSelectSchool={handleSelectSchool}
-      />
+        <TabsContent value="list" className="mt-0">
+          <SchoolsTable
+            schools={schools}
+            search={search}
+            setSearch={setSearch}
+            onSelectSchool={handleSelectSchool}
+          />
+        </TabsContent>
+
+        <TabsContent value="edit" className="mt-0">
+          <SchoolForm
+            formData={formData}
+            selectedSchool={selectedSchool}
+            handleInputChange={handleInputChange}
+            handleSubmit={handleSubmit}
+            handleCancel={handleCancel}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
