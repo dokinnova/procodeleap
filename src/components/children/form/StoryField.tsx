@@ -17,7 +17,7 @@ export const StoryField = ({ story, onInputChange, readOnly = false }: StoryFiel
         placeholder="Historia del niño"
         value={story}
         onChange={(e) => onInputChange('story', e.target.value)}
-        className={`min-h-[220px] flex-grow resize-y ${readOnly ? "bg-gray-100" : ""}`}
+        className={`min-h-[140px] flex-grow resize-y ${readOnly ? "bg-gray-100" : ""}`}
         readOnly={readOnly}
       />
     </div>
