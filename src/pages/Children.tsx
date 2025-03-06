@@ -11,6 +11,7 @@ import { useSelectedChild } from "@/hooks/useSelectedChild";
 import { Child } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { CHILDREN_QUERY_KEY } from "@/hooks/useChildrenData";
+import { DocumentManager } from "@/components/children/documents/DocumentManager";
 
 const Children = () => {
   const [search, setSearch] = useState("");
@@ -48,6 +49,13 @@ const Children = () => {
           selectedChild={selectedChild}
           setSelectedChild={setSelectedChild}
         />
+
+        {selectedChild && (
+          <DocumentManager 
+            childId={selectedChild.id}
+            childName={selectedChild.name}
+          />
+        )}
 
         <ChildrenTable 
           children={children}

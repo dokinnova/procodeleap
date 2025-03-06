@@ -36,3 +36,16 @@ export interface Sponsor {
   status: 'active' | 'inactive' | 'pending' | 'baja';
   created_at: string;
 }
+
+export interface ChildDocument {
+  id: string;
+  child_id: string;
+  filename: string;
+  file_path: string;
+  file_type: string;
+  file_size: number;
+  description: string | null;
+  uploaded_by: string;
+  created_at: string;
+  updated_at: string;
+}

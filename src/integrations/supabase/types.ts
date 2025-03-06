@@ -33,6 +33,53 @@ export type Database = {
         }
         Relationships: []
       }
+      child_documents: {
+        Row: {
+          child_id: string
+          created_at: string
+          description: string | null
+          file_path: string
+          file_size: number
+          file_type: string
+          filename: string
+          id: string
+          updated_at: string
+          uploaded_by: string
+        }
+        Insert: {
+          child_id: string
+          created_at?: string
+          description?: string | null
+          file_path: string
+          file_size: number
+          file_type: string
+          filename: string
+          id?: string
+          updated_at?: string
+          uploaded_by: string
+        }
+        Update: {
+          child_id?: string
+          created_at?: string
+          description?: string | null
+          file_path?: string
+          file_size?: number
+          file_type?: string
+          filename?: string
+          id?: string
+          updated_at?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "child_documents_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       children: {
         Row: {
           age: number
