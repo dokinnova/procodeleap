@@ -1,3 +1,4 @@
+
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -10,6 +11,20 @@ export const DashboardHeader = () => {
 
   const handleLogout = async () => {
     try {
+      // First check if we have a session
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        // If no session, just redirect to auth page
+        toast({
+          title: "Sesión finalizada",
+          description: "No hay sesión activa",
+        });
+        navigate("/auth", { replace: true });
+        return;
+      }
+      
+      // If we have a session, try to sign out
       const { error } = await supabase.auth.signOut();
       
       if (error) {
@@ -17,21 +32,24 @@ export const DashboardHeader = () => {
         throw error;
       }
 
-      // Mostrar toast de éxito
+      // Show success toast
       toast({
         title: "Sesión cerrada",
         description: "Has cerrado sesión exitosamente",
       });
 
-      // Forzar la navegación al login
+      // Force navigation to login
       navigate("/auth", { replace: true });
     } catch (error) {
       console.error("Error al cerrar sesión:", error);
       toast({
         title: "Error",
-        description: "No se pudo cerrar la sesión. Por favor, intenta de nuevo.",
+        description: "No se pudo cerrar la sesión correctamente. Redirigiendo al inicio de sesión.",
         variant: "destructive",
       });
+      
+      // Even if there's an error, redirect to auth page
+      navigate("/auth", { replace: true });
     }
   };
 
