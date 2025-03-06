@@ -14,7 +14,7 @@ export type AuthUserInfo = {
 
 export const syncUsers = async (
   setIsSyncing: (isSyncing: boolean) => void,
-  setAuthUsers: (authUsers: Record<string, AuthUserInfo>) => void,
+  setAuthUsers: React.Dispatch<React.SetStateAction<Record<string, AuthUserInfo>>>,
   queryClient: QueryClient
 ): Promise<void> => {
   setIsSyncing(true);
@@ -94,7 +94,8 @@ export const syncUsers = async (
           created_at: currentUser.created_at || new Date().toISOString()
         };
         
-        setAuthUsers(prevUsers => ({
+        // Corregimos el tipo de la función setAuthUsers
+        setAuthUsers((prevUsers) => ({
           ...prevUsers,
           [currentUser.id]: userInfo
         }));
@@ -156,6 +157,7 @@ export const syncUsers = async (
           created_at: currentUser.created_at || new Date().toISOString()
         };
         
+        // Actualizamos directamente con el objeto completo, no con una función
         setAuthUsers(userMap);
       }
     }
