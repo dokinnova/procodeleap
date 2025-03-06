@@ -1,3 +1,4 @@
+
 import { School } from "@/types";
 import { ChildFormData } from "@/hooks/useChildForm";
 import { PhotoField } from "./PhotoField";
@@ -27,7 +28,7 @@ export const ChildFormFields = ({
           <StatusAndSchoolFields status={formData.status} schoolId={formData.school_id} schools={schools} onInputChange={onInputChange} readOnly={readOnly} />
         </div>
         
-        <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100">
+        <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100 h-[400px] flex flex-col">
           <PriorityField priority={formData.priority} onInputChange={onInputChange} readOnly={readOnly} />
         </div>
       </div>
@@ -37,7 +38,7 @@ export const ChildFormFields = ({
           <PersonalInfoFields name={formData.name} birthDate={formData.birth_date} age={formData.age} location={formData.location} grade={formData.grade || ''} onInputChange={onInputChange} readOnly={readOnly} />
         </div>
 
-        <div className="flex-grow bg-white p-5 rounded-lg shadow-sm border border-gray-100 max-h-[400px] flex flex-col px-[26px] mx-[8px] py-[14px] my-[105px]">
+        <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100 h-[400px] flex flex-col">
           <StoryField story={formData.story} onInputChange={onInputChange} readOnly={readOnly} />
         </div>
       </div>

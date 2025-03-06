@@ -12,7 +12,7 @@ interface PriorityFieldProps {
 
 export const PriorityField = ({ priority, onInputChange, readOnly = false }: PriorityFieldProps) => {
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 h-full">
       <Label className="text-sm font-medium">Prioridad de Apadrinamiento</Label>
       
       {readOnly ? (
@@ -42,7 +42,7 @@ export const PriorityField = ({ priority, onInputChange, readOnly = false }: Pri
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-3 mt-3">
+        <div className="grid grid-cols-1 gap-3 mt-3 flex-grow">
           <PriorityOption
             value="high"
             label="Alta"
