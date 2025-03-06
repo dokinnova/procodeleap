@@ -11,16 +11,14 @@ interface PhotoFieldProps {
 
 export const PhotoField = ({ currentPhotoUrl, onPhotoUploaded, readOnly = false }: PhotoFieldProps) => {
   return (
-    <div className="md:col-span-2">
+    <div className="space-y-3">
       <Label>Foto</Label>
-      <div className="mt-2">
+      <div className="flex flex-col items-center justify-center h-[200px]">
         {readOnly ? (
-          <div className="flex items-center justify-center">
-            <Avatar className="h-24 w-24">
-              <AvatarImage src={currentPhotoUrl || ''} alt="Foto del niño" />
-              <AvatarFallback>Sin foto</AvatarFallback>
-            </Avatar>
-          </div>
+          <Avatar className="h-32 w-32">
+            <AvatarImage src={currentPhotoUrl || ''} alt="Foto del niño" />
+            <AvatarFallback>Sin foto</AvatarFallback>
+          </Avatar>
         ) : (
           <PhotoUpload
             currentPhotoUrl={currentPhotoUrl}

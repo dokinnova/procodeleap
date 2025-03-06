@@ -1,8 +1,9 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Upload } from "lucide-react";
+import { Loader2, Upload, Image as ImageIcon } from "lucide-react";
 
 interface PhotoUploadProps {
   currentPhotoUrl: string | null;
@@ -73,16 +74,22 @@ export const PhotoUpload = ({ currentPhotoUrl, onPhotoUploaded }: PhotoUploadPro
   };
 
   return (
-    <div className="space-y-4">
-      {currentPhotoUrl && (
-        <div className="relative w-48 h-48">
-          <img
-            src={currentPhotoUrl}
-            alt="Foto del niño"
-            className="w-full h-full object-cover rounded-lg"
-          />
-        </div>
-      )}
+    <div className="flex flex-col items-center space-y-4 w-full">
+      <div className="flex justify-center w-full">
+        {currentPhotoUrl ? (
+          <div className="w-32 h-32 rounded-lg overflow-hidden border border-gray-200">
+            <img
+              src={currentPhotoUrl}
+              alt="Foto del niño"
+              className="w-full h-full object-cover"
+            />
+          </div>
+        ) : (
+          <div className="w-32 h-32 flex items-center justify-center bg-gray-100 rounded-lg border border-dashed border-gray-300">
+            <ImageIcon className="h-12 w-12 text-gray-400" />
+          </div>
+        )}
+      </div>
       
       <div>
         <input
@@ -110,7 +117,7 @@ export const PhotoUpload = ({ currentPhotoUrl, onPhotoUploaded }: PhotoUploadPro
               ) : (
                 <>
                   <Upload className="mr-2 h-4 w-4" />
-                  Subir foto
+                  {currentPhotoUrl ? 'Cambiar foto' : 'Subir foto'}
                 </>
               )}
             </span>

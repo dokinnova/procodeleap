@@ -23,7 +23,7 @@ export const ChildFormFields = ({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
       <div className="space-y-8">
-        <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100">
+        <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100 h-[260px] flex flex-col">
           <PhotoField
             currentPhotoUrl={formData.image_url}
             onPhotoUploaded={(url) => onInputChange('image_url', url)}
