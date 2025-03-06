@@ -1,0 +1,70 @@
+
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { AppUser } from "../utils/userSync";
+import { UserRole } from "@/hooks/useUserPermissions";
+
+export const useUserActions = () => {
+  const queryClient = useQueryClient();
+  const [editingUser, setEditingUser] = useState<AppUser | null>(null);
+
+  const deleteUserMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      if (userId === "00000000-0000-0000-0000-000000000000") {
+        throw new Error("Cannot delete a user who hasn't logged in yet");
+      }
+      
+      const { error } = await supabase
+        .from("app_users")
+        .delete()
+        .eq("user_id", userId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("User deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ["app-users"] });
+    },
+    onError: (error) => {
+      toast.error("Error deleting user: " + error.message);
+    },
+  });
+
+  const updateUserRoleMutation = useMutation({
+    mutationFn: async ({ userId, role }: { userId: string, role: UserRole }) => {
+      const { error } = await supabase
+        .from("app_users")
+        .update({ role })
+        .eq("user_id", userId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("User role updated successfully");
+      queryClient.invalidateQueries({ queryKey: ["app-users"] });
+      setEditingUser(null);
+    },
+    onError: (error) => {
+      toast.error("Error updating user role: " + error.message);
+    },
+  });
+
+  const handleEditClick = (user: AppUser) => {
+    setEditingUser(user);
+  };
+
+  const handleSaveRole = (userId: string, role: UserRole) => {
+    updateUserRoleMutation.mutate({ userId, role });
+  };
+
+  const handleDeleteUser = (userId: string) => {
+    deleteUserMutation.mutate(userId);
+  };
+
+  return {
+    editingUser,
+    handleEditClick,
+    handleSaveRole,
+    handleDeleteUser,
+  };
+};
