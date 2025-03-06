@@ -17,7 +17,7 @@ const Tasks = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tasks")
-        .select("*, children(*), sponsors(*)")
+        .select("*, child:child_id(*), sponsor:sponsor_id(*)")
         .order("due_date", { ascending: true });
       
       if (error) throw error;

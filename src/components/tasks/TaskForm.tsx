@@ -26,7 +26,9 @@ interface TaskFormProps {
 
 export const TaskForm = ({ task, onTaskSaved, onCancel }: TaskFormProps) => {
   const { toast } = useToast();
-  const [relatedTo, setRelatedTo] = useState<string>(task?.related_to || "");
+  const [relatedTo, setRelatedTo] = useState<'child' | 'sponsor' | ''>( 
+    task?.related_to || ''
+  );
   const [date, setDate] = useState<Date | undefined>(
     task?.due_date ? new Date(task.due_date) : undefined
   );
@@ -36,10 +38,10 @@ export const TaskForm = ({ task, onTaskSaved, onCancel }: TaskFormProps) => {
       title: "",
       description: "",
       status: "pending",
-      related_to: "",
-      child_id: "",
-      sponsor_id: "",
-      due_date: "",
+      related_to: null,
+      child_id: null,
+      sponsor_id: null,
+      due_date: null,
     },
   });
 
@@ -76,7 +78,7 @@ export const TaskForm = ({ task, onTaskSaved, onCancel }: TaskFormProps) => {
   useEffect(() => {
     if (task) {
       reset(task);
-      setRelatedTo(task.related_to || "");
+      setRelatedTo(task.related_to || '');
       setDate(task.due_date ? new Date(task.due_date) : undefined);
     }
   }, [task, reset]);
@@ -160,7 +162,7 @@ export const TaskForm = ({ task, onTaskSaved, onCancel }: TaskFormProps) => {
             <Label htmlFor="status">Estado</Label>
             <Select
               defaultValue={task?.status || "pending"}
-              onValueChange={(value) => setValue("status", value)}
+              onValueChange={(value: 'pending' | 'in-progress' | 'completed') => setValue("status", value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Seleccionar estado" />
@@ -203,7 +205,7 @@ export const TaskForm = ({ task, onTaskSaved, onCancel }: TaskFormProps) => {
             <Label>Relacionada con</Label>
             <Select
               value={relatedTo}
-              onValueChange={setRelatedTo}
+              onValueChange={(value: 'child' | 'sponsor' | '') => setRelatedTo(value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Seleccionar relación" />
