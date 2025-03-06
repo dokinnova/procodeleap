@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { PieChart, BarChart, LineChart, FilePieChart } from "lucide-react";
+import { PieChart, BarChart, LineChart, FilePieChart, Users, School, Clock, TrendingUp } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useProcessedBusinessData, COLORS } from "@/hooks/useProcessedBusinessData";
 import { GeneralTab } from "@/components/business-intelligence/tabs/GeneralTab";
@@ -9,6 +9,8 @@ import { SponsorsTab } from "@/components/business-intelligence/tabs/SponsorsTab
 import { ChildrenMetricCard } from "@/components/business-intelligence/metrics/ChildrenMetricCard";
 import { SponsorsMetricCard } from "@/components/business-intelligence/metrics/SponsorsMetricCard";
 import { ContributionsMetricCard } from "@/components/business-intelligence/metrics/ContributionsMetricCard";
+import { ChildrenAnalysisTab } from "@/components/business-intelligence/tabs/ChildrenAnalysisTab";
+import { SponsorsAnalysisTab } from "@/components/business-intelligence/tabs/SponsorsAnalysisTab";
 
 const BusinessIntelligence = () => {
   const [activeTab, setActiveTab] = useState("general");
@@ -18,6 +20,12 @@ const BusinessIntelligence = () => {
     childrenStatusData,
     sponsorContributionData,
     sponsorshipsByMonth,
+    
+    // Nuevos datos
+    childrenByAge,
+    childrenBySchool,
+    monthlyContributions,
+    sponsorRetention,
     
     // Métricas
     totalChildren,
@@ -64,7 +72,7 @@ const BusinessIntelligence = () => {
       </div>
 
       <Tabs defaultValue="general" value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-3 mb-6 w-full">
+        <TabsList className="grid grid-cols-5 mb-6 w-full">
           <TabsTrigger value="general" className="flex items-center gap-2 text-base font-medium transition-all">
             <PieChart className="h-5 w-5" />
             General
@@ -76,6 +84,14 @@ const BusinessIntelligence = () => {
           <TabsTrigger value="sponsors" className="flex items-center gap-2 text-base font-medium transition-all">
             <LineChart className="h-5 w-5" />
             Padrinos
+          </TabsTrigger>
+          <TabsTrigger value="children-analysis" className="flex items-center gap-2 text-base font-medium transition-all">
+            <Users className="h-5 w-5" />
+            Análisis de Niños
+          </TabsTrigger>
+          <TabsTrigger value="sponsors-analysis" className="flex items-center gap-2 text-base font-medium transition-all">
+            <TrendingUp className="h-5 w-5" />
+            Análisis de Padrinos
           </TabsTrigger>
         </TabsList>
         
@@ -97,6 +113,22 @@ const BusinessIntelligence = () => {
         <TabsContent value="sponsors" className="space-y-4">
           <SponsorsTab 
             sponsorContributionData={sponsorContributionData}
+          />
+        </TabsContent>
+        
+        <TabsContent value="children-analysis" className="space-y-4">
+          <ChildrenAnalysisTab 
+            childrenByAge={childrenByAge}
+            childrenBySchool={childrenBySchool}
+            colors={COLORS}
+          />
+        </TabsContent>
+        
+        <TabsContent value="sponsors-analysis" className="space-y-4">
+          <SponsorsAnalysisTab 
+            monthlyContributions={monthlyContributions}
+            sponsorRetention={sponsorRetention}
+            colors={COLORS}
           />
         </TabsContent>
       </Tabs>

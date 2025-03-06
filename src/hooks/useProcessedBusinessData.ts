@@ -4,6 +4,10 @@ import {
   calculateChildrenStatusDistribution,
   calculateSponsorContributions,
   calculateSponsorshipsByMonth,
+  calculateChildrenByAge,
+  calculateChildrenBySchool,
+  calculateMonthlyContributions,
+  calculateSponsorRetention,
   calculateMetrics
 } from "@/utils/business-intelligence/dataCalculations";
 
@@ -22,6 +26,12 @@ export const useProcessedBusinessData = () => {
   // Datos para el gráfico de tendencia de apadrinamientos por mes
   const sponsorshipsByMonth = calculateSponsorshipsByMonth(sponsorshipsData);
 
+  // Nuevos cálculos para visualizaciones adicionales
+  const childrenByAge = calculateChildrenByAge(childrenData);
+  const childrenBySchool = calculateChildrenBySchool(childrenData);
+  const monthlyContributions = calculateMonthlyContributions(sponsorsData, sponsorshipsData);
+  const sponsorRetention = calculateSponsorRetention(sponsorsData);
+
   // Cálculo de métricas generales
   const metrics = calculateMetrics(childrenData, sponsorsData, sponsorshipsData);
 
@@ -30,6 +40,12 @@ export const useProcessedBusinessData = () => {
     childrenStatusData,
     sponsorContributionData,
     sponsorshipsByMonth,
+    
+    // Nuevos datos
+    childrenByAge,
+    childrenBySchool,
+    monthlyContributions,
+    sponsorRetention,
     
     // Métricas
     ...metrics,
