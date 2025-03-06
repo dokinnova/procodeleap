@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,7 +23,7 @@ export const AppUsersTable = () => {
   const [isSyncing, setIsSyncing] = useState(false);
   const [authUsers, setAuthUsers] = useState<Record<string, AuthUserInfo>>({});
 
-  // Ejecutar sincronización al cargar el componente
+  // Run synchronization when component loads
   useEffect(() => {
     handleManualSync();
   }, []);
@@ -39,7 +40,7 @@ export const AppUsersTable = () => {
     },
   });
 
-  // Consulta para obtener la sesión actual del usuario autenticado
+  // Query to get current authenticated user session
   const { data: sessionData } = useQuery({
     queryKey: ["current-user-session"],
     queryFn: async () => {
@@ -49,7 +50,7 @@ export const AppUsersTable = () => {
     },
   });
 
-  // Efecto para actualizar authUsers cuando tenemos el usuario de sesión actual
+  // Effect to update authUsers when we have the current session user
   useEffect(() => {
     if (sessionData?.user) {
       const currentUser = sessionData.user;
@@ -65,11 +66,42 @@ export const AppUsersTable = () => {
     }
   }, [sessionData]);
 
+  // Effect to update auth data for confirmed users
+  useEffect(() => {
+    if (appUsers) {
+      // For all confirmed users (with a real user_id),
+      // make sure they have at least a created_at date
+      const confirmedUsers = appUsers.filter(
+        user => user.user_id !== "00000000-0000-0000-0000-000000000000"
+      );
+      
+      if (confirmedUsers.length > 0) {
+        const updatedAuthUsers = { ...authUsers };
+        
+        confirmedUsers.forEach(user => {
+          if (!updatedAuthUsers[user.user_id]) {
+            updatedAuthUsers[user.user_id] = {
+              id: user.user_id,
+              email: user.email || '',
+              last_sign_in_at: user.created_at,
+              created_at: user.created_at
+            };
+          }
+        });
+        
+        // Only update if there are new entries
+        if (Object.keys(updatedAuthUsers).length > Object.keys(authUsers).length) {
+          setAuthUsers(updatedAuthUsers);
+        }
+      }
+    }
+  }, [appUsers, authUsers]);
+
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: string) => {
-      // No permitimos eliminar usuarios con user_id temporal
+      // Don't allow deleting users with temporary user_id
       if (userId === "00000000-0000-0000-0000-000000000000") {
-        throw new Error("No se puede eliminar un usuario que aún no ha iniciado sesión");
+        throw new Error("Cannot delete a user who hasn't logged in yet");
       }
       
       const { error } = await supabase
@@ -79,12 +111,12 @@ export const AppUsersTable = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Usuario eliminado correctamente");
+      toast.success("User deleted successfully");
       queryClient.invalidateQueries({ queryKey: ["app-users"] });
       setUserToDelete(null);
     },
     onError: (error) => {
-      toast.error("Error al eliminar usuario: " + error.message);
+      toast.error("Error deleting user: " + error.message);
       setUserToDelete(null);
     },
   });
@@ -98,12 +130,12 @@ export const AppUsersTable = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Rol de usuario actualizado correctamente");
+      toast.success("User role updated successfully");
       queryClient.invalidateQueries({ queryKey: ["app-users"] });
       setEditingUser(null);
     },
     onError: (error) => {
-      toast.error("Error al actualizar rol de usuario: " + error.message);
+      toast.error("Error updating user role: " + error.message);
     },
   });
 
@@ -123,16 +155,16 @@ export const AppUsersTable = () => {
     syncUsers(setIsSyncing, setAuthUsers, queryClient);
   };
 
-  // Verificar si el usuario actual es el usuario de la fila
+  // Check if current user is the user in the row
   const isCurrentUser = (userId: string) => {
     return sessionData?.user?.id === userId;
   };
 
   if (isLoading || isSyncing) {
-    return <div>Cargando usuarios...</div>;
+    return <div>Loading users...</div>;
   }
 
-  // Separar usuarios sincronizados y pendientes
+  // Separate synchronized and pending users
   const pendingUsers = appUsers?.filter(user => user.user_id === "00000000-0000-0000-0000-000000000000") || [];
   const syncedUsers = appUsers?.filter(user => user.user_id !== "00000000-0000-0000-0000-000000000000") || [];
 

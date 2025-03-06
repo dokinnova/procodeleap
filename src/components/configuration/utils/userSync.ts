@@ -19,14 +19,14 @@ export const syncUsers = async (
 ): Promise<void> => {
   setIsSyncing(true);
   try {
-    // Primero obtenemos todos los usuarios de app_users
+    // First, get all users from app_users
     const { data: existingAppUsers, error } = await supabase
       .from("app_users")
       .select("*");
     
     if (error) throw error;
     
-    // Creamos un conjunto de emails para búsqueda rápida
+    // Create a set of emails for fast lookup
     const existingEmails = new Set();
     if (existingAppUsers) {
       existingAppUsers.forEach(user => {
@@ -36,31 +36,31 @@ export const syncUsers = async (
       });
     }
     
-    // Comprobamos si hay un usuario actualmente autenticado
+    // Check if there is a currently authenticated user
     const { data: { session } } = await supabase.auth.getSession();
     if (session?.user) {
       const currentUser = session.user;
       
-      // Verificamos si el usuario actual ya está en app_users
+      // Check if the current user is already in app_users
       if (currentUser.email && !existingEmails.has(currentUser.email.toLowerCase())) {
-        console.log("Añadiendo usuario actual a app_users:", currentUser.email);
+        console.log("Adding current user to app_users:", currentUser.email);
         
         const { error: insertError } = await supabase
           .from("app_users")
           .insert({
             email: currentUser.email,
             user_id: currentUser.id,
-            role: 'admin' // El primer usuario que se añade es admin
+            role: 'admin' // First user added is admin
           });
           
         if (insertError) {
-          console.error("Error al insertar usuario actual:", insertError);
-          toast.error("Error al sincronizar el usuario actual");
+          console.error("Error inserting current user:", insertError);
+          toast.error("Error syncing current user");
         } else {
-          toast.success("Usuario actual sincronizado correctamente");
+          toast.success("Current user synced successfully");
         }
       } else {
-        // Buscamos usuarios con email igual al actual pero con user_id temporal
+        // Look for users with email equal to current but with temporary user_id
         const { data: tempUsers } = await supabase
           .from("app_users")
           .select("*")
@@ -68,7 +68,7 @@ export const syncUsers = async (
           .eq("user_id", "00000000-0000-0000-0000-000000000000");
 
         if (tempUsers && tempUsers.length > 0) {
-          // Actualizamos el user_id temporal con el actual
+          // Update temporary user_id with current
           const { error: updateError } = await supabase
             .from("app_users")
             .update({ user_id: currentUser.id })
@@ -76,16 +76,16 @@ export const syncUsers = async (
             .eq("user_id", "00000000-0000-0000-0000-000000000000");
 
           if (updateError) {
-            console.error("Error al actualizar user_id temporal:", updateError);
-            toast.error("Error al actualizar sincronización de usuario");
+            console.error("Error updating temporary user_id:", updateError);
+            toast.error("Error updating user sync");
           } else {
-            toast.success("Usuario sincronizado correctamente");
+            toast.success("User synced successfully");
           }
         }
       }
 
-      // Actualizar información de última autenticación para el usuario actual
-      // Esto garantiza que siempre tengamos al menos la información del usuario actual
+      // Update last authentication info for current user
+      // This ensures we always have at least the current user's information
       if (currentUser.id) {
         const userInfo: AuthUserInfo = {
           id: currentUser.id,
@@ -94,33 +94,32 @@ export const syncUsers = async (
           created_at: currentUser.created_at || new Date().toISOString()
         };
         
-        // Corregimos el tipo de la función setAuthUsers
-        setAuthUsers((prevUsers) => ({
+        setAuthUsers(prevUsers => ({
           ...prevUsers,
           [currentUser.id]: userInfo
         }));
       }
     }
 
-    // Sincronizar registros existentes que tengan email pero con user_id temporal
+    // Synchronize existing records with email but temporary user_id
     if (existingAppUsers) {
       const incompleteUsers = existingAppUsers.filter(user => 
         user.user_id === "00000000-0000-0000-0000-000000000000" && user.email);
       
       if (incompleteUsers.length > 0) {
-        toast.info(`Hay ${incompleteUsers.length} usuarios pendientes de sincronización.`);
+        toast.info(`There are ${incompleteUsers.length} users pending synchronization.`);
       }
     }
 
-    // Intentamos obtener información adicional de auth.users a través de la API de Supabase
+    // Try to get additional auth.users information through the Supabase API
     try {
-      // Esta consulta solo funcionará si el usuario tiene permisos de administrador
+      // This query will only work if the user has admin permissions
       const { data: authUsersData, error: authError } = await supabase.auth.admin.listUsers();
       
       if (!authError && authUsersData && authUsersData.users) {
         const userMap: Record<string, AuthUserInfo> = {};
         
-        // Usando type assertion para definir el tipo correcto
+        // Type assertion to define the correct type
         const users = authUsersData.users as Array<{
           id: string;
           email: string | null;
@@ -141,33 +140,60 @@ export const syncUsers = async (
         setAuthUsers(userMap);
       }
     } catch (authError) {
-      console.warn("No se pudo acceder a la información de auth.users:", authError);
-      // Esto es normal si el usuario no tiene permisos de administrador
+      console.warn("Could not access auth.users information:", authError);
       
-      // En este caso, obtenemos al menos la información del usuario actual
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        const currentUser = session.user;
-        const userMap: Record<string, AuthUserInfo> = {};
+      // Try to get users through metadata API (might work even without admin)
+      try {
+        // For non-admin users, at least try to get all confirmed users
+        const { data: confirmedUsers, error: confirmedError } = await supabase
+          .from("app_users")
+          .select("*")
+          .neq("user_id", "00000000-0000-0000-0000-000000000000");
         
-        userMap[currentUser.id] = {
-          id: currentUser.id,
-          email: currentUser.email || '',
-          last_sign_in_at: currentUser.last_sign_in_at || new Date().toISOString(),
-          created_at: currentUser.created_at || new Date().toISOString()
-        };
-        
-        // Actualizamos directamente con el objeto completo, no con una función
-        setAuthUsers(userMap);
+        if (!confirmedError && confirmedUsers && confirmedUsers.length > 0) {
+          // For each confirmed user, try to update their last sign-in time
+          const userMap: Record<string, AuthUserInfo> = {};
+          
+          // First, add the current user's info
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session?.user) {
+            const currentUser = session.user;
+            userMap[currentUser.id] = {
+              id: currentUser.id,
+              email: currentUser.email || '',
+              last_sign_in_at: currentUser.last_sign_in_at || new Date().toISOString(),
+              created_at: currentUser.created_at || new Date().toISOString()
+            };
+          }
+          
+          // For other confirmed users, set a default "confirmed" date
+          confirmedUsers.forEach(user => {
+            if (user.user_id && user.user_id !== "00000000-0000-0000-0000-000000000000") {
+              // If not the current user, use created_at as last_sign_in
+              if (!userMap[user.user_id]) {
+                userMap[user.user_id] = {
+                  id: user.user_id,
+                  email: user.email || '',
+                  last_sign_in_at: user.created_at || new Date().toISOString(),
+                  created_at: user.created_at || new Date().toISOString()
+                };
+              }
+            }
+          });
+          
+          setAuthUsers(userMap);
+        }
+      } catch (confirmedError) {
+        console.warn("Could not get confirmed users:", confirmedError);
       }
     }
 
-    // Refrescar la consulta para mostrar los cambios
+    // Refresh the query to show changes
     queryClient.invalidateQueries({ queryKey: ["app-users"] });
-    toast.success("Sincronización completada");
+    toast.success("Synchronization completed");
   } catch (error: any) {
-    console.error("Error general al sincronizar usuarios:", error);
-    toast.error("Error al sincronizar usuarios: " + error.message);
+    console.error("General error syncing users:", error);
+    toast.error("Error syncing users: " + error.message);
   } finally {
     setIsSyncing(false);
   }

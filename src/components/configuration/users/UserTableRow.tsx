@@ -36,13 +36,20 @@ export const UserTableRow = ({
     try {
       return format(new Date(lastSignIn), "dd/MM/yyyy HH:mm:ss", { locale: es });
     } catch (e) {
-      console.error("Error formateando fecha:", e, "Valor recibido:", lastSignIn);
+      console.error("Error formatting date:", e, "Value received:", lastSignIn);
       return "Fecha inválida";
     }
   };
 
-  // Solo para usuarios actuales sin datos de auth, usamos la fecha actual
+  // If the user has a non-temporary user_id, they're confirmed,
+  // so we should show at least their creation date as last sign in
   let lastSignInDate = authUserData?.last_sign_in_at;
+  if (!isPending && !lastSignInDate) {
+    // For confirmed users without auth data, use their creation date
+    lastSignInDate = user.created_at;
+  }
+  
+  // For current user without auth data, use current date
   if (isCurrentUser && !lastSignInDate) {
     lastSignInDate = new Date().toISOString();
   }
@@ -63,11 +70,9 @@ export const UserTableRow = ({
       <TableCell>
         {isPending ? 
           "Pendiente" : 
-          isCurrentUser && !lastSignInDate ? 
-            formatLastSignIn(new Date().toISOString()) :
-            lastSignInDate ? 
-              formatLastSignIn(lastSignInDate) : 
-              "Información no disponible"}
+          lastSignInDate ? 
+            formatLastSignIn(lastSignInDate) : 
+            "Información no disponible"}
       </TableCell>
       <TableCell>
         <UserActions 
