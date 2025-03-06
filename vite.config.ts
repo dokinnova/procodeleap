@@ -84,6 +84,7 @@ export default defineConfig(({ mode }) => {
       }
     },
     define: {
+      // Make version available as global constant
       __APP_VERSION__: JSON.stringify(currentVersion),
     }
   };
