@@ -33,7 +33,7 @@ export const RelatedEntitySelector = ({
   onSponsorSelect
 }: RelatedEntitySelectorProps) => {
   // Fetch children for the dropdown
-  const { data: children = [] } = useQuery({
+  const { data: children = [], isLoading: childrenLoading } = useQuery({
     queryKey: ["children-for-tasks"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -48,7 +48,7 @@ export const RelatedEntitySelector = ({
   });
 
   // Fetch sponsors for the dropdown
-  const { data: sponsors = [] } = useQuery({
+  const { data: sponsors = [], isLoading: sponsorsLoading } = useQuery({
     queryKey: ["sponsors-for-tasks"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -67,7 +67,7 @@ export const RelatedEntitySelector = ({
       <div className="space-y-2">
         <Label>Relacionada con</Label>
         <Select
-          value={relatedTo}
+          value={relatedTo || "none"}
           onValueChange={(value: 'child' | 'sponsor' | 'none') => onRelatedToChange(value === "none" ? "" : value as 'child' | 'sponsor')}
         >
           <SelectTrigger>
@@ -92,13 +92,16 @@ export const RelatedEntitySelector = ({
               <SelectValue placeholder="Seleccionar niño" />
             </SelectTrigger>
             <SelectContent>
-              {children && children.map((child) => (
+              {children && children.length > 0 ? children.map((child) => (
                 <SelectItem key={child.id} value={child.id}>
                   {child.name}
                 </SelectItem>
-              ))}
+              )) : (
+                <SelectItem value="no-children" disabled>No hay niños disponibles</SelectItem>
+              )}
             </SelectContent>
           </Select>
+          {childrenLoading && <p className="text-xs text-muted-foreground">Cargando niños...</p>}
         </div>
       )}
 
@@ -113,13 +116,16 @@ export const RelatedEntitySelector = ({
               <SelectValue placeholder="Seleccionar padrino" />
             </SelectTrigger>
             <SelectContent>
-              {sponsors && sponsors.map((sponsor) => (
+              {sponsors && sponsors.length > 0 ? sponsors.map((sponsor) => (
                 <SelectItem key={sponsor.id} value={sponsor.id}>
                   {sponsor.first_name} {sponsor.last_name}
                 </SelectItem>
-              ))}
+              )) : (
+                <SelectItem value="no-sponsors" disabled>No hay padrinos disponibles</SelectItem>
+              )}
             </SelectContent>
           </Select>
+          {sponsorsLoading && <p className="text-xs text-muted-foreground">Cargando padrinos...</p>}
         </div>
       )}
     </>

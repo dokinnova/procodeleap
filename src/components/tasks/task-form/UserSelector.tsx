@@ -40,7 +40,7 @@ export const UserSelector = ({ assignedUserId, onUserSelect }: UserSelectorProps
       <Label htmlFor="assign-user">Asignar a usuario</Label>
       <Select
         value={assignedUserId || ""}
-        onValueChange={(value) => onUserSelect(value || null)}
+        onValueChange={(value) => onUserSelect(value === "" ? null : value)}
       >
         <SelectTrigger className="w-full">
           <SelectValue placeholder="Seleccionar usuario" />

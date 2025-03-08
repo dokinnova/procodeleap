@@ -20,17 +20,21 @@ export const useTaskForm = (
     task?.assigned_user_id || null
   );
 
+  const defaultValues = task ? {
+    ...task
+  } : {
+    title: "",
+    description: "",
+    status: "pending",
+    related_to: null,
+    child_id: null,
+    sponsor_id: null,
+    due_date: null,
+    assigned_user_id: null,
+  };
+
   const { register, handleSubmit, setValue, reset, formState: { errors } } = useForm<Task>({
-    defaultValues: task || {
-      title: "",
-      description: "",
-      status: "pending",
-      related_to: null,
-      child_id: null,
-      sponsor_id: null,
-      due_date: null,
-      assigned_user_id: null,
-    },
+    defaultValues
   });
 
   useEffect(() => {
