@@ -50,10 +50,14 @@ export const useSponsors = () => {
           throw new Error("ID de padrino no válido para actualización");
         }
         
+        // Construct full name from first and last name
+        const fullName = `${formData.first_name} ${formData.last_name}`;
+        
         // Update existing sponsor
         const { error } = await supabase
           .from('sponsors')
           .update({
+            name: fullName,
             first_name: formData.first_name,
             last_name: formData.last_name,
             email: formData.email,
@@ -74,10 +78,14 @@ export const useSponsors = () => {
           description: 'Los datos del padrino han sido actualizados correctamente',
         });
       } else {
+        // Construct full name from first and last name
+        const fullName = `${formData.first_name} ${formData.last_name}`;
+        
         // Create new sponsor with explicit field selection
         const { error } = await supabase
           .from('sponsors')
-          .insert([{
+          .insert({
+            name: fullName,
             first_name: formData.first_name,
             last_name: formData.last_name,
             email: formData.email,
@@ -88,7 +96,7 @@ export const useSponsors = () => {
             country: formData.country || null,
             contribution: formData.contribution || 0,
             status: formData.status
-          }]);
+          });
 
         if (error) throw error;
 
