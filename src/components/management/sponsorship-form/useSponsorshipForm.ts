@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
@@ -31,7 +32,14 @@ export const useSponsorshipForm = (
         if (data) {
           setStartDate(data.start_date);
           setNotes(data.notes || '');
-          setSelectedSponsor(data.sponsor);
+          // Add image_url to the sponsor data before setting
+          if (data.sponsor) {
+            const sponsorWithImage = {
+              ...data.sponsor,
+              image_url: data.sponsor.image_url || null
+            };
+            setSelectedSponsor(sponsorWithImage as Sponsor);
+          }
         } else {
           setStartDate('');
           setNotes('');

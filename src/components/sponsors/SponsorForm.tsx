@@ -9,7 +9,7 @@ import { useSponsorForm } from "./form/useSponsorForm";
 
 interface SponsorFormProps {
   selectedSponsor: Sponsor | null;
-  onSubmit: (data: any) => void;
+  onSubmit: (data: any, isEditing: boolean) => Promise<boolean>;
   onCancel: () => void;
 }
 
@@ -30,6 +30,10 @@ export const SponsorForm = ({ selectedSponsor, onSubmit, onCancel }: SponsorForm
     }
   };
 
+  const handleFormSubmit = (formData: any) => {
+    return onSubmit(formData, !!selectedSponsor);
+  };
+
   return (
     <>
       <Card>
@@ -39,7 +43,7 @@ export const SponsorForm = ({ selectedSponsor, onSubmit, onCancel }: SponsorForm
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
             <SponsorFormFields
               register={register}
               setValue={setValue}

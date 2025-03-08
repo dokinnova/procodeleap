@@ -20,7 +20,7 @@ interface ChildFormProps {
 export const ChildForm = ({ selectedChild, setSelectedChild }: ChildFormProps) => {
   const { formData, handleInputChange, handleSubmit } = useChildForm(selectedChild, setSelectedChild);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { data: schools = [], isError, isLoading, refetch } = useSchoolsQuery();
+  const { schools, isError, isLoading, refetch } = useSchoolsQuery();
   const { checkPermission, canCreate, canEdit, role } = useUserPermissions();
 
   // Add effect to log selectedChild changes

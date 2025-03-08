@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { School as SchoolIcon, List, Edit } from "lucide-react";
@@ -8,12 +7,7 @@ import { AuthForm } from "@/components/auth/AuthForm";
 import { SchoolForm } from "@/components/schools/SchoolForm";
 import { SchoolsTable } from "@/components/schools/SchoolsTable";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-export interface School {
-  id: string;
-  name: string;
-  address: string | null;
-}
+import { School } from "@/types";
 
 const Schools = () => {
   const [session, setSession] = useState(null);
@@ -55,12 +49,21 @@ const Schools = () => {
   };
 
   // Fetch schools data
-  const { data: schools = [], isLoading, error } = useQuery({
+  const { data: schoolsData = [], isLoading, error } = useQuery({
     queryKey: ["schools"],
     queryFn: async () => {
       const { data, error } = await supabase.from("schools").select("*");
       if (error) throw error;
-      return data as School[];
+      
+      // Transform to match School type from types/index.ts
+      return (data || []).map(school => ({
+        id: school.id,
+        name: school.name,
+        location: school.address || '',
+        phone: '', // Add required field
+        email: '', // Add required field
+        address: school.address || ''
+      })) as School[];
     },
   });
 
@@ -162,7 +165,7 @@ const Schools = () => {
 
         <TabsContent value="list" className="mt-0">
           <SchoolsTable
-            schools={schools}
+            schools={schoolsData}
             search={search}
             setSearch={setSearch}
             onSelectSchool={handleSelectSchool}

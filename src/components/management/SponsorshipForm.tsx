@@ -104,7 +104,12 @@ export const SponsorshipForm = ({
           .from("sponsors")
           .select("*")
           .neq('status', 'baja');
-        return allSponsors || [];
+        
+        // Add the required image_url field
+        return (allSponsors || []).map(sponsor => ({
+          ...sponsor,
+          image_url: null
+        })) as Sponsor[];
       }
 
       if (selectedSponsor) {
@@ -114,7 +119,12 @@ export const SponsorshipForm = ({
             .from("sponsors")
             .select("*")
             .neq('status', 'baja');
-          return allSponsors || [];
+          
+          // Add the required image_url field
+          return (allSponsors || []).map(sponsor => ({
+            ...sponsor,
+            image_url: null
+          })) as Sponsor[];
         }
         sponsoringIds.length = 0;
         sponsoringIds.push(...filteredIds);
@@ -126,7 +136,11 @@ export const SponsorshipForm = ({
         .not("id", "in", `(${sponsoringIds.join(",")})`)
         .neq('status', 'baja');
 
-      return sponsors || [];
+      // Add the required image_url field
+      return (sponsors || []).map(sponsor => ({
+        ...sponsor,
+        image_url: null
+      })) as Sponsor[];
     },
   });
 
