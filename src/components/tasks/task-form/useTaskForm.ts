@@ -44,6 +44,8 @@ export const useTaskForm = (
 
   const onSubmit = async (data: Task) => {
     try {
+      console.log("Submitting task form with data:", data);
+      
       const formData = {
         ...data,
         due_date: date?.toISOString() || null,
@@ -53,11 +55,13 @@ export const useTaskForm = (
         assigned_user_id: assignedUserId,
       };
 
+      console.log("Formatted form data:", formData);
+      
       if (task?.id) {
         // Update existing task
         const { error } = await supabase
-          .from("tasks" as any)
-          .update(formData as any)
+          .from("tasks")
+          .update(formData)
           .eq("id", task.id);
         
         if (error) throw error;
@@ -69,8 +73,8 @@ export const useTaskForm = (
       } else {
         // Create new task
         const { error } = await supabase
-          .from("tasks" as any)
-          .insert(formData as any);
+          .from("tasks")
+          .insert(formData);
         
         if (error) throw error;
         

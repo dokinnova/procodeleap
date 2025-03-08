@@ -4,6 +4,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
+interface ChildEntity {
+  id: string;
+  name: string;
+}
+
+interface SponsorEntity {
+  id: string;
+  first_name: string;
+  last_name: string;
+}
+
 interface RelatedEntitySelectorProps {
   relatedTo: 'child' | 'sponsor' | '';
   onRelatedToChange: (value: 'child' | 'sponsor' | '') => void;
@@ -22,7 +33,7 @@ export const RelatedEntitySelector = ({
   onSponsorSelect
 }: RelatedEntitySelectorProps) => {
   // Fetch children for the dropdown
-  const { data: children } = useQuery({
+  const { data: children = [] } = useQuery({
     queryKey: ["children-for-tasks"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -31,13 +42,13 @@ export const RelatedEntitySelector = ({
         .order("name");
       
       if (error) throw error;
-      return data;
+      return data as ChildEntity[];
     },
     enabled: relatedTo === "child",
   });
 
   // Fetch sponsors for the dropdown
-  const { data: sponsors } = useQuery({
+  const { data: sponsors = [] } = useQuery({
     queryKey: ["sponsors-for-tasks"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -46,7 +57,7 @@ export const RelatedEntitySelector = ({
         .order("last_name");
       
       if (error) throw error;
-      return data;
+      return data as SponsorEntity[];
     },
     enabled: relatedTo === "sponsor",
   });
@@ -74,14 +85,14 @@ export const RelatedEntitySelector = ({
         <div className="space-y-2">
           <Label htmlFor="child_id">Niño</Label>
           <Select
-            value={childId || undefined}
+            value={childId || ""}
             onValueChange={onChildSelect}
           >
             <SelectTrigger>
               <SelectValue placeholder="Seleccionar niño" />
             </SelectTrigger>
             <SelectContent>
-              {children?.map((child) => (
+              {children && children.map((child) => (
                 <SelectItem key={child.id} value={child.id}>
                   {child.name}
                 </SelectItem>
@@ -95,14 +106,14 @@ export const RelatedEntitySelector = ({
         <div className="space-y-2">
           <Label htmlFor="sponsor_id">Padrino</Label>
           <Select
-            value={sponsorId || undefined}
+            value={sponsorId || ""}
             onValueChange={onSponsorSelect}
           >
             <SelectTrigger>
               <SelectValue placeholder="Seleccionar padrino" />
             </SelectTrigger>
             <SelectContent>
-              {sponsors?.map((sponsor) => (
+              {sponsors && sponsors.map((sponsor) => (
                 <SelectItem key={sponsor.id} value={sponsor.id}>
                   {sponsor.first_name} {sponsor.last_name}
                 </SelectItem>

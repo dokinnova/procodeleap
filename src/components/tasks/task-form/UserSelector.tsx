@@ -11,13 +11,19 @@ import { Label } from "@/components/ui/label";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
+interface User {
+  id: string;
+  email: string;
+  role: string;
+}
+
 interface UserSelectorProps {
   assignedUserId: string | null;
   onUserSelect: (userId: string | null) => void;
 }
 
 export const UserSelector = ({ assignedUserId, onUserSelect }: UserSelectorProps) => {
-  const { data: users, isLoading, isError } = useQuery({
+  const { data: users = [], isLoading, isError } = useQuery({
     queryKey: ["app-users"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -25,7 +31,7 @@ export const UserSelector = ({ assignedUserId, onUserSelect }: UserSelectorProps
         .select("*");
       
       if (error) throw error;
-      return data;
+      return data as User[];
     },
   });
 
@@ -41,7 +47,7 @@ export const UserSelector = ({ assignedUserId, onUserSelect }: UserSelectorProps
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="">Sin asignar</SelectItem>
-          {users?.map((user) => (
+          {users && users.map((user) => (
             <SelectItem key={user.id} value={user.id}>
               {user.email} ({user.role})
             </SelectItem>
