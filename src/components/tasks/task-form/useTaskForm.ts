@@ -19,7 +19,7 @@ export const useTaskForm = (
   const [assignedUserId, setAssignedUserId] = useState<string | null>(
     task?.assigned_user_id || null
   );
-
+  
   const defaultValues = task ? {
     ...task
   } : {
@@ -33,9 +33,13 @@ export const useTaskForm = (
     assigned_user_id: null,
   };
 
-  const { register, handleSubmit, setValue, reset, formState: { errors } } = useForm<Task>({
+  const { register, handleSubmit, setValue, reset, formState: { errors }, watch } = useForm<Task>({
     defaultValues
   });
+
+  // Watch child_id and sponsor_id fields
+  const childId = watch("child_id");
+  const sponsorId = watch("sponsor_id");
 
   useEffect(() => {
     if (task) {
@@ -43,8 +47,15 @@ export const useTaskForm = (
       setRelatedTo(task.related_to as '' | 'child' | 'sponsor' || '');
       setDate(task.due_date ? new Date(task.due_date) : undefined);
       setAssignedUserId(task.assigned_user_id || null);
+      
+      // Explicitly set these values for the form
+      setValue("child_id", task.child_id || null);
+      setValue("sponsor_id", task.sponsor_id || null);
     }
-  }, [task, reset]);
+  }, [task, reset, setValue]);
+
+  console.log("useTaskForm - childId:", childId);
+  console.log("useTaskForm - task child_id:", task?.child_id);
 
   const onSubmit = async (data: Task) => {
     try {
@@ -110,6 +121,8 @@ export const useTaskForm = (
     setDate,
     assignedUserId,
     setAssignedUserId,
-    onSubmit
+    onSubmit,
+    childId: watch("child_id"),
+    sponsorId: watch("sponsor_id")
   };
 };

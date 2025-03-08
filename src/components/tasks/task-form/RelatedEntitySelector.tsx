@@ -44,7 +44,7 @@ export const RelatedEntitySelector = ({
       if (error) throw error;
       return data as ChildEntity[];
     },
-    enabled: relatedTo === "child",
+    enabled: true, // Always fetch the children data
   });
 
   // Fetch sponsors for the dropdown
@@ -59,8 +59,10 @@ export const RelatedEntitySelector = ({
       if (error) throw error;
       return data as SponsorEntity[];
     },
-    enabled: relatedTo === "sponsor",
+    enabled: true, // Always fetch the sponsors data
   });
+
+  console.log("RelatedEntitySelector - childId:", childId);
 
   return (
     <>

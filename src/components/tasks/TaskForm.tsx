@@ -26,8 +26,25 @@ export const TaskForm = ({ task, onTaskSaved, onCancel }: TaskFormProps) => {
     setDate,
     assignedUserId,
     setAssignedUserId,
-    onSubmit
+    onSubmit,
+    childId,
+    sponsorId
   } = useTaskForm(task, onTaskSaved);
+
+  console.log("TaskForm - childId:", childId);
+  console.log("TaskForm - task?.child_id:", task?.child_id);
+
+  const handleChildSelect = (value: string) => {
+    if (value === "select-child") return;
+    console.log("Setting child_id to:", value);
+    setValue("child_id", value);
+  };
+
+  const handleSponsorSelect = (value: string) => {
+    if (value === "select-sponsor") return;
+    console.log("Setting sponsor_id to:", value);
+    setValue("sponsor_id", value);
+  };
 
   return (
     <Card>
@@ -56,10 +73,10 @@ export const TaskForm = ({ task, onTaskSaved, onCancel }: TaskFormProps) => {
           <RelatedEntitySelector
             relatedTo={relatedTo}
             onRelatedToChange={setRelatedTo}
-            childId={task?.child_id || null}
-            onChildSelect={(value) => setValue("child_id", value)}
-            sponsorId={task?.sponsor_id || null}
-            onSponsorSelect={(value) => setValue("sponsor_id", value)}
+            childId={childId || task?.child_id || null}
+            onChildSelect={handleChildSelect}
+            sponsorId={sponsorId || task?.sponsor_id || null}
+            onSponsorSelect={handleSponsorSelect}
           />
         </CardContent>
         <CardFooter>

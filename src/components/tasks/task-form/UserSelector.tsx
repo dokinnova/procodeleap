@@ -35,6 +35,8 @@ export const UserSelector = ({ assignedUserId, onUserSelect }: UserSelectorProps
     },
   });
 
+  console.log("UserSelector - assignedUserId:", assignedUserId);
+
   return (
     <div className="space-y-2">
       <Label htmlFor="assign-user">Asignar a usuario</Label>
