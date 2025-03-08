@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { 
   Select, 
   SelectContent, 
@@ -35,6 +35,7 @@ export const UserSelector = ({ assignedUserId, onUserSelect }: UserSelectorProps
     },
   });
 
+  console.log("UserSelector - users:", users);
   console.log("UserSelector - assignedUserId:", assignedUserId);
 
   return (
@@ -42,7 +43,10 @@ export const UserSelector = ({ assignedUserId, onUserSelect }: UserSelectorProps
       <Label htmlFor="assign-user">Asignar a usuario</Label>
       <Select
         value={assignedUserId || "unassigned"}
-        onValueChange={(value) => onUserSelect(value === "unassigned" ? null : value)}
+        onValueChange={(value) => {
+          console.log("UserSelector - selected value:", value);
+          onUserSelect(value === "unassigned" ? null : value);
+        }}
       >
         <SelectTrigger className="w-full">
           <SelectValue placeholder="Seleccionar usuario" />

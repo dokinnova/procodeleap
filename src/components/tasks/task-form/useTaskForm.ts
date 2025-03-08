@@ -55,7 +55,8 @@ export const useTaskForm = (
   }, [task, reset, setValue]);
 
   console.log("useTaskForm - childId:", childId);
-  console.log("useTaskForm - task child_id:", task?.child_id);
+  console.log("useTaskForm - sponsorId:", sponsorId);
+  console.log("useTaskForm - assignedUserId:", assignedUserId);
 
   const onSubmit = async (data: Task) => {
     try {
@@ -65,8 +66,8 @@ export const useTaskForm = (
         ...data,
         due_date: date?.toISOString() || null,
         related_to: relatedTo || null,
-        child_id: relatedTo === "child" ? data.child_id : null,
-        sponsor_id: relatedTo === "sponsor" ? data.sponsor_id : null,
+        child_id: relatedTo === "child" ? childId : null,
+        sponsor_id: relatedTo === "sponsor" ? sponsorId : null,
         assigned_user_id: assignedUserId,
       };
 
@@ -79,7 +80,10 @@ export const useTaskForm = (
           .update(formData)
           .eq("id", task.id);
         
-        if (error) throw error;
+        if (error) {
+          console.error("Update error:", error);
+          throw error;
+        }
         
         toast({
           title: "Tarea actualizada",
@@ -91,7 +95,10 @@ export const useTaskForm = (
           .from("tasks")
           .insert(formData);
         
-        if (error) throw error;
+        if (error) {
+          console.error("Insert error:", error);
+          throw error;
+        }
         
         toast({
           title: "Tarea creada",
@@ -122,7 +129,7 @@ export const useTaskForm = (
     assignedUserId,
     setAssignedUserId,
     onSubmit,
-    childId: watch("child_id"),
-    sponsorId: watch("sponsor_id")
+    childId,
+    sponsorId
   };
 };
