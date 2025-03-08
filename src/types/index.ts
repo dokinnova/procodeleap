@@ -1,4 +1,3 @@
-
 export interface Child {
   id: string;
   name: string;
@@ -28,7 +27,7 @@ export interface Sponsor {
   last_name: string;
   mobile_phone?: string;
   contribution?: number;
-  status?: 'active' | 'inactive' | 'pending';
+  status?: 'active' | 'inactive' | 'pending' | 'baja';
   created_at?: string;
 }
 
@@ -61,7 +60,6 @@ export interface Task {
   };
 }
 
-// Add the missing ChildDocument interface
 export interface ChildDocument {
   id: string;
   child_id: string;
@@ -75,7 +73,6 @@ export interface ChildDocument {
   updated_at: string;
 }
 
-// Let's also add a formatDate utility function since it's missing
 export const formatDate = (dateString: string): string => {
   if (!dateString) return 'Sin fecha';
   
