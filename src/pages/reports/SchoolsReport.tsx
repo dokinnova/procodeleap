@@ -24,7 +24,16 @@ const SchoolsReport = () => {
         .order("name");
       
       if (error) throw error;
-      return data as School[];
+      
+      // Transform to match School type
+      return (data || []).map(school => ({
+        id: school.id,
+        name: school.name,
+        location: school.address || '',
+        phone: '',
+        email: '',
+        address: school.address || ''
+      })) as School[];
     },
   });
 

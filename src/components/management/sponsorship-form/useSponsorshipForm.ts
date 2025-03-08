@@ -34,11 +34,11 @@ export const useSponsorshipForm = (
           setNotes(data.notes || '');
           // Add image_url to the sponsor data before setting
           if (data.sponsor) {
-            const sponsorWithImage = {
+            const sponsorWithImage: Sponsor = {
               ...data.sponsor,
-              image_url: data.sponsor.image_url || null
+              image_url: null // Ensure image_url property exists
             };
-            setSelectedSponsor(sponsorWithImage as Sponsor);
+            setSelectedSponsor(sponsorWithImage);
           }
         } else {
           setStartDate('');

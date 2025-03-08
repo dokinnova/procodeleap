@@ -25,7 +25,7 @@ export const useSchoolsQuery = () => {
         location: school.address || '', // Use address as location
         phone: school.phone || '',
         email: school.email || '',
-        address: school.address
+        address: school.address || ''
       }));
     }
   });
