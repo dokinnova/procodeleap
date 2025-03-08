@@ -1,115 +1,87 @@
 
-import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { Sponsor } from "@/types";
+import { useState, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/components/ui/use-toast';
+import { Sponsor } from '@/types';
 
 export const useSponsors = () => {
-  const { toast } = useToast();
   const [sponsors, setSponsors] = useState<Sponsor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
 
-  const loadSponsors = async () => {
+  // Function to load sponsors from the database
+  const loadSponsors = useCallback(async () => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
-      console.log("Obteniendo padrinos...");
-      
-      const { data: currentSession } = await supabase.auth.getSession();
-      if (!currentSession.session) {
-        console.log("No hay sesión al cargar padrinos");
-        return;
-      }
-
       const { data, error } = await supabase
         .from('sponsors')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      
-      console.log("Padrinos obtenidos:", data);
-      setSponsors(data || []);
-    } catch (error) {
-      console.error('Error al cargar padrinos:', error);
+
+      // Add the missing image_url field that's required by the type
+      const sponsorsWithImageUrl = data.map(sponsor => ({
+        ...sponsor,
+        image_url: null
+      })) as Sponsor[];
+
+      setSponsors(sponsorsWithImageUrl);
+    } catch (error: any) {
+      console.error('Error loading sponsors:', error);
       toast({
-        variant: "destructive",
-        title: "Error",
-        description: "No se pudieron cargar los padrinos",
+        title: 'Error',
+        description: 'No se pudieron cargar los padrinos',
+        variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [toast]);
 
-  const handleSubmit = async (formData: any) => {
+  // Function to handle form submission (create/update sponsor)
+  const handleSubmit = useCallback(async (formData: any, isEditing: boolean) => {
     try {
-      const { data: currentSession } = await supabase.auth.getSession();
-      if (!currentSession.session) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Debes iniciar sesión para realizar esta acción",
-        });
-        return;
-      }
-
-      if (!formData.first_name || !formData.last_name || !formData.email || !formData.contribution || !formData.status) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Por favor complete los campos requeridos",
-        });
-        return;
-      }
-
-      const sponsorData = {
-        first_name: formData.first_name,
-        last_name: formData.last_name,
-        name: `${formData.first_name} ${formData.last_name}`, // Mantener el campo name para compatibilidad
-        email: formData.email,
-        phone: formData.phone || null,
-        mobile_phone: formData.mobile_phone || null,
-        address: formData.address || null,
-        city: formData.city || null,
-        country: formData.country || null,
-        contribution: Number(formData.contribution),
-        status: formData.status,
-      };
-
-      console.log("Guardando datos del padrino:", sponsorData);
-
-      if (formData.id) {
-        const { error: updateError } = await supabase
+      if (isEditing) {
+        // Update existing sponsor
+        const { error } = await supabase
           .from('sponsors')
-          .update(sponsorData)
+          .update(formData)
           .eq('id', formData.id);
 
-        if (updateError) throw updateError;
-      } else {
-        const { error: insertError } = await supabase
-          .from('sponsors')
-          .insert([sponsorData]);
+        if (error) throw error;
 
-        if (insertError) throw insertError;
+        toast({
+          title: 'Padrino actualizado',
+          description: 'Los datos del padrino han sido actualizados correctamente',
+        });
+      } else {
+        // Create new sponsor
+        const { error } = await supabase
+          .from('sponsors')
+          .insert([formData]);
+
+        if (error) throw error;
+
+        toast({
+          title: 'Padrino registrado',
+          description: 'El padrino ha sido registrado correctamente',
+        });
       }
 
-      toast({
-        title: "Éxito",
-        description: formData.id 
-          ? "Padrino actualizado correctamente"
-          : "Padrino registrado correctamente",
-      });
-
+      // Refresh sponsors list
       loadSponsors();
+      return true;
     } catch (error: any) {
-      console.error('Error al guardar padrino:', error);
+      console.error('Error saving sponsor:', error);
       toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message || "No se pudo guardar el padrino",
+        title: 'Error',
+        description: error.message || 'No se pudo guardar la información del padrino',
+        variant: 'destructive',
       });
+      return false;
     }
-  };
+  }, [loadSponsors, toast]);
 
   return {
     sponsors,

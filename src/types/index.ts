@@ -1,3 +1,4 @@
+
 export interface Child {
   id: string;
   name: string;
@@ -10,6 +11,8 @@ export interface Child {
   image_url: string | null;
   status: 'assigned' | 'assignable' | 'inactive' | 'pending' | 'baja';
   priority: 'high' | 'medium' | 'low' | null;
+  created_at?: string;
+  schools?: School; // Reference to related school
 }
 
 export interface Sponsor {
@@ -21,6 +24,12 @@ export interface Sponsor {
   city: string;
   country: string;
   image_url: string | null;
+  first_name: string;
+  last_name: string;
+  mobile_phone?: string;
+  contribution?: number;
+  status?: 'active' | 'inactive' | 'pending';
+  created_at?: string;
 }
 
 export interface School {
@@ -29,6 +38,7 @@ export interface School {
   location: string;
   phone: string;
   email: string;
+  address?: string; // Adding the address field which exists in the database
 }
 
 export interface Task {
@@ -50,3 +60,31 @@ export interface Task {
     role: string;
   };
 }
+
+// Add the missing ChildDocument interface
+export interface ChildDocument {
+  id: string;
+  child_id: string;
+  filename: string;
+  file_path: string;
+  file_type: string;
+  file_size: number;
+  description?: string;
+  uploaded_by: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// Let's also add a formatDate utility function since it's missing
+export const formatDate = (dateString: string): string => {
+  if (!dateString) return 'Sin fecha';
+  
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return 'Fecha inválida';
+  
+  return new Intl.DateTimeFormat('es-ES', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  }).format(date);
+};

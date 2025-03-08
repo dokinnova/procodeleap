@@ -10,8 +10,8 @@ export const useTaskForm = (
   onTaskSaved: () => void
 ) => {
   const { toast } = useToast();
-  const [relatedTo, setRelatedTo] = useState<'child' | 'sponsor' | ''>(
-    task?.related_to || ''
+  const [relatedTo, setRelatedTo] = useState<'' | 'child' | 'sponsor'>(
+    task?.related_to as '' | 'child' | 'sponsor' || ''
   );
   const [date, setDate] = useState<Date | undefined>(
     task?.due_date ? new Date(task.due_date) : undefined
@@ -36,7 +36,7 @@ export const useTaskForm = (
   useEffect(() => {
     if (task) {
       reset(task);
-      setRelatedTo(task.related_to || '');
+      setRelatedTo(task.related_to as '' | 'child' | 'sponsor' || '');
       setDate(task.due_date ? new Date(task.due_date) : undefined);
       setAssignedUserId(task.assigned_user_id || null);
     }

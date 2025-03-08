@@ -1,8 +1,7 @@
 
 import { CalendarClock, ChevronDown, Edit, Trash, User } from "lucide-react";
-import { Task } from "@/types";
+import { Task, formatDate } from "@/types";
 import { TaskStatusBadge } from "../TaskStatusBadge";
-import { formatDate } from "@/lib/utils";
 import {
   Collapsible,
   CollapsibleContent,
@@ -14,7 +13,7 @@ import { cn } from "@/lib/utils";
 
 interface TaskItemProps {
   task: Task;
-  onStatusChange: (taskId: string, newStatus: string) => void;
+  onStatusChange: (task: Task, completed: boolean) => Promise<void>;
   onEdit: (task: Task) => void;
   onDelete: (task: Task) => void;
 }
@@ -67,9 +66,9 @@ export const TaskItem = ({
 
           <TaskActions
             task={task}
-            onStatusChange={onStatusChange}
             onEdit={onEdit}
             onDelete={onDelete}
+            onStatusChange={(completed) => onStatusChange(task, completed)}
           />
 
           <CollapsibleTrigger asChild>
