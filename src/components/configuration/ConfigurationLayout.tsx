@@ -1,4 +1,3 @@
-
 import { Settings } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
@@ -54,15 +53,17 @@ export const ConfigurationLayout = () => {
         <h1 className="text-2xl font-bold text-gray-900">Configuración</h1>
       </div>
 
-      <Card className="p-6">
-        <h2 className="text-xl font-semibold mb-4">Logo del Sitio</h2>
-        <LogoUploader currentLogo={settings?.logo_url} />
-      </Card>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-4">Logo del Sitio</h2>
+          <LogoUploader currentLogo={settings?.logo_url} />
+        </Card>
 
-      <Card className="p-6">
-        <h2 className="text-xl font-semibold mb-4">Personalización de Fondo</h2>
-        <BackgroundSettings />
-      </Card>
+        <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-4">Personalización de Fondo</h2>
+          <BackgroundSettings />
+        </Card>
+      </div>
 
       <Card className="p-6">
         <h2 className="text-xl font-semibold mb-4">Añadir Usuario</h2>

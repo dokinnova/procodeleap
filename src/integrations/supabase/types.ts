@@ -271,16 +271,25 @@ export type Database = {
       }
       site_settings: {
         Row: {
+          background_color: string | null
+          background_image: string | null
+          background_type: string | null
           created_at: string
           id: number
           logo_url: string | null
         }
         Insert: {
+          background_color?: string | null
+          background_image?: string | null
+          background_type?: string | null
           created_at?: string
           id?: number
           logo_url?: string | null
         }
         Update: {
+          background_color?: string | null
+          background_image?: string | null
+          background_type?: string | null
           created_at?: string
           id?: number
           logo_url?: string | null
