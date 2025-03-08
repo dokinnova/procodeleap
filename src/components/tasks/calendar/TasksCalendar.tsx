@@ -5,7 +5,6 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Task } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
 import { TaskStatusBadge } from "@/components/tasks/TaskStatusBadge";
 import { Button } from "@/components/ui/button";
 import { Calendar as CalendarIcon } from "lucide-react";
@@ -33,10 +32,74 @@ export const TasksCalendar = ({ tasks, onTaskSelect }: TasksCalendarProps) => {
     });
   };
 
-  // Obtener días que tienen tareas
-  const daysWithTasks = tasks
-    .filter(task => task.due_date)
-    .map(task => new Date(task.due_date as string));
+  // Obtener días con tareas y su estado dominante
+  const getDaysWithTasksAndStatus = () => {
+    // Crear un mapa para agrupar tareas por fecha
+    const tasksByDate = new Map<string, Task[]>();
+    
+    tasks.filter(task => task.due_date).forEach(task => {
+      const date = new Date(task.due_date as string);
+      const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+      
+      if (!tasksByDate.has(dateKey)) {
+        tasksByDate.set(dateKey, []);
+      }
+      tasksByDate.get(dateKey)?.push(task);
+    });
+    
+    // Determinar el estado dominante para cada fecha
+    const daysWithStatus = new Map<string, string>();
+    
+    tasksByDate.forEach((dayTasks, dateKey) => {
+      // Contar estados
+      const statusCounts: Record<string, number> = {};
+      dayTasks.forEach(task => {
+        statusCounts[task.status] = (statusCounts[task.status] || 0) + 1;
+      });
+      
+      // Encontrar el estado más común
+      let dominantStatus = "pending";
+      let maxCount = 0;
+      
+      // Prioridad: completed > in-progress > pending
+      if (statusCounts["completed"] && statusCounts["completed"] >= maxCount) {
+        dominantStatus = "completed";
+        maxCount = statusCounts["completed"];
+      }
+      
+      if (statusCounts["in-progress"] && (statusCounts["in-progress"] > maxCount || (statusCounts["in-progress"] === maxCount && dominantStatus !== "completed"))) {
+        dominantStatus = "in-progress";
+        maxCount = statusCounts["in-progress"];
+      }
+      
+      if (statusCounts["pending"] && (statusCounts["pending"] > maxCount && dominantStatus !== "completed" && dominantStatus !== "in-progress")) {
+        dominantStatus = "pending";
+      }
+      
+      daysWithStatus.set(dateKey, dominantStatus);
+    });
+    
+    return { tasksByDate, daysWithStatus };
+  };
+
+  const { tasksByDate, daysWithStatus } = getDaysWithTasksAndStatus();
+
+  // Convertir el mapa a un conjunto de fechas para los modificadores del calendario
+  const getDatesByStatus = (status: string) => {
+    const dates: Date[] = [];
+    daysWithStatus.forEach((dayStatus, dateKey) => {
+      if (dayStatus === status) {
+        const [year, month, day] = dateKey.split('-').map(Number);
+        dates.push(new Date(year, month, day));
+      }
+    });
+    return dates;
+  };
+
+  // Obtener fechas con tareas por estado
+  const completedTaskDates = getDatesByStatus("completed");
+  const inProgressTaskDates = getDatesByStatus("in-progress");
+  const pendingTaskDates = getDatesByStatus("pending");
 
   // Tareas del día seleccionado
   const tasksForSelectedDate = getTasksByDate(selectedDate);
@@ -52,16 +115,48 @@ export const TasksCalendar = ({ tasks, onTaskSelect }: TasksCalendarProps) => {
             locale={es}
             className="p-3 pointer-events-auto"
             modifiers={{
-              hasTasks: daysWithTasks,
+              completed: completedTaskDates,
+              inProgress: inProgressTaskDates,
+              pending: pendingTaskDates,
             }}
             modifiersStyles={{
-              hasTasks: {
-                backgroundColor: "#D3E4FD",
+              completed: {
+                backgroundColor: "#ECFDF5", // Suave verde para completadas
                 fontWeight: "bold",
                 borderRadius: "0.2rem",
+                color: "#059669",
+              },
+              inProgress: {
+                backgroundColor: "#EFF6FF", // Suave azul para en progreso
+                fontWeight: "bold",
+                borderRadius: "0.2rem",
+                color: "#3B82F6",
+              },
+              pending: {
+                backgroundColor: "#FEF3C7", // Suave amarillo para pendientes
+                fontWeight: "bold",
+                borderRadius: "0.2rem",
+                color: "#D97706",
               },
             }}
           />
+          <div className="mt-4 flex flex-col space-y-2">
+            <div className="text-sm font-medium">Leyenda:</div>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center">
+                <div className="w-4 h-4 rounded bg-[#ECFDF5] mr-2 border border-[#059669]"></div>
+                <span className="text-xs">Completadas</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-4 h-4 rounded bg-[#EFF6FF] mr-2 border border-[#3B82F6]"></div>
+                <span className="text-xs">En Progreso</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-4 h-4 rounded bg-[#FEF3C7] mr-2 border border-[#D97706]"></div>
+                <span className="text-xs">Pendientes</span>
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
