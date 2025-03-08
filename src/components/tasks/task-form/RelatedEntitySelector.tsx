@@ -57,7 +57,7 @@ export const RelatedEntitySelector = ({
         <Label>Relacionada con</Label>
         <Select
           value={relatedTo}
-          onValueChange={(value: any) => onRelatedToChange(value === "none" ? "" : value)}
+          onValueChange={(value: 'child' | 'sponsor' | 'none') => onRelatedToChange(value === "none" ? "" : value as 'child' | 'sponsor')}
         >
           <SelectTrigger>
             <SelectValue placeholder="Seleccionar relación" />
@@ -74,7 +74,7 @@ export const RelatedEntitySelector = ({
         <div className="space-y-2">
           <Label htmlFor="child_id">Niño</Label>
           <Select
-            value={childId || ""}
+            value={childId || undefined}
             onValueChange={onChildSelect}
           >
             <SelectTrigger>
@@ -95,7 +95,7 @@ export const RelatedEntitySelector = ({
         <div className="space-y-2">
           <Label htmlFor="sponsor_id">Padrino</Label>
           <Select
-            value={sponsorId || ""}
+            value={sponsorId || undefined}
             onValueChange={onSponsorSelect}
           >
             <SelectTrigger>

@@ -379,6 +379,7 @@ export type Database = {
       }
       tasks: {
         Row: {
+          assigned_user_id: string | null
           child_id: string | null
           completed_at: string | null
           created_at: string
@@ -391,6 +392,7 @@ export type Database = {
           title: string
         }
         Insert: {
+          assigned_user_id?: string | null
           child_id?: string | null
           completed_at?: string | null
           created_at?: string
@@ -403,6 +405,7 @@ export type Database = {
           title: string
         }
         Update: {
+          assigned_user_id?: string | null
           child_id?: string | null
           completed_at?: string | null
           created_at?: string
@@ -415,6 +418,13 @@ export type Database = {
           title?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_tasks_app_users"
+            columns: ["assigned_user_id"]
+            isOneToOne: false
+            referencedRelation: "app_users"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "tasks_child_id_fkey"
             columns: ["child_id"]
