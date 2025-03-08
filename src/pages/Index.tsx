@@ -13,7 +13,7 @@ const Index = () => {
           to="/children"
           icon={Users}
           title="Niños"
-          description="Administración y seguimiento"
+          description="Gestión de beneficiarios"
           variant="primary"
         />
 
@@ -21,7 +21,7 @@ const Index = () => {
           to="/sponsors"
           icon={UserPlus}
           title="Padrinos"
-          description="Gestión de donantes"
+          description="Administración de donantes"
           variant="secondary"
         />
 
@@ -37,7 +37,7 @@ const Index = () => {
           to="/management"
           icon={LinkIcon}
           title="Apadrinamientos"
-          description="Asignación de vínculos"
+          description="Gestión de vínculos"
           variant="primary"
         />
 
@@ -45,7 +45,7 @@ const Index = () => {
           to="/receipts"
           icon={Receipt}
           title="Recibos"
-          description="Pagos y contabilidad"
+          description="Control de pagos"
           variant="secondary"
         />
 
@@ -53,7 +53,7 @@ const Index = () => {
           to="/tasks"
           icon={ClipboardList}
           title="Tareas"
-          description="Gestión de actividades"
+          description="Planificación"
           variant="accent"
         />
 

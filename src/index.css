@@ -17,7 +17,7 @@
     --secondary-foreground: 222.2 47.4% 11.2%;
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
+    --accent: 60 98% 90%;
     --accent-foreground: 222.2 47.4% 11.2%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
@@ -33,7 +33,7 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    background-image: linear-gradient(109.6deg, rgba(223,234,247,1) 11.2%, rgba(244,248,252,1) 91.1%);
+    background-image: linear-gradient(109.6deg, rgba(253, 230, 255, 0.6) 11.2%, rgba(244, 248, 252, 1) 91.1%);
     min-height: 100vh;
   }
 
@@ -53,12 +53,12 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background: #9b87f5;
+    background: #8B5CF6;
     border-radius: 4px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: #7e69ab;
+    background: #7c4dff;
   }
 }
 

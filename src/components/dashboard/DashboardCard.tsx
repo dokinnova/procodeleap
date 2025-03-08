@@ -18,17 +18,30 @@ export const DashboardCard = ({
   description,
   variant,
 }: DashboardCardProps) => {
-  // Mejoramos los estilos de los fondos para crear un aspecto más profesional
+  // Better background styles with brighter color palette
   const getBackgroundColor = (variant: string) => {
     switch (variant) {
       case "primary":
-        return "bg-primary/5";
+        return "bg-violet-100";
       case "secondary":
-        return "bg-secondary/40";
+        return "bg-sky-100";
       case "accent":
-        return "bg-accent/30";
+        return "bg-amber-100";
       default:
-        return "bg-primary/5";
+        return "bg-violet-100";
+    }
+  };
+
+  const getIconColor = (variant: string) => {
+    switch (variant) {
+      case "primary":
+        return "text-violet-600";
+      case "secondary":
+        return "text-sky-600";
+      case "accent":
+        return "text-amber-600";
+      default:
+        return "text-violet-600";
     }
   };
 
@@ -40,7 +53,7 @@ export const DashboardCard = ({
           className="w-full h-full p-4 border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-1 flex flex-col items-center gap-3"
         >
           <div className={`p-3 ${getBackgroundColor(variant)} rounded-full`}>
-            <Icon className="w-5 h-5 text-primary" />
+            <Icon className={`w-5 h-5 ${getIconColor(variant)}`} />
           </div>
           <div className="text-center">
             <h3 className="text-base font-semibold">{title}</h3>

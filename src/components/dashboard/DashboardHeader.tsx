@@ -54,9 +54,9 @@ export const DashboardHeader = () => {
   };
 
   return (
-    <div className="flex justify-between items-center pb-4 border-b border-gray-100">
+    <div className="flex justify-between items-center pb-4 border-b border-purple-100">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight text-gray-900">Panel de Control</h2>
+        <h2 className="text-2xl font-bold tracking-tight text-gray-900 bg-gradient-to-r from-violet-600 to-pink-600 bg-clip-text text-transparent">Panel de Control</h2>
         <p className="text-muted-foreground text-sm">
           Sistema de gestión COPRODELI
         </p>
@@ -65,9 +65,9 @@ export const DashboardHeader = () => {
         variant="outline" 
         onClick={handleLogout}
         size="sm"
-        className="flex items-center gap-2"
+        className="flex items-center gap-2 border-violet-200 hover:bg-violet-50"
       >
-        <LogOut className="h-4 w-4" />
+        <LogOut className="h-4 w-4 text-violet-600" />
         Cerrar sesión
       </Button>
     </div>
