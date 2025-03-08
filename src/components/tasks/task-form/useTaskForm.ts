@@ -16,6 +16,9 @@ export const useTaskForm = (
   const [date, setDate] = useState<Date | undefined>(
     task?.due_date ? new Date(task.due_date) : undefined
   );
+  const [assignedUserId, setAssignedUserId] = useState<string | null>(
+    task?.assigned_user_id || null
+  );
 
   const { register, handleSubmit, setValue, reset, formState: { errors } } = useForm<Task>({
     defaultValues: task || {
@@ -26,6 +29,7 @@ export const useTaskForm = (
       child_id: null,
       sponsor_id: null,
       due_date: null,
+      assigned_user_id: null,
     },
   });
 
@@ -34,6 +38,7 @@ export const useTaskForm = (
       reset(task);
       setRelatedTo(task.related_to || '');
       setDate(task.due_date ? new Date(task.due_date) : undefined);
+      setAssignedUserId(task.assigned_user_id || null);
     }
   }, [task, reset]);
 
@@ -45,6 +50,7 @@ export const useTaskForm = (
         related_to: relatedTo || null,
         child_id: relatedTo === "child" ? data.child_id : null,
         sponsor_id: relatedTo === "sponsor" ? data.sponsor_id : null,
+        assigned_user_id: assignedUserId,
       };
 
       if (task?.id) {
@@ -94,6 +100,8 @@ export const useTaskForm = (
     setRelatedTo,
     date,
     setDate,
+    assignedUserId,
+    setAssignedUserId,
     onSubmit
   };
 };

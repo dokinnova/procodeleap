@@ -1,63 +1,124 @@
 
-import { CalendarRange } from "lucide-react";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
+import { CalendarClock, ChevronDown, Edit, Trash, User } from "lucide-react";
 import { Task } from "@/types";
 import { TaskStatusBadge } from "../TaskStatusBadge";
-import { Checkbox } from "@/components/ui/checkbox";
+import { formatDate } from "@/lib/utils";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { useState } from "react";
 import { TaskActions } from "./TaskActions";
+import { cn } from "@/lib/utils";
 
 interface TaskItemProps {
   task: Task;
-  onStatusChange: (task: Task, completed: boolean) => void;
+  onStatusChange: (taskId: string, newStatus: string) => void;
   onEdit: (task: Task) => void;
   onDelete: (task: Task) => void;
 }
 
-export const TaskItem = ({ task, onStatusChange, onEdit, onDelete }: TaskItemProps) => {
+export const TaskItem = ({
+  task,
+  onStatusChange,
+  onEdit,
+  onDelete,
+}: TaskItemProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const isCompleted = task.status === "completed";
+
   return (
-    <div 
-      className="border p-4 rounded-lg hover:shadow-md transition-shadow flex justify-between items-center"
+    <Collapsible
+      open={isOpen}
+      onOpenChange={setIsOpen}
+      className={cn(
+        "border rounded-lg bg-white shadow-sm",
+        isCompleted ? "bg-gray-50" : ""
+      )}
     >
-      <div className="flex items-start gap-3 flex-1">
-        <Checkbox 
-          checked={task.status === 'completed'}
-          onCheckedChange={(checked) => onStatusChange(task, checked as boolean)}
-          className="mt-1"
-        />
-        <div className="flex-1">
-          <div className="flex items-center justify-between">
-            <h3 className={`font-medium ${task.status === 'completed' ? 'line-through text-gray-500' : ''}`}>
-              {task.title}
-            </h3>
-            <TaskStatusBadge status={task.status} />
-          </div>
-          <p className="text-sm text-gray-600 mt-1">{task.description}</p>
-          
-          <div className="flex items-center mt-2 text-xs text-gray-500">
+      <div className="p-4 flex items-center justify-between">
+        <div className="flex items-center gap-3 flex-1">
+          <TaskStatusBadge status={task.status} />
+          <h3
+            className={cn(
+              "font-medium truncate flex-1",
+              isCompleted ? "text-gray-500 line-through" : "text-gray-900"
+            )}
+          >
+            {task.title}
+          </h3>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {task.due_date && (
+            <div className="hidden md:flex items-center gap-1 text-sm text-gray-500">
+              <CalendarClock className="h-4 w-4" />
+              <span>{formatDate(task.due_date)}</span>
+            </div>
+          )}
+
+          {task.assigned_user && (
+            <div className="hidden md:flex items-center gap-1 text-sm text-blue-600">
+              <User className="h-4 w-4" />
+              <span>{task.assigned_user.email}</span>
+            </div>
+          )}
+
+          <TaskActions
+            task={task}
+            onStatusChange={onStatusChange}
+            onEdit={onEdit}
+            onDelete={onDelete}
+          />
+
+          <CollapsibleTrigger asChild>
+            <button className="p-1 hover:bg-gray-100 rounded-full">
+              <ChevronDown
+                className={cn(
+                  "h-5 w-5 text-gray-500 transition-transform",
+                  isOpen ? "transform rotate-180" : ""
+                )}
+              />
+            </button>
+          </CollapsibleTrigger>
+        </div>
+      </div>
+
+      <CollapsibleContent>
+        <div className="px-4 pb-4 pt-1 border-t border-gray-100">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-2">
             {task.due_date && (
-              <div className="flex items-center mr-4">
-                <CalendarRange className="h-3.5 w-3.5 mr-1" />
-                {format(new Date(task.due_date), "dd MMM yyyy", { locale: es })}
+              <div className="md:hidden flex items-center gap-1 text-sm text-gray-500">
+                <CalendarClock className="h-4 w-4" />
+                <span>{formatDate(task.due_date)}</span>
               </div>
             )}
             
-            {task.related_to === 'child' && task.child && (
-              <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full mr-2">
-                Niño: {task.child.name}
-              </span>
+            {task.assigned_user && (
+              <div className="flex items-center gap-1 text-sm text-blue-600">
+                <User className="h-4 w-4" />
+                <span>Asignada a: {task.assigned_user.email}</span>
+              </div>
             )}
-            
-            {task.related_to === 'sponsor' && task.sponsor && (
-              <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
-                Padrino: {task.sponsor.first_name} {task.sponsor.last_name}
-              </span>
+
+            {task.related_to && (
+              <div className="flex items-center gap-1 text-sm text-gray-500">
+                <span>
+                  Relacionada con:{" "}
+                  {task.related_to === "child"
+                    ? task.child?.name
+                    : task.sponsor?.name}
+                </span>
+              </div>
             )}
           </div>
+
+          {task.description && (
+            <p className="text-gray-600 text-sm mt-2">{task.description}</p>
+          )}
         </div>
-      </div>
-      
-      <TaskActions task={task} onEdit={onEdit} onDelete={onDelete} />
-    </div>
+      </CollapsibleContent>
+    </Collapsible>
   );
 };

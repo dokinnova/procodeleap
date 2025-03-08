@@ -6,6 +6,7 @@ import { TaskBasicFields } from "./task-form/TaskBasicFields";
 import { TaskDatePicker } from "./task-form/TaskDatePicker";
 import { RelatedEntitySelector } from "./task-form/RelatedEntitySelector";
 import { TaskFormActions } from "./task-form/TaskFormActions";
+import { UserSelector } from "./task-form/UserSelector";
 
 interface TaskFormProps {
   task: Task | null;
@@ -23,6 +24,8 @@ export const TaskForm = ({ task, onTaskSaved, onCancel }: TaskFormProps) => {
     setRelatedTo,
     date,
     setDate,
+    assignedUserId,
+    setAssignedUserId,
     onSubmit
   } = useTaskForm(task, onTaskSaved);
 
@@ -43,6 +46,11 @@ export const TaskForm = ({ task, onTaskSaved, onCancel }: TaskFormProps) => {
           <TaskDatePicker 
             date={date} 
             onDateChange={setDate} 
+          />
+
+          <UserSelector
+            assignedUserId={assignedUserId}
+            onUserSelect={setAssignedUserId}
           />
 
           <RelatedEntitySelector

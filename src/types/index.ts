@@ -1,67 +1,52 @@
-
 export interface Child {
   id: string;
   name: string;
-  age: number;
   birth_date: string;
+  age: number;
   location: string;
-  story: string | null;
+  story: string;
+  school_id: string;
+  grade: string;
   image_url: string | null;
-  school_id: string | null;
   status: 'assigned' | 'assignable' | 'inactive' | 'pending' | 'baja';
-  created_at: string;
-  grade: string | null;
   priority: 'high' | 'medium' | 'low' | null;
-  schools?: {
-    name: string;
-  } | null;
+}
+
+export interface Sponsor {
+  id: string;
+  name: string;
+  phone: string;
+  email: string;
+  address: string;
+  city: string;
+  country: string;
+  image_url: string | null;
 }
 
 export interface School {
   id: string;
   name: string;
-  address: string | null;
-}
-
-export interface Sponsor {
-  id: string;
-  first_name: string;
-  last_name: string;
+  location: string;
+  phone: string;
   email: string;
-  phone: string | null;
-  mobile_phone: string | null;
-  address: string | null;
-  city: string | null;
-  country: string | null;
-  contribution: number;
-  status: 'active' | 'inactive' | 'pending' | 'baja';
-  created_at: string;
-}
-
-export interface ChildDocument {
-  id: string;
-  child_id: string;
-  filename: string;
-  file_path: string;
-  file_type: string;
-  file_size: number;
-  description: string | null;
-  uploaded_by: string;
-  created_at: string;
-  updated_at: string;
 }
 
 export interface Task {
   id?: string;
   title: string;
-  description: string | null;
-  status: 'pending' | 'in-progress' | 'completed';
+  description?: string;
+  status: string;
   due_date?: string | null;
-  created_at?: string;
   completed_at?: string | null;
-  related_to?: 'child' | 'sponsor' | null;
+  related_to?: string | null;
   child_id?: string | null;
   sponsor_id?: string | null;
-  child?: Child | null;
-  sponsor?: Sponsor | null;
+  assigned_user_id?: string | null;
+  child?: Child;
+  sponsor?: Sponsor;
+  assigned_user?: {
+    id: string;
+    email: string;
+    role: string;
+  };
 }
