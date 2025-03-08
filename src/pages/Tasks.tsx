@@ -15,13 +15,64 @@ const Tasks = () => {
   const { data: tasks, isLoading, error, refetch } = useQuery({
     queryKey: ["tasks"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("tasks" as any)
-        .select("*, child:child_id(*), sponsor:sponsor_id(*), assigned_user:assigned_user_id(id, email, role)")
-        .order("due_date", { ascending: true });
-      
-      if (error) throw error;
-      return data as unknown as Task[];
+      try {
+        // First fetch the basic task data
+        const { data: tasksData, error: tasksError } = await supabase
+          .from("tasks")
+          .select("*")
+          .order("due_date", { ascending: true });
+        
+        if (tasksError) throw tasksError;
+        
+        // Fetch child data for tasks that have child_id
+        const childIds = tasksData
+          .filter(task => task.child_id)
+          .map(task => task.child_id);
+          
+        const { data: childrenData } = await supabase
+          .from("children")
+          .select("*")
+          .in("id", childIds.length > 0 ? childIds : ['00000000-0000-0000-0000-000000000000']);
+          
+        // Fetch sponsor data for tasks that have sponsor_id
+        const sponsorIds = tasksData
+          .filter(task => task.sponsor_id)
+          .map(task => task.sponsor_id);
+          
+        const { data: sponsorsData } = await supabase
+          .from("sponsors")
+          .select("*")
+          .in("id", sponsorIds.length > 0 ? sponsorIds : ['00000000-0000-0000-0000-000000000000']);
+          
+        // Fetch user data for tasks that have assigned_user_id
+        const userIds = tasksData
+          .filter(task => task.assigned_user_id)
+          .map(task => task.assigned_user_id);
+          
+        const { data: usersData } = await supabase
+          .from("app_users")
+          .select("id, email, role")
+          .in("id", userIds.length > 0 ? userIds : ['00000000-0000-0000-0000-000000000000']);
+        
+        // Map the related data to each task
+        const enrichedTasks = tasksData.map(task => {
+          const child = childrenData?.find(child => child.id === task.child_id);
+          const sponsor = sponsorsData?.find(sponsor => sponsor.id === task.sponsor_id);
+          const assigned_user = usersData?.find(user => user.id === task.assigned_user_id);
+          
+          return {
+            ...task,
+            child: child || null,
+            sponsor: sponsor || null,
+            assigned_user: assigned_user || null
+          };
+        });
+        
+        return enrichedTasks as Task[];
+      } catch (error) {
+        console.error("Error fetching tasks:", error);
+        throw error;
+      }
     },
   });
 
