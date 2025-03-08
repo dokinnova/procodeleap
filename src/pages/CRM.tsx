@@ -1,8 +1,11 @@
-import { Mail } from "lucide-react";
+
+import { Mail, MessageSquare } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { EmailForm } from "@/components/crm/EmailForm";
 import { EmailHistory } from "@/components/crm/EmailHistory";
+import { WhatsAppContact } from "@/components/crm/WhatsAppContact";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const CRM = () => {
   const { data: emailBatches, refetch: refetchEmailBatches } = useQuery({
@@ -27,9 +30,21 @@ const CRM = () => {
         </h1>
       </div>
 
-      <EmailForm onEmailSent={refetchEmailBatches} />
-
-      <EmailHistory emailBatches={emailBatches || []} />
+      <Tabs defaultValue="email" className="w-full">
+        <TabsList className="mb-6">
+          <TabsTrigger value="email">Email</TabsTrigger>
+          <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="email" className="space-y-6">
+          <EmailForm onEmailSent={refetchEmailBatches} />
+          <EmailHistory emailBatches={emailBatches || []} />
+        </TabsContent>
+        
+        <TabsContent value="whatsapp">
+          <WhatsAppContact />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
