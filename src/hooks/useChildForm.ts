@@ -137,10 +137,12 @@ export const useChildForm = (
 
       if (selectedChild) {
         console.log('Updating existing child:', selectedChild.id);
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from("children")
           .update(dataToSave)
-          .eq("id", selectedChild.id);
+          .eq("id", selectedChild.id)
+          .select('*')
+          .single();
 
         if (error) {
           console.error('Error updating child:', error);
@@ -151,12 +153,29 @@ export const useChildForm = (
           title: "Éxito",
           description: "Niño actualizado correctamente",
         });
-        setSelectedChild(null);
+        
+        // Actualizar el niño seleccionado con los datos actualizados
+        // en lugar de simplemente limpiar la selección
+        if (data) {
+          console.log('Setting updated child data:', data);
+          setSelectedChild({
+            ...data,
+            birth_date: data.birth_date || '',
+            story: data.story || '',
+            school_id: data.school_id || '',
+            grade: data.grade || '',
+            image_url: data.image_url || null,
+            status: data.status || 'pending',
+            priority: data.priority || null
+          });
+        }
       } else {
         console.log('Creating new child');
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from("children")
-          .insert([dataToSave]);
+          .insert([dataToSave])
+          .select('*')
+          .single();
 
         if (error) {
           console.error('Error creating child:', error);
@@ -167,6 +186,20 @@ export const useChildForm = (
           title: "Éxito",
           description: "Niño registrado correctamente",
         });
+        
+        // Limpiar el formulario después de crear un nuevo niño
+        setFormData({
+          name: "",
+          birth_date: "",
+          age: 0,
+          location: "",
+          story: "",
+          school_id: "",
+          grade: "",
+          image_url: null,
+          status: "pending",
+          priority: null,
+        });
       }
 
       // Invalidate and refetch queries
@@ -176,19 +209,6 @@ export const useChildForm = (
       await queryClient.invalidateQueries({ 
         queryKey: [CHILDREN_QUERY_KEY],
         refetchType: 'all' 
-      });
-
-      setFormData({
-        name: "",
-        birth_date: "",
-        age: 0,
-        location: "",
-        story: "",
-        school_id: "",
-        grade: "",
-        image_url: null,
-        status: "pending",
-        priority: null,
       });
     } catch (error: any) {
       console.error('Error in form submission:', error);
