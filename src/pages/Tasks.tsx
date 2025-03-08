@@ -60,14 +60,21 @@ const Tasks = () => {
           const sponsor = sponsorsData?.find(sponsor => sponsor.id === task.sponsor_id);
           const assigned_user = usersData?.find(user => user.id === task.assigned_user_id);
           
+          // Transform sponsor data to match the expected Sponsor type with image_url
+          const transformedSponsor = sponsor ? {
+            ...sponsor,
+            image_url: null // Add the missing image_url property with a null value
+          } : null;
+          
           return {
             ...task,
             child: child || null,
-            sponsor: sponsor || null,
+            sponsor: transformedSponsor,
             assigned_user: assigned_user || null
           };
         });
         
+        // Cast to Task[] after ensuring all required properties are present
         return enrichedTasks as Task[];
       } catch (error) {
         console.error("Error fetching tasks:", error);
