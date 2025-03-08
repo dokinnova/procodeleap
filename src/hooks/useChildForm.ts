@@ -166,7 +166,8 @@ export const useChildForm = (
             grade: data.grade || '',
             image_url: data.image_url || null,
             status: data.status || 'pending',
-            priority: data.priority || null
+            // Explicitly cast the priority value to the correct type
+            priority: (data.priority as 'high' | 'medium' | 'low' | null) || null
           });
         }
       } else {
