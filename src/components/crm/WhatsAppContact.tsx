@@ -34,6 +34,9 @@ export const WhatsAppContact = () => {
 
       if (error) throw error;
       
+      // Log sponsors data to check mobile_phone values
+      console.log("Sponsors loaded:", data);
+      
       // Añadir el campo image_url requerido por el tipo Sponsor
       return data.map(sponsor => ({
         ...sponsor,
@@ -48,10 +51,15 @@ export const WhatsAppContact = () => {
     sponsor.mobile_phone?.toLowerCase().includes(searchQuery.toLowerCase())
   ) || [];
 
+  // Check if a mobile phone number is valid and available
+  const isValidPhoneNumber = (phoneNumber: string | null | undefined): boolean => {
+    return phoneNumber !== undefined && phoneNumber !== null && phoneNumber.trim() !== "";
+  };
+
   // Función para abrir WhatsApp con un número y mensaje
   const openWhatsApp = (phoneNumber: string) => {
-    // Check if the phone number is empty, undefined, or null
-    if (!phoneNumber || phoneNumber.trim() === "") {
+    // Check if the phone number is valid
+    if (!isValidPhoneNumber(phoneNumber)) {
       toast({
         title: "Error",
         description: "Este padrino no tiene número de teléfono móvil registrado",
@@ -129,12 +137,14 @@ export const WhatsAppContact = () => {
                       <TableCell className="font-medium">
                         {`${sponsor.first_name} ${sponsor.last_name}`}
                       </TableCell>
-                      <TableCell>{sponsor.mobile_phone ? sponsor.mobile_phone : "No disponible"}</TableCell>
+                      <TableCell>
+                        {isValidPhoneNumber(sponsor.mobile_phone) ? sponsor.mobile_phone : "No disponible"}
+                      </TableCell>
                       <TableCell>
                         <Button
                           size="sm"
                           onClick={() => openWhatsApp(sponsor.mobile_phone || "")}
-                          disabled={!sponsor.mobile_phone || sponsor.mobile_phone.trim() === ""}
+                          disabled={!isValidPhoneNumber(sponsor.mobile_phone)}
                           className="flex items-center gap-1"
                         >
                           <MessageSquare className="h-4 w-4" />
