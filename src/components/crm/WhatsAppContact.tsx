@@ -50,7 +50,8 @@ export const WhatsAppContact = () => {
 
   // Función para abrir WhatsApp con un número y mensaje
   const openWhatsApp = (phoneNumber: string) => {
-    if (!phoneNumber) {
+    // Check if the phone number is empty, undefined, or null
+    if (!phoneNumber || phoneNumber.trim() === "") {
       toast({
         title: "Error",
         description: "Este padrino no tiene número de teléfono móvil registrado",
@@ -128,12 +129,12 @@ export const WhatsAppContact = () => {
                       <TableCell className="font-medium">
                         {`${sponsor.first_name} ${sponsor.last_name}`}
                       </TableCell>
-                      <TableCell>{sponsor.mobile_phone || "No disponible"}</TableCell>
+                      <TableCell>{sponsor.mobile_phone ? sponsor.mobile_phone : "No disponible"}</TableCell>
                       <TableCell>
                         <Button
                           size="sm"
                           onClick={() => openWhatsApp(sponsor.mobile_phone || "")}
-                          disabled={!sponsor.mobile_phone}
+                          disabled={!sponsor.mobile_phone || sponsor.mobile_phone.trim() === ""}
                           className="flex items-center gap-1"
                         >
                           <MessageSquare className="h-4 w-4" />
