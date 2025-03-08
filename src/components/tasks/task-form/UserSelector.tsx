@@ -39,14 +39,14 @@ export const UserSelector = ({ assignedUserId, onUserSelect }: UserSelectorProps
     <div className="space-y-2">
       <Label htmlFor="assign-user">Asignar a usuario</Label>
       <Select
-        value={assignedUserId || ""}
-        onValueChange={(value) => onUserSelect(value === "" ? null : value)}
+        value={assignedUserId || "unassigned"}
+        onValueChange={(value) => onUserSelect(value === "unassigned" ? null : value)}
       >
         <SelectTrigger className="w-full">
           <SelectValue placeholder="Seleccionar usuario" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">Sin asignar</SelectItem>
+          <SelectItem value="unassigned">Sin asignar</SelectItem>
           {users && users.map((user) => (
             <SelectItem key={user.id} value={user.id}>
               {user.email} ({user.role})
