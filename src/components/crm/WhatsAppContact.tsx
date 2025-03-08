@@ -59,12 +59,12 @@ export const WhatsAppContact = () => {
       return;
     }
 
-    // Formatear el número de teléfono (eliminar espacios, +, etc.)
-    const formattedPhone = phoneNumber.replace(/\s+/g, "").replace(/^\+/, "");
+    // Formatear el número de teléfono (mantener el + si existe, pero eliminar espacios)
+    const formattedPhone = phoneNumber.replace(/\s+/g, "");
     
     // Construir URL de WhatsApp
     const message = encodeURIComponent(whatsappMessage);
-    const whatsappUrl = `https://wa.me/${formattedPhone}?text=${message}`;
+    const whatsappUrl = `https://wa.me/${formattedPhone.startsWith('+') ? formattedPhone.substring(1) : formattedPhone}?text=${message}`;
     
     // Abrir en una nueva pestaña
     window.open(whatsappUrl, "_blank");
