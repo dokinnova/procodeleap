@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Task } from "@/types";
+import { TasksCalendar } from "@/components/tasks/calendar/TasksCalendar";
 
 const Tasks = () => {
   const [activeTab, setActiveTab] = useState("list");
@@ -106,8 +107,9 @@ const Tasks = () => {
         onValueChange={setActiveTab}
         className="w-full"
       >
-        <TabsList className="grid w-full grid-cols-2 mb-6">
+        <TabsList className="grid w-full grid-cols-3 mb-6">
           <TabsTrigger value="list">Listado de Tareas</TabsTrigger>
+          <TabsTrigger value="calendar">Calendario</TabsTrigger>
           <TabsTrigger value="edit">
             {selectedTask?.id ? "Editar Tarea" : "Nueva Tarea"}
           </TabsTrigger>
@@ -127,6 +129,23 @@ const Tasks = () => {
               tasks={tasks || []} 
               onTaskSelect={handleTaskSelect}
               onTasksUpdated={refetch}
+            />
+          )}
+        </TabsContent>
+        
+        <TabsContent value="calendar" className="space-y-4">
+          {isLoading ? (
+            <div className="flex justify-center items-center min-h-[50vh]">
+              <div className="animate-pulse text-lg text-gray-600">Cargando tareas...</div>
+            </div>
+          ) : error ? (
+            <div className="text-red-500 text-center p-4">
+              Error al cargar las tareas. Por favor, intente nuevamente.
+            </div>
+          ) : (
+            <TasksCalendar 
+              tasks={tasks || []} 
+              onTaskSelect={handleTaskSelect}
             />
           )}
         </TabsContent>
