@@ -48,10 +48,25 @@ export const WhatsAppContact = () => {
   // Filtrar padrinos por búsqueda
   const filteredSponsors = sponsors?.filter(sponsor => 
     `${sponsor.first_name} ${sponsor.last_name}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    sponsor.mobile_phone?.toLowerCase().includes(searchQuery.toLowerCase())
+    sponsor.mobile_phone?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    sponsor.phone?.toLowerCase().includes(searchQuery.toLowerCase())
   ) || [];
 
-  // Check if a mobile phone number is valid and available
+  // Obtener el mejor número de teléfono disponible (móvil primero, fijo como respaldo)
+  const getBestPhoneNumber = (sponsor: Sponsor): string | null => {
+    // Primero intentar con el teléfono móvil
+    if (isValidPhoneNumber(sponsor.mobile_phone)) {
+      return sponsor.mobile_phone!;
+    }
+    // Si no hay móvil, intentar con el teléfono fijo
+    else if (isValidPhoneNumber(sponsor.phone)) {
+      return sponsor.phone;
+    }
+    // Si no hay ningún teléfono válido
+    return null;
+  };
+
+  // Check if a phone number is valid and available
   const isValidPhoneNumber = (phoneNumber: string | null | undefined): boolean => {
     return phoneNumber !== undefined && phoneNumber !== null && phoneNumber.trim() !== "";
   };
@@ -62,7 +77,7 @@ export const WhatsAppContact = () => {
     if (!isValidPhoneNumber(phoneNumber)) {
       toast({
         title: "Error",
-        description: "Este padrino no tiene número de teléfono móvil registrado",
+        description: "Este padrino no tiene número de teléfono registrado",
         variant: "destructive",
       });
       return;
@@ -120,7 +135,7 @@ export const WhatsAppContact = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Nombre</TableHead>
-                  <TableHead>Teléfono Móvil</TableHead>
+                  <TableHead>Teléfono</TableHead>
                   <TableHead>Acción</TableHead>
                 </TableRow>
               </TableHeader>
@@ -132,27 +147,30 @@ export const WhatsAppContact = () => {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredSponsors.map((sponsor) => (
-                    <TableRow key={sponsor.id}>
-                      <TableCell className="font-medium">
-                        {`${sponsor.first_name} ${sponsor.last_name}`}
-                      </TableCell>
-                      <TableCell>
-                        {isValidPhoneNumber(sponsor.mobile_phone) ? sponsor.mobile_phone : "No disponible"}
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          size="sm"
-                          onClick={() => openWhatsApp(sponsor.mobile_phone || "")}
-                          disabled={!isValidPhoneNumber(sponsor.mobile_phone)}
-                          className="flex items-center gap-1"
-                        >
-                          <MessageSquare className="h-4 w-4" />
-                          WhatsApp
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
+                  filteredSponsors.map((sponsor) => {
+                    const bestPhoneNumber = getBestPhoneNumber(sponsor);
+                    return (
+                      <TableRow key={sponsor.id}>
+                        <TableCell className="font-medium">
+                          {`${sponsor.first_name} ${sponsor.last_name}`}
+                        </TableCell>
+                        <TableCell>
+                          {bestPhoneNumber ? bestPhoneNumber : "No disponible"}
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            size="sm"
+                            onClick={() => openWhatsApp(bestPhoneNumber || "")}
+                            disabled={!bestPhoneNumber}
+                            className="flex items-center gap-1"
+                          >
+                            <MessageSquare className="h-4 w-4" />
+                            WhatsApp
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
                 )}
               </TableBody>
             </Table>
