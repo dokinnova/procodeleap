@@ -2,6 +2,7 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ChildFormData } from "@/hooks/useChildForm";
+import { useEffect } from "react";
 
 interface PersonalInfoFieldsProps {
   name: string;
@@ -22,6 +23,26 @@ export const PersonalInfoFields = ({
   onInputChange,
   readOnly = false
 }: PersonalInfoFieldsProps) => {
+  // Calculate age when birth date changes
+  useEffect(() => {
+    if (birthDate) {
+      const birthdateDate = new Date(birthDate);
+      const today = new Date();
+      let calculatedAge = today.getFullYear() - birthdateDate.getFullYear();
+      const monthDiff = today.getMonth() - birthdateDate.getMonth();
+      
+      // Adjust age if birthday hasn't occurred yet this year
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthdateDate.getDate())) {
+        calculatedAge--;
+      }
+      
+      // Only update if the calculated age is different and valid
+      if (calculatedAge >= 0 && calculatedAge !== age) {
+        onInputChange('age', calculatedAge);
+      }
+    }
+  }, [birthDate, age, onInputChange]);
+
   return (
     <div className="grid grid-cols-2 gap-4">
       <div className="space-y-2">

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Child } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
@@ -37,7 +36,6 @@ export const useChildForm = (
     priority: selectedChild?.priority || null,
   });
 
-  // Add an effect to update form data when selectedChild changes
   useEffect(() => {
     if (selectedChild) {
       console.log('Setting form data from selected child:', selectedChild);
@@ -54,7 +52,6 @@ export const useChildForm = (
         priority: selectedChild.priority || null,
       });
     } else {
-      // Reset form when no child is selected
       setFormData({
         name: "",
         birth_date: "",
@@ -76,10 +73,29 @@ export const useChildForm = (
 
   const handleInputChange = (field: keyof ChildFormData, value: any) => {
     console.log('Actualizando campo:', field, 'con valor:', value);
+    
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
+    
+    if (field === 'birth_date' && value) {
+      const birthdateDate = new Date(value);
+      const today = new Date();
+      let calculatedAge = today.getFullYear() - birthdateDate.getFullYear();
+      const monthDiff = today.getMonth() - birthdateDate.getMonth();
+      
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthdateDate.getDate())) {
+        calculatedAge--;
+      }
+      
+      if (calculatedAge >= 0) {
+        setFormData(prev => ({
+          ...prev,
+          age: calculatedAge
+        }));
+      }
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -99,7 +115,6 @@ export const useChildForm = (
         return;
       }
 
-      // Check permissions
       if (selectedChild && !canEdit) {
         toast({
           title: "Permiso denegado",
@@ -116,7 +131,6 @@ export const useChildForm = (
         return;
       }
 
-      // Validar campos requeridos
       if (!formData.name || !formData.birth_date || !formData.location) {
         toast({
           title: "Error de validación",
@@ -126,7 +140,6 @@ export const useChildForm = (
         return;
       }
 
-      // Preparar los datos para la inserción/actualización
       const dataToSave = {
         ...formData,
         school_id: formData.school_id || null,
@@ -154,8 +167,6 @@ export const useChildForm = (
           description: "Niño actualizado correctamente",
         });
         
-        // Actualizar el niño seleccionado con los datos actualizados
-        // en lugar de simplemente limpiar la selección
         if (data) {
           console.log('Setting updated child data:', data);
           setSelectedChild({
@@ -166,7 +177,6 @@ export const useChildForm = (
             grade: data.grade || '',
             image_url: data.image_url || null,
             status: data.status || 'pending',
-            // Explicitly cast the priority value to the correct type
             priority: (data.priority as 'high' | 'medium' | 'low' | null) || null
           });
         }
@@ -188,7 +198,6 @@ export const useChildForm = (
           description: "Niño registrado correctamente",
         });
         
-        // Limpiar el formulario después de crear un nuevo niño
         setFormData({
           name: "",
           birth_date: "",
@@ -203,10 +212,8 @@ export const useChildForm = (
         });
       }
 
-      // Invalidate and refetch queries
       console.log('Invalidating children queries');
       
-      // Force an immediate refetch of all queries with the CHILDREN_QUERY_KEY
       await queryClient.invalidateQueries({ 
         queryKey: [CHILDREN_QUERY_KEY],
         refetchType: 'all' 
