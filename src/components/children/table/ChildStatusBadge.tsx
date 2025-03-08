@@ -1,3 +1,4 @@
+
 interface ChildStatusBadgeProps {
   status: string;
 }
@@ -20,6 +21,12 @@ export const ChildStatusBadge = ({ status }: ChildStatusBadgeProps) => {
         return 'Asignado';
       case 'assignable':
         return 'Asignable';
+      case 'pending':
+        return 'Pendiente';
+      case 'inactive':
+        return 'Inactivo';
+      case 'baja':
+        return 'Baja';
       default:
         return status;
     }
