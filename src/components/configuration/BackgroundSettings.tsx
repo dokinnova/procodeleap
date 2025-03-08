@@ -1,0 +1,193 @@
+
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Upload, ImageIcon } from "lucide-react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
+
+export const BackgroundSettings = () => {
+  const [backgroundType, setBackgroundType] = useState<"color" | "image">("color");
+  const [backgroundColor, setBackgroundColor] = useState("#F4F8FC");
+  const [uploading, setUploading] = useState(false);
+  const queryClient = useQueryClient();
+
+  // Fetch current background settings
+  const { data: settings } = useQuery({
+    queryKey: ["site-settings"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("site_settings")
+        .select("*")
+        .single();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  useEffect(() => {
+    if (settings) {
+      setBackgroundType(settings.background_type || "color");
+      setBackgroundColor(settings.background_color || "#F4F8FC");
+    }
+  }, [settings]);
+
+  const updateBackgroundMutation = useMutation({
+    mutationFn: async (data: { 
+      background_type: "color" | "image", 
+      background_color?: string, 
+      background_image?: string 
+    }) => {
+      const { error } = await supabase
+        .from("site_settings")
+        .update(data)
+        .eq("id", 1);
+      if (error) throw error;
+      return true;
+    },
+    onSuccess: () => {
+      toast.success("Fondo actualizado correctamente");
+      queryClient.invalidateQueries({ queryKey: ["site-settings"] });
+    },
+    onError: (error) => {
+      toast.error("Error al actualizar el fondo: " + error.message);
+    },
+  });
+
+  const handleColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setBackgroundColor(e.target.value);
+  };
+
+  const handleColorSave = () => {
+    updateBackgroundMutation.mutate({
+      background_type: "color",
+      background_color: backgroundColor,
+      background_image: settings?.background_image
+    });
+  };
+
+  const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      setUploading(true);
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      const fileExt = file.name.split(".").pop();
+      const filePath = `background_${Math.random()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("backgrounds")
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("backgrounds")
+        .getPublicUrl(filePath);
+
+      updateBackgroundMutation.mutate({
+        background_type: "image",
+        background_image: publicUrl,
+        background_color: backgroundColor
+      });
+    } catch (error: any) {
+      toast.error("Error al subir la imagen: " + error.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleTypeChange = (value: "color" | "image") => {
+    setBackgroundType(value);
+    updateBackgroundMutation.mutate({
+      background_type: value,
+      background_color: backgroundColor,
+      background_image: settings?.background_image
+    });
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="space-y-2">
+        <h3 className="text-lg font-medium">Tipo de Fondo</h3>
+        <RadioGroup 
+          value={backgroundType} 
+          onValueChange={(v) => handleTypeChange(v as "color" | "image")}
+          className="flex gap-4"
+        >
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="color" id="color" />
+            <Label htmlFor="color">Color Sólido</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="image" id="image" />
+            <Label htmlFor="image">Imagen</Label>
+          </div>
+        </RadioGroup>
+      </div>
+
+      <Tabs value={backgroundType} className="w-full">
+        <TabsContent value="color" className="space-y-4">
+          <div className="grid gap-2">
+            <Label htmlFor="color-picker">Color de Fondo</Label>
+            <div className="flex gap-4 items-center">
+              <Input
+                id="color-picker"
+                type="color"
+                value={backgroundColor}
+                onChange={handleColorChange}
+                className="w-20 h-10 p-1"
+              />
+              <div 
+                className="w-12 h-10 rounded border"
+                style={{ backgroundColor }}
+              />
+              <span className="text-sm font-mono">{backgroundColor}</span>
+            </div>
+            <Button 
+              onClick={handleColorSave} 
+              className="mt-2 w-full sm:w-auto"
+              disabled={updateBackgroundMutation.isPending}
+            >
+              Guardar Color
+            </Button>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="image" className="space-y-4">
+          <div className="space-y-4">
+            {settings?.background_image && (
+              <div className="border rounded-md p-2 bg-background/50">
+                <img 
+                  src={settings.background_image} 
+                  alt="Fondo actual" 
+                  className="w-full h-40 object-cover rounded"
+                />
+              </div>
+            )}
+            <Button asChild variant="outline" className="w-full sm:w-auto">
+              <label className="cursor-pointer flex items-center gap-2">
+                <Upload className="h-4 w-4" />
+                {uploading ? "Subiendo..." : "Subir imagen de fondo"}
+                <input
+                  type="file"
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handleUpload}
+                  disabled={uploading}
+                />
+              </label>
+            </Button>
+            <p className="text-sm text-muted-foreground">
+              Recomendado: imagen de 1920x1080 pixeles o superior
+            </p>
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+};

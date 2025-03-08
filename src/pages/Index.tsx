@@ -2,10 +2,51 @@
 import { Users, UserPlus, School, Link as LinkIcon, Receipt, PieChart, ClipboardList } from "lucide-react";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardCard } from "@/components/dashboard/DashboardCard";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
+  // Fetch background settings
+  const { data: settings } = useQuery({
+    queryKey: ["site-settings"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("site_settings")
+        .select("*")
+        .single();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Determine background style based on settings
+  const getBackgroundStyle = () => {
+    if (!settings) return {};
+    
+    if (settings.background_type === 'image' && settings.background_image) {
+      return {
+        backgroundImage: `url(${settings.background_image})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      };
+    } else if (settings.background_type === 'color' && settings.background_color) {
+      return {
+        background: settings.background_color
+      };
+    }
+    
+    // Default background if no settings
+    return {
+      backgroundImage: 'linear-gradient(109.6deg, rgba(253, 230, 255, 0.6) 11.2%, rgba(244, 248, 252, 1) 91.1%)'
+    };
+  };
+
   return (
-    <div className="space-y-6 p-6 max-w-6xl mx-auto">
+    <div 
+      className="min-h-screen space-y-6 p-6 max-w-6xl mx-auto" 
+      style={getBackgroundStyle()}
+    >
       <DashboardHeader />
 
       <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

@@ -4,6 +4,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { LogoUploader } from "@/components/configuration/LogoUploader";
+import { BackgroundSettings } from "@/components/configuration/BackgroundSettings";
 import { AppUsersTable } from "@/components/configuration/AppUsersTable";
 import { AddUserForm } from "@/components/configuration/AddUserForm";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
@@ -56,6 +57,11 @@ export const ConfigurationLayout = () => {
       <Card className="p-6">
         <h2 className="text-xl font-semibold mb-4">Logo del Sitio</h2>
         <LogoUploader currentLogo={settings?.logo_url} />
+      </Card>
+
+      <Card className="p-6">
+        <h2 className="text-xl font-semibold mb-4">Personalización de Fondo</h2>
+        <BackgroundSettings />
       </Card>
 
       <Card className="p-6">
