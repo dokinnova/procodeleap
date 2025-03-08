@@ -51,7 +51,7 @@ const Tasks = () => {
         <TabsList className="grid w-full grid-cols-2 mb-6">
           <TabsTrigger value="list">Listado de Tareas</TabsTrigger>
           <TabsTrigger value="edit">
-            {selectedTask ? "Editar Tarea" : "Nueva Tarea"}
+            {selectedTask?.id ? "Editar Tarea" : "Nueva Tarea"}
           </TabsTrigger>
         </TabsList>
         
