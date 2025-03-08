@@ -5,63 +5,63 @@ import { DashboardCard } from "@/components/dashboard/DashboardCard";
 
 const Index = () => {
   return (
-    <div className="space-y-6 p-4">
+    <div className="space-y-6 p-6 max-w-6xl mx-auto">
       <DashboardHeader />
 
-      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         <DashboardCard
           to="/children"
           icon={Users}
-          title="Gestión de Niños"
-          description="Administra los registros de niños"
+          title="Niños"
+          description="Administración y seguimiento"
           variant="primary"
         />
 
         <DashboardCard
           to="/sponsors"
           icon={UserPlus}
-          title="Gestión de Padrinos"
-          description="Administra los padrinos y donaciones"
+          title="Padrinos"
+          description="Gestión de donantes"
           variant="secondary"
         />
 
         <DashboardCard
           to="/schools"
           icon={School}
-          title="Gestión de Colegios"
-          description="Administra los colegios registrados"
+          title="Colegios"
+          description="Centros educativos"
           variant="accent"
         />
 
         <DashboardCard
           to="/management"
           icon={LinkIcon}
-          title="Gestión de Apadrinamientos"
-          description="Administra los vínculos entre padrinos y niños"
+          title="Apadrinamientos"
+          description="Asignación de vínculos"
           variant="primary"
         />
 
         <DashboardCard
           to="/receipts"
           icon={Receipt}
-          title="Gestión de Recibos"
-          description="Administra los recibos y pagos"
+          title="Recibos"
+          description="Pagos y contabilidad"
           variant="secondary"
         />
 
         <DashboardCard
           to="/tasks"
           icon={ClipboardList}
-          title="Gestión de Tareas"
-          description="Administra las tareas relacionadas con niños y padrinos"
+          title="Tareas"
+          description="Gestión de actividades"
           variant="accent"
         />
 
         <DashboardCard
           to="/business-intelligence"
           icon={PieChart}
-          title="Business Intelligence"
-          description="Visualización de datos y métricas"
+          title="Estadísticas"
+          description="Análisis de datos"
           variant="primary"
         />
       </div>

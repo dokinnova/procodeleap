@@ -54,16 +54,17 @@ export const DashboardHeader = () => {
   };
 
   return (
-    <div className="flex justify-between items-center">
+    <div className="flex justify-between items-center pb-4 border-b border-gray-100">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight">Panel de Control</h2>
-        <p className="text-muted-foreground">
-          Bienvenido al sistema de gestión de PROCODELI
+        <h2 className="text-2xl font-bold tracking-tight text-gray-900">Panel de Control</h2>
+        <p className="text-muted-foreground text-sm">
+          Sistema de gestión COPRODELI
         </p>
       </div>
       <Button 
         variant="outline" 
         onClick={handleLogout}
+        size="sm"
         className="flex items-center gap-2"
       >
         <LogOut className="h-4 w-4" />

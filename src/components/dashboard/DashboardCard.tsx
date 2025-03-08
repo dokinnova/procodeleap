@@ -18,51 +18,38 @@ export const DashboardCard = ({
   description,
   variant,
 }: DashboardCardProps) => {
+  // Mejoramos los estilos de los fondos para crear un aspecto más profesional
   const getBackgroundColor = (variant: string) => {
     switch (variant) {
       case "primary":
-        return "bg-primary/10";
-      case "secondary":
         return "bg-primary/5";
-      case "accent":
-        return "bg-primary/3";
-      default:
-        return "bg-primary/10";
-    }
-  };
-
-  const getIconColor = (variant: string) => {
-    // All icons will use the primary color (purple) with varying opacities
-    switch (variant) {
-      case "primary":
-        return "text-primary";
       case "secondary":
-        return "text-primary";
+        return "bg-secondary/40";
       case "accent":
-        return "text-primary";
+        return "bg-accent/30";
       default:
-        return "text-primary";
+        return "bg-primary/5";
     }
   };
 
   return (
     <RouterLink to={to} className="w-full">
-      <Button
-        variant="outline"
-        className="w-full h-auto p-4 sm:p-6 hover:shadow-lg transition-all duration-200 hover:-translate-y-1"
-      >
-        <div className="flex flex-col items-center space-y-4">
-          <div className={`p-3 ${getBackgroundColor(variant)} rounded-full flex items-center justify-center w-12 h-12`}>
-            <Icon className={`w-6 h-6 ${getIconColor(variant)} stroke-[1.5]`} />
+      <div className="h-full">
+        <Button
+          variant="outline"
+          className="w-full h-full p-4 border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-1 flex flex-col items-center gap-3"
+        >
+          <div className={`p-3 ${getBackgroundColor(variant)} rounded-full`}>
+            <Icon className="w-5 h-5 text-primary" />
           </div>
           <div className="text-center">
-            <h3 className="text-base sm:text-lg font-semibold">{title}</h3>
-            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+            <h3 className="text-base font-semibold">{title}</h3>
+            <p className="text-xs text-muted-foreground mt-1 line-clamp-1">
               {description}
             </p>
           </div>
-        </div>
-      </Button>
+        </Button>
+      </div>
     </RouterLink>
   );
 };
