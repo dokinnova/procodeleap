@@ -28,15 +28,17 @@ export const UserSelector = ({ assignedUserId, onUserSelect }: UserSelectorProps
     queryFn: async () => {
       const { data, error } = await supabase
         .from("app_users")
-        .select("*");
+        .select("id, email, role");
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching users:", error);
+        throw error;
+      }
+      
+      console.log("Fetched users:", data);
       return data as User[];
     },
   });
-
-  console.log("UserSelector - users:", users);
-  console.log("UserSelector - assignedUserId:", assignedUserId);
 
   return (
     <div className="space-y-2">

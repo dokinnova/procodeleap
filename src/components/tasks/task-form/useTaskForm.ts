@@ -54,10 +54,6 @@ export const useTaskForm = (
     }
   }, [task, reset, setValue]);
 
-  console.log("useTaskForm - childId:", childId);
-  console.log("useTaskForm - sponsorId:", sponsorId);
-  console.log("useTaskForm - assignedUserId:", assignedUserId);
-
   const onSubmit = async (data: Task) => {
     try {
       console.log("Submitting task form with data:", data);
