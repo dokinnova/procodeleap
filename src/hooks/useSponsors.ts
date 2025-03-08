@@ -42,11 +42,29 @@ export const useSponsors = () => {
   // Function to handle form submission (create/update sponsor)
   const handleSubmit = useCallback(async (formData: any, isEditing: boolean) => {
     try {
+      console.log("Submitting form data:", formData, "isEditing:", isEditing);
+      
       if (isEditing) {
+        // Ensure we have a valid ID before updating
+        if (!formData.id) {
+          throw new Error("ID de padrino no válido para actualización");
+        }
+        
         // Update existing sponsor
         const { error } = await supabase
           .from('sponsors')
-          .update(formData)
+          .update({
+            first_name: formData.first_name,
+            last_name: formData.last_name,
+            email: formData.email,
+            phone: formData.phone || null,
+            mobile_phone: formData.mobile_phone || null,
+            address: formData.address || null,
+            city: formData.city || null,
+            country: formData.country || null,
+            contribution: formData.contribution || 0,
+            status: formData.status
+          })
           .eq('id', formData.id);
 
         if (error) throw error;
@@ -56,10 +74,21 @@ export const useSponsors = () => {
           description: 'Los datos del padrino han sido actualizados correctamente',
         });
       } else {
-        // Create new sponsor
+        // Create new sponsor with explicit field selection
         const { error } = await supabase
           .from('sponsors')
-          .insert([formData]);
+          .insert([{
+            first_name: formData.first_name,
+            last_name: formData.last_name,
+            email: formData.email,
+            phone: formData.phone || null,
+            mobile_phone: formData.mobile_phone || null,
+            address: formData.address || null,
+            city: formData.city || null,
+            country: formData.country || null,
+            contribution: formData.contribution || 0,
+            status: formData.status
+          }]);
 
         if (error) throw error;
 

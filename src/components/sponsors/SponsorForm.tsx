@@ -31,6 +31,10 @@ export const SponsorForm = ({ selectedSponsor, onSubmit, onCancel }: SponsorForm
   };
 
   const handleFormSubmit = (formData: any) => {
+    // Ensure the ID is properly included if editing an existing sponsor
+    if (selectedSponsor) {
+      formData.id = selectedSponsor.id;
+    }
     return onSubmit(formData, !!selectedSponsor);
   };
 
