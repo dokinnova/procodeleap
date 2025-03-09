@@ -23,6 +23,7 @@ import SchoolsReport from "./pages/reports/SchoolsReport";
 import SponsorshipsReport from "./pages/reports/SponsorshipsReport";
 import BusinessIntelligence from "./pages/BusinessIntelligence";
 import Tasks from "./pages/Tasks";
+import Map from "./pages/Map";
 
 const queryClient = new QueryClient();
 
@@ -57,6 +58,7 @@ const App = () => {
                     <Route path="/receipts" element={<Receipts />} />
                     <Route path="/crm" element={<CRM />} />
                     <Route path="/tasks" element={<Tasks />} />
+                    <Route path="/map" element={<Map />} />
                     <Route path="/reports/children" element={<ChildrenReport />} />
                     <Route path="/reports/sponsors" element={<SponsorsReport />} />
                     <Route path="/reports/schools" element={<SchoolsReport />} />
