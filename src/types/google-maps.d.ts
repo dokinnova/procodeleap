@@ -87,5 +87,11 @@ declare namespace google {
       FORWARD_CLOSED_ARROW,
       FORWARD_OPEN_ARROW
     }
+
+    // Add the event namespace
+    namespace event {
+      function addListener(instance: any, eventName: string, handler: Function): MapsEventListener;
+      function removeListener(listener: MapsEventListener): void;
+    }
   }
 }

@@ -1,4 +1,3 @@
-
 // Helper function to convert location string to coordinates
 export const getCoordinatesFromLocation = (location: string): { lat: number; lng: number } | null => {
   // This is a placeholder implementation
@@ -70,6 +69,11 @@ export const loadGoogleMapsScript = (
         FORWARD_OPEN_ARROW: 4
       };
       
+      // Define the mock event object
+      const MockEvent = {
+        addListener: () => ({ remove: () => {} })
+      };
+      
       // Assign the mock classes to the window.google object
       window.google = {
         maps: {
@@ -78,9 +82,7 @@ export const loadGoogleMapsScript = (
           InfoWindow: MockInfoWindow as unknown as typeof google.maps.InfoWindow,
           LatLngBounds: MockLatLngBounds as unknown as typeof google.maps.LatLngBounds,
           SymbolPath: MockSymbolPath as unknown as typeof google.maps.SymbolPath,
-          event: {
-            addListener: () => {}
-          }
+          event: MockEvent as unknown as typeof google.maps.event
         }
       };
     }
