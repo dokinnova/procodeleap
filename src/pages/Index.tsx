@@ -1,5 +1,4 @@
-
-import { Users, UserPlus, School, Link as LinkIcon, Receipt, PieChart, ClipboardList } from "lucide-react";
+import { Users, UserPlus, School, Link as LinkIcon, Receipt, PieChart, ClipboardList, Map } from "lucide-react";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardCard } from "@/components/dashboard/DashboardCard";
 import { useQuery } from "@tanstack/react-query";
@@ -104,6 +103,14 @@ const Index = () => {
           title="Estadísticas"
           description="Análisis de datos"
           variant="primary"
+        />
+        
+        <DashboardCard
+          to="/map"
+          icon={Map}
+          title="Mapa"
+          description="Visualización geográfica"
+          variant="secondary"
         />
       </div>
     </div>
