@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { MapPin, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Child, Sponsor } from "@/types";
-import { getCoordinatesFromLocation, loadGoogleMapsScript } from "@/utils/map/googleMapsUtils";
+import { getCoordinatesFromLocation, loadGoogleMapsScript, createCustomMarker } from "@/utils/map/googleMapsUtils";
 
 interface GoogleMapProps {
   isLoading: boolean;
@@ -27,7 +27,7 @@ export const GoogleMap = ({
 
   // Function to initialize the map
   const initMap = () => {
-    if (!window.google || mapLoaded || !mapRef.current) return;
+    if (!window.google || !window.google.maps || !mapRef.current) return;
 
     const googleMap = new window.google.maps.Map(mapRef.current, {
       center: { lat: 15, lng: -10 },
@@ -48,27 +48,13 @@ export const GoogleMap = ({
       const coordinates = getCoordinatesFromLocation(child.location);
       
       if (coordinates) {
-        const marker = new window.google.maps.Marker({
-          position: coordinates,
-          map: googleMap,
-          title: child.name,
-          icon: {
-            path: window.google.maps.SymbolPath.CIRCLE,
-            fillColor: "#7c3aed",
-            fillOpacity: 1,
-            strokeWeight: 0,
-            scale: 8,
-          },
-        });
-
-        const infoWindow = new window.google.maps.InfoWindow({
-          content: `<div class="p-2"><strong>${child.name}</strong><br/>Niño</div>`,
-        });
-
-        marker.addListener("click", () => {
-          infoWindow.open(googleMap, marker);
-        });
-
+        const marker = createCustomMarker(
+          googleMap,
+          coordinates,
+          child.name,
+          "#7c3aed",
+          "Niño"
+        );
         newMarkers.push(marker);
       }
     });
@@ -85,27 +71,13 @@ export const GoogleMap = ({
       const coordinates = getCoordinatesFromLocation(location);
       
       if (coordinates) {
-        const marker = new window.google.maps.Marker({
-          position: coordinates,
-          map: googleMap,
-          title: sponsor.name,
-          icon: {
-            path: window.google.maps.SymbolPath.CIRCLE,
-            fillColor: "#f97316",
-            fillOpacity: 1,
-            strokeWeight: 0,
-            scale: 8,
-          },
-        });
-
-        const infoWindow = new window.google.maps.InfoWindow({
-          content: `<div class="p-2"><strong>${sponsor.name}</strong><br/>Padrino</div>`,
-        });
-
-        marker.addListener("click", () => {
-          infoWindow.open(googleMap, marker);
-        });
-
+        const marker = createCustomMarker(
+          googleMap,
+          coordinates,
+          sponsor.name,
+          "#f97316",
+          "Padrino"
+        );
         newMarkers.push(marker);
       }
     });
