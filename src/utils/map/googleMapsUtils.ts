@@ -18,8 +18,54 @@ export const getCoordinatesFromLocation = (location: string): { lat: number; lng
 export const loadGoogleMapsScript = (
   callback: () => void,
   onError: () => void,
-  apiKey: string = "YOUR_API_KEY"
+  apiKey: string = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ""
 ): void => {
+  // Check if API key is empty and handle accordingly
+  if (!apiKey) {
+    console.warn("Google Maps API key is missing. Using a demo mode with limited functionality.");
+    // Create a mock Google Maps API to prevent errors
+    if (!window.google) {
+      window.google = {
+        maps: {
+          Map: function(element: HTMLElement, options: any) {
+            // Minimal mock implementation
+            this.setCenter = () => {};
+            this.setZoom = () => {};
+            this.setOptions = () => {};
+            
+            // Add a message to the element about missing API key
+            const message = document.createElement('div');
+            message.innerHTML = `
+              <div style="height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px;">
+                <h3 style="margin-bottom: 10px;">Mapa no disponible</h3>
+                <p>Se requiere una clave de API de Google Maps válida.</p>
+              </div>
+            `;
+            element.appendChild(message);
+          },
+          Marker: function() {
+            this.setMap = () => {};
+            this.addListener = () => {};
+          },
+          InfoWindow: function() {
+            this.open = () => {};
+          },
+          LatLngBounds: function() {
+            this.extend = () => {};
+          },
+          SymbolPath: {
+            CIRCLE: 0
+          },
+          event: {
+            addListener: () => {}
+          }
+        }
+      };
+    }
+    callback();
+    return;
+  }
+  
   // If script is already loaded, execute callback
   if (window.google && window.google.maps) {
     callback();
@@ -55,7 +101,8 @@ export const createCustomMarker = (
 ): google.maps.Marker => {
   // Check if Google Maps is available
   if (!window.google || !window.google.maps) {
-    throw new Error("Google Maps API not loaded");
+    console.warn("Google Maps API not loaded properly");
+    return {} as google.maps.Marker;
   }
 
   const marker = new window.google.maps.Marker({
