@@ -31,7 +31,12 @@ export const BackgroundSettings = () => {
 
   useEffect(() => {
     if (settings) {
-      setBackgroundType(settings.background_type || "color");
+      // Ensure type safety by checking if background_type is either "color" or "image"
+      const bgType = settings.background_type === "color" || settings.background_type === "image" 
+        ? settings.background_type 
+        : "color"; // Default to "color" if invalid value
+      
+      setBackgroundType(bgType as "color" | "image");
       setBackgroundColor(settings.background_color || "#F4F8FC");
     }
   }, [settings]);
