@@ -1,3 +1,4 @@
+
 import { Settings } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
@@ -53,7 +54,7 @@ export const ConfigurationLayout = () => {
         <h1 className="text-2xl font-bold text-gray-900">Configuración</h1>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="p-6">
           <h2 className="text-xl font-semibold mb-4">Logo del Sitio</h2>
           <LogoUploader currentLogo={settings?.logo_url} />

@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Upload, ImageIcon } from "lucide-react";
+import { Upload, ImageIcon, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
@@ -14,6 +14,7 @@ export const BackgroundSettings = () => {
   const [backgroundType, setBackgroundType] = useState<"color" | "image">("color");
   const [backgroundColor, setBackgroundColor] = useState("#F4F8FC");
   const [uploading, setUploading] = useState(false);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
   const queryClient = useQueryClient();
 
   // Fetch current background settings
@@ -31,7 +32,7 @@ export const BackgroundSettings = () => {
 
   useEffect(() => {
     if (settings) {
-      // Ensure type safety by checking if background_type is either "color" or "image"
+      // Ensure type safety by checking if background_type is either "color" or "image" 
       const bgType = settings.background_type === "color" || settings.background_type === "image" 
         ? settings.background_type 
         : "color"; // Default to "color" if invalid value
@@ -78,6 +79,7 @@ export const BackgroundSettings = () => {
   const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
       setUploading(true);
+      setUploadSuccess(false);
       const file = event.target.files?.[0];
       if (!file) return;
 
@@ -99,6 +101,8 @@ export const BackgroundSettings = () => {
         background_image: publicUrl,
         background_color: backgroundColor
       });
+      
+      setUploadSuccess(true);
     } catch (error: any) {
       toast.error("Error al subir la imagen: " + error.message);
     } finally {
@@ -167,29 +171,52 @@ export const BackgroundSettings = () => {
           <div className="space-y-4">
             {settings?.background_image && (
               <div className="border rounded-md p-2 bg-background/50">
-                <img 
-                  src={settings.background_image} 
-                  alt="Fondo actual" 
-                  className="w-full h-40 object-cover rounded"
-                />
+                <div className="relative">
+                  <img 
+                    src={settings.background_image} 
+                    alt="Fondo actual" 
+                    className="w-full h-40 object-cover rounded"
+                  />
+                  <div className="absolute top-2 right-2 bg-background/80 text-success px-2 py-1 text-xs rounded-full">
+                    Imagen actual
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1 text-center">
+                  Imagen de fondo actual
+                </p>
               </div>
             )}
-            <Button asChild variant="outline" className="w-full sm:w-auto">
-              <label className="cursor-pointer flex items-center gap-2">
-                <Upload className="h-4 w-4" />
-                {uploading ? "Subiendo..." : "Subir imagen de fondo"}
-                <input
-                  type="file"
-                  className="hidden"
-                  accept="image/*"
-                  onChange={handleUpload}
-                  disabled={uploading}
-                />
-              </label>
-            </Button>
-            <p className="text-sm text-muted-foreground">
-              Recomendado: imagen de 1920x1080 pixeles o superior
-            </p>
+
+            <div className="border rounded-md p-4 bg-background">
+              <Button asChild variant="outline" className="w-full flex items-center gap-2">
+                <label className="cursor-pointer flex items-center justify-center gap-2 h-full w-full">
+                  {uploadSuccess ? (
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <Upload className="h-4 w-4" />
+                  )}
+                  {uploading ? "Subiendo..." : uploadSuccess ? "¡Imagen subida exitosamente!" : "Subir imagen de fondo"}
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleUpload}
+                    disabled={uploading}
+                  />
+                </label>
+              </Button>
+              
+              <p className="text-sm text-muted-foreground mt-3">
+                Recomendado: imagen de 1920x1080 pixeles o superior
+              </p>
+              
+              {uploadSuccess && (
+                <div className="mt-3 text-center text-sm text-green-600 flex items-center justify-center gap-1">
+                  <CheckCircle className="h-4 w-4" />
+                  <span>La imagen se ha subido correctamente y se está utilizando como fondo</span>
+                </div>
+              )}
+            </div>
           </div>
         </TabsContent>
       </Tabs>
