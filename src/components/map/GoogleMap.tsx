@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Child, Sponsor } from "@/types";
 import { getCoordinatesFromLocation, loadGoogleMapsScript, createCustomMarker } from "@/utils/map/googleMapsUtils";
 
+// Type for props
 interface GoogleMapProps {
   isLoading: boolean;
   children?: Child[];

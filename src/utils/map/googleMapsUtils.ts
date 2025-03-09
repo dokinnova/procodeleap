@@ -1,3 +1,4 @@
+
 // Helper function to convert location string to coordinates
 export const getCoordinatesFromLocation = (location: string): { lat: number; lng: number } | null => {
   // This is a placeholder implementation
@@ -52,6 +53,11 @@ export const createCustomMarker = (
   color: string,
   type: string
 ): google.maps.Marker => {
+  // Check if Google Maps is available
+  if (!window.google || !window.google.maps) {
+    throw new Error("Google Maps API not loaded");
+  }
+
   const marker = new window.google.maps.Marker({
     position,
     map,
