@@ -4,7 +4,8 @@ import { MapPin, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Child, Sponsor } from "@/types";
 import { getCoordinatesFromLocation, loadGoogleMapsScript, createCustomMarker } from "@/utils/map/googleMapsUtils";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 
 // Type for props
 interface GoogleMapProps {
@@ -26,6 +27,7 @@ export const GoogleMap = ({
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [markers, setMarkers] = useState<google.maps.Marker[]>([]);
   const [apiKeyMissing, setApiKeyMissing] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   const mapRef = useRef<HTMLDivElement>(null);
 
   // Function to initialize the map
@@ -37,15 +39,21 @@ export const GoogleMap = ({
       setApiKeyMissing(true);
     }
 
-    const googleMap = new window.google.maps.Map(mapRef.current, {
-      center: { lat: 15, lng: -10 },
-      zoom: 2,
-      mapTypeControl: true,
-      fullscreenControl: true,
-    });
+    try {
+      const googleMap = new window.google.maps.Map(mapRef.current, {
+        center: { lat: 15, lng: -10 },
+        zoom: 2,
+        mapTypeControl: true,
+        fullscreenControl: true,
+      });
 
-    setMap(googleMap);
-    setMapLoaded(true);
+      setMap(googleMap);
+      setMapLoaded(true);
+    } catch (error) {
+      console.error("Error initializing map:", error);
+      setLoadError(true);
+      toast.error("Error al inicializar el mapa");
+    }
   };
 
   // Add markers for children
@@ -119,6 +127,11 @@ export const GoogleMap = ({
     setMarkers([]);
   };
 
+  // Function to handle reload after API key is set
+  const handleReload = () => {
+    window.location.reload();
+  };
+
   // Load map when component mounts
   useEffect(() => {
     if (!isLoading && !mapLoaded) {
@@ -127,6 +140,7 @@ export const GoogleMap = ({
         () => {
           toast.error("Error al cargar el mapa de Google, verifique su API key");
           setApiKeyMissing(true);
+          setLoadError(true);
         }
       );
     }
@@ -160,7 +174,7 @@ export const GoogleMap = ({
         className="w-full h-[500px] rounded-md border"
         style={{ backgroundColor: "#f0f0f0" }}
       >
-        {!mapLoaded && !isLoading && !apiKeyMissing && (
+        {!mapLoaded && !isLoading && !apiKeyMissing && !loadError && (
           <div className="flex h-full items-center justify-center text-muted-foreground">
             <div className="text-center">
               <MapPin className="h-12 w-12 mx-auto mb-2 opacity-20" />
@@ -171,11 +185,44 @@ export const GoogleMap = ({
         
         {apiKeyMissing && (
           <div className="flex h-full items-center justify-center">
-            <Alert className="max-w-md">
+            <Alert className="max-w-md" variant="destructive">
               <AlertCircle className="h-4 w-4 mr-2" />
+              <AlertTitle>API Key no encontrada</AlertTitle>
               <AlertDescription>
                 Se requiere una clave de API de Google Maps válida para mostrar el mapa correctamente. 
                 Por favor, configure la variable de entorno VITE_GOOGLE_MAPS_API_KEY.
+                <div className="mt-4">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleReload}
+                    className="w-full"
+                  >
+                    Recargar después de configurar la API key
+                  </Button>
+                </div>
+              </AlertDescription>
+            </Alert>
+          </div>
+        )}
+        
+        {loadError && !apiKeyMissing && (
+          <div className="flex h-full items-center justify-center">
+            <Alert className="max-w-md" variant="destructive">
+              <AlertCircle className="h-4 w-4 mr-2" />
+              <AlertTitle>Error al cargar el mapa</AlertTitle>
+              <AlertDescription>
+                Hubo un problema al cargar el mapa de Google. Por favor, verifique su conexión a internet y que la API key sea válida.
+                <div className="mt-4">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleReload}
+                    className="w-full"
+                  >
+                    Intentar nuevamente
+                  </Button>
+                </div>
               </AlertDescription>
             </Alert>
           </div>

@@ -25,37 +25,59 @@ export const loadGoogleMapsScript = (
     console.warn("Google Maps API key is missing. Using a demo mode with limited functionality.");
     // Create a mock Google Maps API to prevent errors
     if (!window.google) {
+      // Create a proper class structure for the mock
+      class MockMap {
+        constructor(element: HTMLElement, options: any) {
+          // Add a message to the element about missing API key
+          const message = document.createElement('div');
+          message.innerHTML = `
+            <div style="height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px;">
+              <h3 style="margin-bottom: 10px;">Mapa no disponible</h3>
+              <p>Se requiere una clave de API de Google Maps válida.</p>
+              <p>Configure la variable de entorno VITE_GOOGLE_MAPS_API_KEY con su clave de API de Google Maps.</p>
+            </div>
+          `;
+          element.appendChild(message);
+        }
+        
+        setCenter() {}
+        setZoom() {}
+        setOptions() {}
+      }
+      
+      class MockMarker {
+        constructor() {}
+        setMap() {}
+        addListener() {}
+      }
+      
+      class MockInfoWindow {
+        constructor() {}
+        open() {}
+      }
+      
+      class MockLatLngBounds {
+        constructor() {}
+        extend() {}
+      }
+      
+      // Create the mock SymbolPath enum with all required properties
+      const MockSymbolPath = {
+        CIRCLE: 0,
+        BACKWARD_CLOSED_ARROW: 1,
+        BACKWARD_OPEN_ARROW: 2,
+        FORWARD_CLOSED_ARROW: 3,
+        FORWARD_OPEN_ARROW: 4
+      };
+      
+      // Assign the mock classes to the window.google object
       window.google = {
         maps: {
-          Map: function(element: HTMLElement, options: any) {
-            // Minimal mock implementation
-            this.setCenter = () => {};
-            this.setZoom = () => {};
-            this.setOptions = () => {};
-            
-            // Add a message to the element about missing API key
-            const message = document.createElement('div');
-            message.innerHTML = `
-              <div style="height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px;">
-                <h3 style="margin-bottom: 10px;">Mapa no disponible</h3>
-                <p>Se requiere una clave de API de Google Maps válida.</p>
-              </div>
-            `;
-            element.appendChild(message);
-          },
-          Marker: function() {
-            this.setMap = () => {};
-            this.addListener = () => {};
-          },
-          InfoWindow: function() {
-            this.open = () => {};
-          },
-          LatLngBounds: function() {
-            this.extend = () => {};
-          },
-          SymbolPath: {
-            CIRCLE: 0
-          },
+          Map: MockMap as unknown as typeof google.maps.Map,
+          Marker: MockMarker as unknown as typeof google.maps.Marker,
+          InfoWindow: MockInfoWindow as unknown as typeof google.maps.InfoWindow,
+          LatLngBounds: MockLatLngBounds as unknown as typeof google.maps.LatLngBounds,
+          SymbolPath: MockSymbolPath as unknown as typeof google.maps.SymbolPath,
           event: {
             addListener: () => {}
           }
