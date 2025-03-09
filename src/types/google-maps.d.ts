@@ -34,6 +34,13 @@ declare namespace google {
       lng(): number;
     }
 
+    class LatLngBounds {
+      constructor();
+      extend(latLng: LatLng | LatLngLiteral): this;
+      getCenter(): LatLng;
+      isEmpty(): boolean;
+    }
+
     interface LatLngLiteral {
       lat: number;
       lng: number;
