@@ -73,16 +73,19 @@ export const usePasswordResetMode = () => {
                 // Esta operación solo comprueba si el token existe, no lo valida completamente
                 console.log("Verificando existencia del código de recuperación");
                 
-                // Obtener la URL de la API de Supabase
-                const { data: config } = await supabase.auth.getSession();
-                const apiUrl = new URL(supabase.auth.api?.url || "https://upmokuswronpozhhopts.supabase.co/auth/v1");
+                // Obtener la URL base de Supabase para este proyecto
+                const supabaseUrl = supabase.supabaseUrl;
+                const apiUrl = new URL(`${supabaseUrl}/auth/v1`);
+                
+                // Extraer la API key
+                const apiKey = supabaseUrl.split('/').pop() || '';
                 
                 // Intentar obtener el token sin validarlo completamente
                 const response = await fetch(`${apiUrl.origin}/auth/v1/verify?type=recovery&token_hash=${code}`, {
                   method: 'GET',
                   headers: {
                     'Content-Type': 'application/json',
-                    'apikey': (supabase as any).supabaseUrl.split('/').pop(),
+                    'apikey': apiKey,
                   },
                   redirect: 'manual', // Importante para evitar la redirección automática
                 });
