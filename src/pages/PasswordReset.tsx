@@ -60,6 +60,11 @@ const PasswordReset = () => {
     });
   }, [mode, tokenChecked, isTokenValid, forceRequestMode, error, success, email, searchParams]);
 
+  // Translate Supabase error messages to Spanish
+  const translatedError = error === "Email link is invalid or has expired" 
+    ? "El enlace de recuperación es inválido o ha expirado. Por favor solicita uno nuevo."
+    : error;
+
   // Show loading indicator while checking token validity
   if (!tokenChecked) {
     return (
@@ -93,7 +98,7 @@ const PasswordReset = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ErrorMessage error={error} success={success} />
+          <ErrorMessage error={translatedError} success={success} />
           
           {mode === "request" ? (
             <PasswordRequestForm

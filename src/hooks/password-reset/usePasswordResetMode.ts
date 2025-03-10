@@ -13,12 +13,12 @@ export const usePasswordResetMode = () => {
   const [success, setSuccess] = useState<string | null>(null);
   
   const {
+    validateToken,
     isTokenValid,
     tokenChecked,
     forceRequestMode,
     session,
-    setSession,
-    validateToken
+    setSession
   } = useTokenValidation();
   
   const { getUrlParams } = useResetUrlParams();
