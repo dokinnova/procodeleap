@@ -19,30 +19,44 @@ export const useResetPasswordToken = () => {
   useEffect(() => {
     // Extract token from multiple possible sources
     const getTokenFromUrl = () => {
-      // Check URL parameters
+      // Check URL parameters (query string)
       const queryParams = new URLSearchParams(location.search);
       
-      // Direct URL parameters
+      // Check for various parameter names used in different flows
       const code = queryParams.get("code"); // For ?code=xxx format
-      const token = queryParams.get("token");
-      const type = queryParams.get("type");
+      const token = queryParams.get("token"); // For ?token=xxx format
+      const type = queryParams.get("type"); // For ?type=recovery format
       
-      // Check route parameters
-      const routeToken = params.token;
+      // Check route parameters from different route patterns
+      const routeToken = params.token; // For /reset-password/:token
       
-      // Check hash (for access tokens)
+      // Check hash fragment (for access tokens in some auth flows)
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
       const accessToken = hashParams.get("access_token");
+      
+      // Try to extract token from path if it's in a non-standard format
+      const pathSegments = location.pathname.split('/');
+      let pathToken = null;
+      
+      // Look for token or code in the URL path
+      for (let i = 0; i < pathSegments.length; i++) {
+        if (pathSegments[i] === 'token' || pathSegments[i] === 'code') {
+          // The token might be in the next segment
+          pathToken = pathSegments[i + 1];
+          break;
+        }
+      }
       
       console.log("Token extraction details:");
       console.log("- Code param:", code);
       console.log("- Token param:", token);
       console.log("- Type param:", type);
       console.log("- Route token:", routeToken);
+      console.log("- Path token:", pathToken);
       console.log("- Access token (hash):", accessToken);
       
       // Return the first valid token found
-      return code || token || routeToken || (type === "recovery" ? "recovery-flow" : null) || accessToken;
+      return code || token || routeToken || pathToken || (type === "recovery" ? "recovery-flow" : null) || accessToken;
     };
     
     const token = getTokenFromUrl();

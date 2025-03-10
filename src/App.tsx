@@ -81,9 +81,16 @@ const App = () => {
               </div>
             } />
             
-            {/* Password reset routes - IMPORTANT: These need to be at the top level */}
+            {/* Password reset routes - ensure all possible formats are handled */}
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/reset-password/:token" element={<ResetPassword />} />
+            
+            {/* 
+              Add support for potential legacy formats or different token formats
+              These will all be handled by the single ResetPassword component
+            */}
+            <Route path="/reset-password/token/:token" element={<ResetPassword />} />
+            <Route path="/reset-password/code/:code" element={<ResetPassword />} />
             <Route path="/reset-password/token" element={<ResetPassword />} />
             <Route path="/reset-password/code" element={<ResetPassword />} />
             

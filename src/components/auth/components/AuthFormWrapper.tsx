@@ -12,7 +12,7 @@ export const AuthFormWrapper = () => {
   
   // Always use the current domain from window.location
   const currentUrl = window.location.origin;
-  // Make sure the redirect URL is absolute
+  // Make sure the redirect URL is absolute and supports all reset-password routes
   const redirectTo = `${currentUrl}/reset-password`;
   
   console.log("AuthFormWrapper: Using redirect URL:", redirectTo);
@@ -57,6 +57,8 @@ export const AuthFormWrapper = () => {
         navigate('/');
       } else if (event === 'PASSWORD_RECOVERY') {
         console.log('Redirecting to password recovery page');
+        // Always use the central reset password route
+        // The ResetPasswordContainer will handle token extraction
         navigate('/reset-password');
       }
     });
