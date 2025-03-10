@@ -48,8 +48,14 @@ export const handlePasswordReset = async (
     const data = await response.json();
     console.log("Successfully requested reset token from Supabase");
 
-    // Asegurar que la URL de redirección sea correcta
-    const resetUrl = `${resetLink}?token=${data.token}`;
+    // Asegurar que la URL de redirección sea correcta - NO usar vercel
+    // Eliminar cualquier parámetro de la URL base
+    let baseResetLink = resetLink;
+    if (baseResetLink.includes("?")) {
+      baseResetLink = baseResetLink.split("?")[0];
+    }
+    
+    const resetUrl = `${baseResetLink}?token=${data.token}`;
     console.log("Reset URL generated:", resetUrl);
     
     const htmlContent = getResetEmailContent(resetUrl);
