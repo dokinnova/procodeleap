@@ -39,7 +39,7 @@ export const publicRoutes: RouteObject[] = [
   },
   {
     path: "/",
-    element: window.location.search.includes('code=') ? 
+    element: window.location.search.includes('token=') || window.location.search.includes('code=') ? 
       <Navigate to={`/password-reset${window.location.search}`} replace /> : 
       <Navigate to="/auth" replace />
   }
