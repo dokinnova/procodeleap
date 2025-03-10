@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthForm } from "./AuthForm";
 import { useToast } from "@/hooks/use-toast";
@@ -8,42 +8,51 @@ import { toast } from "sonner";
 
 export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const { toast: uiToast } = useToast();
 
   useEffect(() => {
-    console.log('ProtectedRoute: Verificando sesión...');
+    console.log('ProtectedRoute: Checking session...');
+    let isMounted = true;
     
     const checkSession = async () => {
       try {
-        const { data: { session: currentSession }, error } = await supabase.auth.getSession();
+        // Clear previous session state
+        if (isMounted) setLoading(true);
+        
+        const { data, error } = await supabase.auth.getSession();
         
         if (error) {
-          console.error('ProtectedRoute: Error al verificar sesión:', error);
-          setSession(null);
-          uiToast({
-            title: "Error de autenticación",
-            description: "Por favor, inicia sesión de nuevo.",
-            variant: "destructive",
-          });
-        } else if (!currentSession) {
-          console.log('ProtectedRoute: No se encontró sesión');
-          setSession(null);
+          console.error('ProtectedRoute: Error checking session:', error);
+          if (isMounted) {
+            setSession(null);
+            uiToast({
+              title: "Authentication Error",
+              description: "Please sign in again.",
+              variant: "destructive",
+            });
+          }
+        } else if (!data.session) {
+          console.log('ProtectedRoute: No session found');
+          if (isMounted) setSession(null);
         } else {
-          console.log('ProtectedRoute: Sesión encontrada:', currentSession);
-          setSession(currentSession);
+          console.log('ProtectedRoute: Session found:', data.session ? "Present" : "Not present");
+          if (isMounted) setSession(data.session);
         }
       } catch (error: any) {
         console.error('ProtectedRoute: Error:', error);
-        setSession(null);
-        uiToast({
-          title: "Error inesperado",
-          description: "Ha ocurrido un error al verificar tu sesión.",
-          variant: "destructive",
-        });
+        if (isMounted) {
+          setSession(null);
+          uiToast({
+            title: "Unexpected Error",
+            description: "An error occurred checking your session.",
+            variant: "destructive",
+          });
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
@@ -52,33 +61,39 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, newSession) => {
-      console.log('ProtectedRoute: Cambio en estado de autenticación:', event);
+      console.log('ProtectedRoute: Auth state change:', event);
       
       if (event === 'SIGNED_OUT') {
-        toast("Sesión cerrada", {
-          description: "Has cerrado sesión correctamente.",
+        toast("Session ended", {
+          description: "You have been signed out.",
         });
-        navigate('/auth');
+        
+        if (location.pathname !== '/auth' && 
+            location.pathname !== '/password-reset' && 
+            !location.pathname.startsWith('/auth/callback')) {
+          navigate('/auth');
+        }
       } else if (event === 'PASSWORD_RECOVERY') {
         navigate('/password-reset');
       } else if (event === 'USER_UPDATED') {
-        toast("Perfil actualizado", {
-          description: "Tu perfil ha sido actualizado correctamente.",
+        toast("Profile updated", {
+          description: "Your profile has been updated successfully.",
         });
       } else if (event === 'SIGNED_IN') {
-        toast("Sesión iniciada", {
-          description: "Has iniciado sesión correctamente.",
+        toast("Session started", {
+          description: "You have successfully signed in.",
         });
       }
       
-      setSession(newSession);
+      if (isMounted) setSession(newSession);
     });
 
     return () => {
-      console.log('ProtectedRoute: Limpiando suscripción');
+      console.log('ProtectedRoute: Cleaning up subscription');
+      isMounted = false;
       subscription.unsubscribe();
     };
-  }, [navigate, uiToast]);
+  }, [navigate, uiToast, location]);
 
   if (loading) {
     return (
@@ -94,7 +109,7 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
         <div className="max-w-md mx-auto w-full px-4">
           <div className="mb-8 text-center">
             <h1 className="text-2xl font-bold text-gray-900 mb-2">COPRODELI</h1>
-            <p className="text-gray-600">Inicia sesión para continuar</p>
+            <p className="text-gray-600">Sign in to continue</p>
           </div>
           <AuthForm />
         </div>

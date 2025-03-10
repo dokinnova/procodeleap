@@ -4,21 +4,29 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 export const DashboardHeader = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const { toast: uiToast } = useToast();
 
   const handleLogout = async () => {
     try {
+      console.log("Attempting to sign out...");
+      
       // First check if we have a session
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.error("Error checking session before logout:", sessionError);
+        throw sessionError;
+      }
       
       if (!session) {
         // If no session, just redirect to auth page
-        toast({
-          title: "Sesión finalizada",
-          description: "No hay sesión activa",
+        console.log("No active session found");
+        toast("Session ended", {
+          description: "No active session",
         });
         navigate("/auth", { replace: true });
         return;
@@ -33,18 +41,17 @@ export const DashboardHeader = () => {
       }
 
       // Show success toast
-      toast({
-        title: "Sesión cerrada",
-        description: "Has cerrado sesión exitosamente",
+      toast("Session closed", {
+        description: "You have successfully signed out",
       });
 
       // Force navigation to login
       navigate("/auth", { replace: true });
-    } catch (error) {
-      console.error("Error al cerrar sesión:", error);
-      toast({
+    } catch (error: any) {
+      console.error("Error signing out:", error);
+      uiToast({
         title: "Error",
-        description: "No se pudo cerrar la sesión correctamente. Redirigiendo al inicio de sesión.",
+        description: "Could not sign out properly. Redirecting to sign in.",
         variant: "destructive",
       });
       
@@ -56,9 +63,9 @@ export const DashboardHeader = () => {
   return (
     <div className="flex justify-between items-center pb-4 border-b border-purple-100">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight text-gray-900 bg-gradient-to-r from-violet-600 to-pink-600 bg-clip-text text-transparent">Panel de Control</h2>
+        <h2 className="text-2xl font-bold tracking-tight text-gray-900 bg-gradient-to-r from-violet-600 to-pink-600 bg-clip-text text-transparent">Control Panel</h2>
         <p className="text-muted-foreground text-sm">
-          Sistema de gestión COPRODELI
+          COPRODELI management system
         </p>
       </div>
       <Button 
@@ -68,7 +75,7 @@ export const DashboardHeader = () => {
         className="flex items-center gap-2 border-violet-200 hover:bg-violet-50"
       >
         <LogOut className="h-4 w-4 text-violet-600" />
-        Cerrar sesión
+        Sign out
       </Button>
     </div>
   );

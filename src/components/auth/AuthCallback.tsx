@@ -1,5 +1,5 @@
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -7,75 +7,80 @@ import { toast } from "sonner";
 const AuthCallback = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [error, setError] = useState<string | null>(null);
   
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // Extraer todos los parámetros de la URL
+        // Extract all URL parameters
         const searchParams = new URLSearchParams(location.search);
         
-        // Convertir a un objeto para depuración
+        // Convert to an object for debugging
         const params = Object.fromEntries(searchParams.entries());
-        console.log("Parámetros de callback recibidos:", params);
+        console.log("Callback parameters received:", params);
         
-        // Verificar si estamos en un flujo de restablecimiento de contraseña
+        // Check if we're in a password reset flow
         const isPasswordReset = searchParams.has("type") && searchParams.get("type") === "recovery";
         const hasCode = searchParams.has("code");
         
         if (hasCode) {
-          console.log("Código de autenticación detectado");
+          console.log("Authentication code detected");
           
           try {
-            // Intercambiar el código por una sesión
+            // Exchange the code for a session
             const { data, error } = await supabase.auth.exchangeCodeForSession(
               searchParams.get("code") as string
             );
             
             if (error) {
-              console.error("Error al procesar código de autenticación:", error);
+              console.error("Error processing authentication code:", error);
+              setError(error.message);
               
               if (isPasswordReset) {
-                // Si es un reset de contraseña con error, ir a la página de reset
-                console.log("Redirigiendo a página de reset con error");
+                // If it's a password reset with an error, redirect to reset page
+                console.log("Redirecting to password reset page with error");
                 navigate(`/password-reset${location.search}`, { replace: true });
               } else {
-                // Si es login normal con error, mostrar mensaje y volver a auth
-                console.error("Error de autenticación:", error.message);
-                toast.error("Error al iniciar sesión: " + error.message);
+                // If it's a normal login with an error, show message and redirect to auth
+                console.error("Authentication error:", error.message);
+                toast.error("Sign in error: " + error.message);
                 navigate("/auth", { replace: true });
               }
               return;
             }
             
-            console.log("Código procesado exitosamente:", data?.session ? "Sesión establecida" : "Sin sesión");
+            console.log("Code processed successfully:", data?.session ? "Session established" : "No session");
             
-            // Si es un reset de contraseña, redirigir a la página correspondiente
+            // If it's a password reset, redirect to the reset page
             if (isPasswordReset) {
-              console.log("Redirigiendo a página de reset");
+              console.log("Redirecting to password reset page");
               navigate(`/password-reset${location.search}`, { replace: true });
             } else {
-              // Para login normal, redirigir al dashboard
-              console.log("Sesión iniciada correctamente, redirigiendo al inicio");
-              toast.success("Sesión iniciada correctamente");
+              // For normal login, redirect to dashboard
+              console.log("Session started successfully, redirecting to home");
+              toast.success("Session started successfully");
               navigate("/", { replace: true });
             }
-          } catch (error) {
-            console.error("Error en intercambio de código:", error);
+          } catch (error: any) {
+            console.error("Error in code exchange:", error);
+            setError(error.message);
+            
             if (isPasswordReset) {
               navigate(`/password-reset${location.search}`, { replace: true });
             } else {
-              toast.error("Error al procesar la autenticación");
+              toast.error("Error processing authentication");
               navigate("/auth", { replace: true });
             }
           }
         } else {
-          // Si no hay código, redirigir a la página de inicio de sesión
-          console.log("No se encontró código, redirigiendo a inicio de sesión");
+          // If there's no code, redirect to the sign in page
+          console.log("No code found, redirecting to sign in");
           navigate("/auth", { replace: true });
         }
-      } catch (error) {
-        console.error("Error crítico en callback:", error);
-        toast.error("Error durante el proceso de autenticación");
+      } catch (error: any) {
+        console.error("Critical error in callback:", error);
+        setError(error.message);
+        toast.error("Error during authentication process");
         navigate("/auth", { replace: true });
       }
     };
@@ -83,12 +88,26 @@ const AuthCallback = () => {
     handleAuthCallback();
   }, [navigate, location]);
   
-  // Mostrar un indicador de carga mientras se procesa
+  // Show a loading indicator while processing
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background to-secondary/50">
       <div className="text-center">
-        <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto"></div>
-        <p className="text-muted-foreground">Procesando autenticación...</p>
+        {error ? (
+          <div className="mb-4 text-red-500">
+            <p>Error: {error}</p>
+            <button 
+              onClick={() => navigate('/auth')}
+              className="mt-4 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
+            >
+              Return to Sign In
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto"></div>
+            <p className="text-muted-foreground">Processing authentication...</p>
+          </>
+        )}
       </div>
     </div>
   );
