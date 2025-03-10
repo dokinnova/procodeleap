@@ -4,39 +4,40 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthForm } from "./AuthForm";
 import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
+  const { toast: uiToast } = useToast();
 
   useEffect(() => {
-    console.log('ProtectedRoute: Checking session...');
+    console.log('ProtectedRoute: Verificando sesión...');
     
     const checkSession = async () => {
       try {
         const { data: { session: currentSession }, error } = await supabase.auth.getSession();
         
         if (error) {
-          console.error('ProtectedRoute: Error checking session:', error);
+          console.error('ProtectedRoute: Error al verificar sesión:', error);
           setSession(null);
-          toast({
+          uiToast({
             title: "Error de autenticación",
             description: "Por favor, inicia sesión de nuevo.",
             variant: "destructive",
           });
         } else if (!currentSession) {
-          console.log('ProtectedRoute: No session found');
+          console.log('ProtectedRoute: No se encontró sesión');
           setSession(null);
         } else {
-          console.log('ProtectedRoute: Session found:', currentSession);
+          console.log('ProtectedRoute: Sesión encontrada:', currentSession);
           setSession(currentSession);
         }
       } catch (error: any) {
         console.error('ProtectedRoute: Error:', error);
         setSession(null);
-        toast({
+        uiToast({
           title: "Error inesperado",
           description: "Ha ocurrido un error al verificar tu sesión.",
           variant: "destructive",
@@ -50,29 +51,34 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      console.log('ProtectedRoute: Auth state changed:', _event);
-      if (_event === 'SIGNED_OUT') {
-        toast({
-          title: "Sesión cerrada",
+    } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+      console.log('ProtectedRoute: Cambio en estado de autenticación:', event);
+      
+      if (event === 'SIGNED_OUT') {
+        toast("Sesión cerrada", {
           description: "Has cerrado sesión correctamente.",
         });
-      } else if (_event === 'PASSWORD_RECOVERY') {
+        navigate('/auth');
+      } else if (event === 'PASSWORD_RECOVERY') {
         navigate('/password-reset');
-      } else if (_event === 'USER_UPDATED') {
-        toast({
-          title: "Perfil actualizado",
+      } else if (event === 'USER_UPDATED') {
+        toast("Perfil actualizado", {
           description: "Tu perfil ha sido actualizado correctamente.",
         });
+      } else if (event === 'SIGNED_IN') {
+        toast("Sesión iniciada", {
+          description: "Has iniciado sesión correctamente.",
+        });
       }
-      setSession(session);
+      
+      setSession(newSession);
     });
 
     return () => {
-      console.log('ProtectedRoute: Cleaning up subscription');
+      console.log('ProtectedRoute: Limpiando suscripción');
       subscription.unsubscribe();
     };
-  }, [navigate, toast]);
+  }, [navigate, uiToast]);
 
   if (loading) {
     return (

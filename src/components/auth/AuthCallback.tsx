@@ -2,6 +2,7 @@
 import { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const AuthCallback = () => {
   const navigate = useNavigate();
@@ -22,11 +23,51 @@ const AuthCallback = () => {
         const hasCode = searchParams.has("code");
         
         if (hasCode) {
-          console.log("Código de autenticación detectado, redirigiendo a página de reset");
+          console.log("Código de autenticación detectado");
           
-          // Redirigir inmediatamente a la página de restablecimiento con todos los parámetros
-          navigate(`/password-reset${location.search}`, { replace: true });
-          return;
+          try {
+            // Intercambiar el código por una sesión
+            const { data, error } = await supabase.auth.exchangeCodeForSession(
+              searchParams.get("code") as string
+            );
+            
+            if (error) {
+              console.error("Error al procesar código de autenticación:", error);
+              
+              if (isPasswordReset) {
+                // Si es un reset de contraseña con error, ir a la página de reset
+                console.log("Redirigiendo a página de reset con error");
+                navigate(`/password-reset${location.search}`, { replace: true });
+              } else {
+                // Si es login normal con error, mostrar mensaje y volver a auth
+                console.error("Error de autenticación:", error.message);
+                toast.error("Error al iniciar sesión: " + error.message);
+                navigate("/auth", { replace: true });
+              }
+              return;
+            }
+            
+            console.log("Código procesado exitosamente:", data?.session ? "Sesión establecida" : "Sin sesión");
+            
+            // Si es un reset de contraseña, redirigir a la página correspondiente
+            if (isPasswordReset) {
+              console.log("Redirigiendo a página de reset");
+              navigate(`/password-reset${location.search}`, { replace: true });
+            } else {
+              // Para login normal, redirigir al dashboard
+              console.log("Sesión iniciada correctamente, redirigiendo al inicio");
+              toast.success("Sesión iniciada correctamente");
+              navigate("/", { replace: true });
+            }
+          } catch (error) {
+            console.error("Error en intercambio de código:", error);
+            if (isPasswordReset) {
+              navigate(`/password-reset${location.search}`, { replace: true });
+            } else {
+              toast.error("Error al procesar la autenticación");
+              navigate("/auth", { replace: true });
+            }
+          }
         } else {
           // Si no hay código, redirigir a la página de inicio de sesión
           console.log("No se encontró código, redirigiendo a inicio de sesión");
@@ -34,6 +75,7 @@ const AuthCallback = () => {
         }
       } catch (error) {
         console.error("Error crítico en callback:", error);
+        toast.error("Error durante el proceso de autenticación");
         navigate("/auth", { replace: true });
       }
     };

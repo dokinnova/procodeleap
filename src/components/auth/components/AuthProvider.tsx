@@ -1,7 +1,9 @@
+
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface AuthProviderProps {
   children: React.ReactNode;
@@ -9,27 +11,46 @@ interface AuthProviderProps {
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const { toast: uiToast } = useToast();
 
   useEffect(() => {
-    console.log('AuthProvider: Initializing...');
+    console.log('AuthProvider: Inicializando...');
+    
+    // Verificar si ya tenemos una sesión activa
+    const checkExistingSession = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error('AuthProvider: Error al verificar sesión:', error);
+      } else if (session) {
+        console.log('AuthProvider: Sesión existente detectada, redirigiendo al inicio');
+        navigate('/', { replace: true });
+      }
+    };
+    
+    checkExistingSession();
     
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('AuthProvider: Auth state changed:', event);
+      console.log('AuthProvider: Cambio en estado de autenticación:', event);
       
       if (event === 'SIGNED_IN' && session) {
-        console.log('AuthProvider: User signed in, redirecting to home');
+        console.log('AuthProvider: Usuario autenticado, redirigiendo al inicio');
+        toast("Bienvenido/a", {
+          description: "Has iniciado sesión correctamente."
+        });
         navigate('/', { replace: true });
+      } else if (event === 'PASSWORD_RECOVERY') {
+        navigate('/password-reset');
       }
     });
 
     return () => {
-      console.log('AuthProvider: Cleaning up subscription');
+      console.log('AuthProvider: Limpiando suscripción');
       subscription.unsubscribe();
     };
-  }, [navigate, toast]);
+  }, [navigate, uiToast]);
 
   return <>{children}</>;
 };
