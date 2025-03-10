@@ -1,5 +1,5 @@
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthForm } from "./AuthForm";
@@ -12,37 +12,25 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const { toast: uiToast } = useToast();
-  const isMounted = useRef(true);
-  const redirectingRef = useRef(false);
 
   useEffect(() => {
     console.log('ProtectedRoute: Checking session...', location.pathname);
     
     const checkSession = async () => {
       try {
-        if (!isMounted.current) return;
         setLoading(true);
         
         const { data, error } = await supabase.auth.getSession();
         
         if (error) {
           console.error('ProtectedRoute: Error checking session:', error);
-          if (isMounted.current) {
-            setSession(null);
-            setLoading(false);
-            if (!redirectingRef.current && 
-                location.pathname !== '/auth' && 
-                location.pathname !== '/password-reset' && 
-                !location.pathname.startsWith('/auth/callback')) {
-              console.log('ProtectedRoute: Error case - Redirecting to auth page');
-              redirectingRef.current = true;
-              setTimeout(() => {
-                if (isMounted.current) {
-                  navigate('/auth', { replace: true });
-                  redirectingRef.current = false;
-                }
-              }, 500);
-            }
+          setSession(null);
+          setLoading(false);
+          if (location.pathname !== '/auth' && 
+              location.pathname !== '/password-reset' && 
+              !location.pathname.startsWith('/auth/callback')) {
+            console.log('ProtectedRoute: Error case - Redirecting to auth page');
+            navigate('/auth', { replace: true });
           }
           return;
         }
@@ -51,59 +39,33 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
         
         if (!data.session) {
           console.log('ProtectedRoute: No session found');
-          if (isMounted.current) {
-            setSession(null);
-            setLoading(false);
-            if (!redirectingRef.current && 
-                location.pathname !== '/auth' && 
-                location.pathname !== '/password-reset' && 
-                !location.pathname.startsWith('/auth/callback')) {
-              console.log('ProtectedRoute: No session - Redirecting to auth page');
-              redirectingRef.current = true;
-              setTimeout(() => {
-                if (isMounted.current) {
-                  navigate('/auth', { replace: true });
-                  redirectingRef.current = false;
-                }
-              }, 500);
-            }
+          setSession(null);
+          setLoading(false);
+          if (location.pathname !== '/auth' && 
+              location.pathname !== '/password-reset' && 
+              !location.pathname.startsWith('/auth/callback')) {
+            console.log('ProtectedRoute: No session - Redirecting to auth page');
+            navigate('/auth', { replace: true });
           }
           return;
         }
         
         console.log('ProtectedRoute: Session found', location.pathname);
-        if (isMounted.current) {
-          setSession(data.session);
-          setLoading(false);
-          if (location.pathname === '/auth' && !redirectingRef.current) {
-            console.log('ProtectedRoute: On auth page with session - Redirecting to home');
-            redirectingRef.current = true;
-            setTimeout(() => {
-              if (isMounted.current) {
-                navigate('/', { replace: true });
-                redirectingRef.current = false;
-              }
-            }, 500);
-          }
+        setSession(data.session);
+        setLoading(false);
+        if (location.pathname === '/auth') {
+          console.log('ProtectedRoute: On auth page with session - Redirecting to home');
+          navigate('/', { replace: true });
         }
       } catch (error: any) {
         console.error('ProtectedRoute: Error:', error);
-        if (isMounted.current) {
-          setSession(null);
-          setLoading(false);
-          if (!redirectingRef.current && 
-              location.pathname !== '/auth' && 
-              location.pathname !== '/password-reset' && 
-              !location.pathname.startsWith('/auth/callback')) {
-            console.log('ProtectedRoute: Error case - Redirecting to auth page');
-            redirectingRef.current = true;
-            setTimeout(() => {
-              if (isMounted.current) {
-                navigate('/auth', { replace: true });
-                redirectingRef.current = false;
-              }
-            }, 500);
-          }
+        setSession(null);
+        setLoading(false);
+        if (location.pathname !== '/auth' && 
+            location.pathname !== '/password-reset' && 
+            !location.pathname.startsWith('/auth/callback')) {
+          console.log('ProtectedRoute: Error case - Redirecting to auth page');
+          navigate('/auth', { replace: true });
         }
       }
     };
@@ -114,21 +76,13 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, newSession) => {
       console.log('ProtectedRoute: Auth state change:', event, 'Session exists:', !!newSession);
-      
-      if (!isMounted.current) return;
 
       if (event === 'SIGNED_IN' && newSession) {
         console.log('ProtectedRoute: User signed in, setting session and redirecting if on auth page');
         setSession(newSession);
-        if (location.pathname === '/auth' && !redirectingRef.current) {
+        if (location.pathname === '/auth') {
           console.log('ProtectedRoute: SIGNED_IN - Redirecting to home from auth page');
-          redirectingRef.current = true;
-          setTimeout(() => {
-            if (isMounted.current) {
-              navigate('/', { replace: true });
-              redirectingRef.current = false;
-            }
-          }, 500);
+          navigate('/', { replace: true });
         }
       } else if (event === 'SIGNED_OUT') {
         console.log('ProtectedRoute: User signed out');
@@ -137,18 +91,11 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
           description: "Has cerrado sesión.",
         });
         
-        if (!redirectingRef.current && 
-            location.pathname !== '/auth' && 
+        if (location.pathname !== '/auth' && 
             location.pathname !== '/password-reset' && 
             !location.pathname.startsWith('/auth/callback')) {
           console.log('ProtectedRoute: SIGNED_OUT - Redirecting to auth page');
-          redirectingRef.current = true;
-          setTimeout(() => {
-            if (isMounted.current) {
-              navigate('/auth', { replace: true });
-              redirectingRef.current = false;
-            }
-          }, 500);
+          navigate('/auth', { replace: true });
         }
       } else if (newSession) {
         console.log('ProtectedRoute: Setting session from auth state change');
@@ -156,25 +103,17 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       } else if (!newSession && event !== 'INITIAL_SESSION') {
         console.log('ProtectedRoute: No session after auth state change');
         setSession(null);
-        if (!redirectingRef.current && 
-            location.pathname !== '/auth' && 
+        if (location.pathname !== '/auth' && 
             location.pathname !== '/password-reset' && 
             !location.pathname.startsWith('/auth/callback')) {
           console.log('ProtectedRoute: No session after auth state change - Redirecting to auth');
-          redirectingRef.current = true;
-          setTimeout(() => {
-            if (isMounted.current) {
-              navigate('/auth', { replace: true });
-              redirectingRef.current = false;
-            }
-          }, 500);
+          navigate('/auth', { replace: true });
         }
       }
     });
 
     return () => {
       console.log('ProtectedRoute: Cleaning up subscription');
-      isMounted.current = false;
       subscription.unsubscribe();
     };
   }, [navigate, uiToast, location.pathname]);
