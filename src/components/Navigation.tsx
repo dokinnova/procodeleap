@@ -36,11 +36,12 @@ const Navigation = ({ isMobileMenuOpen, setIsMobileMenuOpen }: NavigationProps) 
 
       <div className={`
         fixed inset-y-0 left-0 z-40 w-64 bg-[#F1F0FB] shadow-sm transition-transform duration-300 ease-in-out
+        flex flex-col h-full
         ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
       `}>
         <NavigationHeader onLogoClick={handleLinkClick} />
 
-        <nav className="mt-6 px-3">
+        <nav className="mt-6 px-3 flex-1 overflow-y-auto pb-6">
           <NavigationLink to="/children" icon={Users} onClick={handleLinkClick}>
             Niños
           </NavigationLink>
