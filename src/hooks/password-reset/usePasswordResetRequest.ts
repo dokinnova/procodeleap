@@ -30,7 +30,7 @@ export const usePasswordResetRequest = () => {
       console.log("Solicitando restablecimiento de contraseña para:", email);
       console.log("Redirigiendo a:", redirectTo);
       
-      // Intentar enviar a través de la función personalizada
+      // First try with our custom function
       try {
         const functionResponse = await supabase.functions.invoke("password-reset-notification", {
           body: { email, resetLink: redirectTo }
@@ -47,10 +47,13 @@ export const usePasswordResetRequest = () => {
         }
         
         console.log("Correo enviado a través de la función personalizada");
+        toast.success("Se ha enviado un enlace de recuperación a tu correo electrónico");
+        setSuccess("Se ha enviado un enlace de recuperación a tu correo electrónico. Por favor revisa tu bandeja de entrada y spam.");
+        return;
       } catch (funcError) {
         console.warn("Error con la función personalizada, usando método estándar:", funcError);
         
-        // Fallback al método estándar de Supabase
+        // Fallback to standard Supabase method
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
           redirectTo: redirectTo,
         });
@@ -58,11 +61,11 @@ export const usePasswordResetRequest = () => {
         if (error) {
           throw error;
         }
+        
+        console.log("Solicitud de restablecimiento enviada con éxito mediante método estándar");
+        toast.success("Se ha enviado un enlace de recuperación a tu correo electrónico");
+        setSuccess("Se ha enviado un enlace de recuperación a tu correo electrónico. Por favor revisa tu bandeja de entrada y spam.");
       }
-      
-      console.log("Solicitud de restablecimiento enviada con éxito, revisa tu correo");
-      toast.success("Se ha enviado un enlace de recuperación a tu correo electrónico");
-      setSuccess("Se ha enviado un enlace de recuperación a tu correo electrónico. Por favor revisa tu bandeja de entrada y spam.");
     } catch (err: any) {
       console.error("Error al solicitar restablecimiento de contraseña:", err);
       

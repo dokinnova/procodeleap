@@ -92,6 +92,15 @@ export const useTokenValidation = () => {
       return { success: true };
     }
 
+    // Special case for type=recovery without code but with email
+    // This is our custom flow where we don't pass the actual token in the URL
+    if (type === "recovery" && emailParam && !code) {
+      console.log("Custom recovery flow detected");
+      setIsTokenValid(true);
+      setTokenChecked(true);
+      return { success: true };
+    }
+
     // Handle other token types
     if (token || accessToken || refreshToken || (code && type === "recovery")) {
       try {

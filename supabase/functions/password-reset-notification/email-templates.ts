@@ -17,4 +17,3 @@ export const getResetEmailContent = (formattedResetLink: string) => `
     <p style="color: #6B7280; font-size: 14px; margin-top: 32px;">Este enlace expirará en 24 horas.</p>
   </div>
 `;
-
