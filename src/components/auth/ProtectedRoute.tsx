@@ -29,6 +29,21 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
         } else if (!currentSession) {
           console.log('ProtectedRoute: No se encontró sesión');
           
+          // Verificar si estamos en una ruta de restablecimiento de contraseña
+          const isResetPasswordRoute = location.pathname === '/reset-password';
+          const hasResetToken = 
+            location.search.includes('code=') || 
+            location.search.includes('token=') || 
+            location.search.includes('type=recovery') || 
+            window.location.hash.includes('access_token=');
+            
+          if (isResetPasswordRoute && hasResetToken) {
+            console.log('ProtectedRoute: Permitiendo acceso a página de restablecimiento con token');
+            // Permitir acceso a la página de restablecimiento si tiene un token
+            setLoading(false);
+            return;
+          }
+          
           // Si estamos en /auth/callback con errores, redirigir a /auth
           if (location.pathname === '/auth/callback' && location.search.includes('error')) {
             console.log('ProtectedRoute: Redirigiendo de callback con error a /auth');
@@ -88,11 +103,20 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   // Si no hay sesión y estamos en rutas protegidas
   if (!session) {
     // Estas rutas no necesitan protección
-    if (
+    const isPublicRoute = 
       location.pathname === '/reset-password' || 
       location.pathname === '/auth' || 
-      location.pathname.startsWith('/auth/')
-    ) {
+      location.pathname.startsWith('/auth/');
+      
+    // Si es una ruta de reset password con un token, permitir acceso
+    const isResetWithToken = 
+      location.pathname === '/reset-password' && 
+      (location.search.includes('code=') || 
+       location.search.includes('token=') || 
+       location.search.includes('type=recovery') || 
+       window.location.hash.includes('access_token='));
+    
+    if (isPublicRoute || isResetWithToken) {
       return <>{children}</>;
     }
     

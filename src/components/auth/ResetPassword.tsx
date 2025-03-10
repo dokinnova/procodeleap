@@ -21,34 +21,45 @@ export const ResetPassword = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Extraer token de la URL y parámetros
+    // Extract token from URL parameters - handle multiple formats
     const queryParams = new URLSearchParams(location.search);
-    const type = queryParams.get("type");
+    const code = queryParams.get("code"); // For ?code=xxx format
     const token = queryParams.get("token");
+    const type = queryParams.get("type");
+    
+    // Also check hash params (for access tokens)
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
     const accessToken = hashParams.get("access_token");
     
-    console.log("Verificando token de recuperación:");
-    console.log("- Tipo (query):", type);
-    console.log("- Token (query):", token);
-    console.log("- Access Token (hash):", accessToken);
+    console.log("Token extraction from URL:");
+    console.log("- Code param:", code);
+    console.log("- Token param:", token);
+    console.log("- Type param:", type);
+    console.log("- Access token (hash):", accessToken);
     
-    if (type === "recovery" && token) {
-      console.log("Token de recuperación detectado (query):", token);
+    // Set recovery token based on the first valid parameter found
+    if (code) {
+      console.log("Using code parameter as recovery token");
+      setRecoveryToken(code);
+    } else if (token) {
+      console.log("Using token parameter as recovery token");
+      setRecoveryToken(token);
+    } else if (type === "recovery" && token) {
+      console.log("Using recovery token from query params");
       setRecoveryToken(token);
     } else if (accessToken) {
-      console.log("Token de acceso detectado (hash):", accessToken);
+      console.log("Using access token from hash");
       setRecoveryToken(accessToken);
     } else {
-      console.log("No se encontró token de recuperación válido");
+      console.log("No valid recovery token found in URL");
       
-      // Verificar estado actual de autenticación para password recovery
+      // Check if user has an active session (already authenticated)
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (session?.user) {
-          console.log("Sesión activa encontrada durante recuperación");
+          console.log("Active session found during recovery");
           setRecoveryToken("session-active");
         } else {
-          // No mostrar error inmediatamente, podría ser acceso directo a la página
+          // Only show error if came from a link (has search params or hash)
           if (location.search || window.location.hash) {
             setError("Enlace de recuperación inválido o expirado.");
           }

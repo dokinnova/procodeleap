@@ -9,7 +9,9 @@ import { useNavigate } from "react-router-dom";
 export const AuthFormWrapper = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const redirectTo = `${window.location.origin}/reset-password`;
+  const currentUrl = window.location.origin;
+  // Use the deployment domain directly for the redirect URL
+  const redirectTo = `${currentUrl}/reset-password`;
 
   // Detectar errores en la URL al cargar el componente
   useEffect(() => {
