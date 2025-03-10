@@ -14,59 +14,46 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const { toast } = useToast();
 
   useEffect(() => {
-    console.log('AuthProvider: Inicializando...');
-    
-    // Verificar si estamos en la página de auth y hay un error en la URL
+    // Verificar errores en la URL
     const url = new URL(window.location.href);
     const error = url.searchParams.get('error');
     const errorDescription = url.searchParams.get('error_description');
     
     if (error && errorDescription) {
-      console.log('AuthProvider: Error detectado en URL:', error, errorDescription);
       toast({
         title: "Error de autenticación",
         description: errorDescription.replace(/\+/g, ' '),
         variant: "destructive",
       });
       
-      // Limpiar los parámetros de error de la URL
       navigate('/auth', { replace: true });
       return;
     }
     
-    // Verificar si el usuario ya tiene sesión y está en la página de auth
-    if (location.pathname === '/auth') {
-      const checkSession = async () => {
-        try {
-          const { data: { session } } = await supabase.auth.getSession();
-          if (session) {
-            console.log('AuthProvider: Usuario ya con sesión en página de auth, redirigiendo a inicio');
-            navigate('/', { replace: true });
-          }
-        } catch (err) {
-          console.error('Error checking session:', err);
-        }
-      };
-      
-      checkSession();
+    // Verificar flujo de recuperación de contraseña
+    const code = url.searchParams.get('code');
+    const type = url.searchParams.get('type');
+    
+    if (type === 'recovery' || code) {
+      navigate('/reset-password', { 
+        replace: true, 
+        state: { code, type } 
+      });
+      return;
     }
     
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('AuthProvider: Cambio de estado de auth:', event);
-      
+    // Suscribirse a cambios de autenticación
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
         if (location.pathname === '/auth') {
-          console.log('AuthProvider: Usuario conectado, redireccionando a inicio');
           navigate('/', { replace: true });
         }
       } else if (event === 'PASSWORD_RECOVERY') {
-        console.log('AuthProvider: Recuperación de contraseña iniciada');
         navigate('/reset-password', { replace: true });
       }
     });
 
     return () => {
-      console.log('AuthProvider: Limpiando suscripción');
       subscription.unsubscribe();
     };
   }, [navigate, toast, location]);

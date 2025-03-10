@@ -9,54 +9,31 @@ export const useAuthSession = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log("useAuthSession: Inicializando efecto");
-    
-    // Función para verificar la sesión actual
+    // Verificar sesión inicial
     const checkSession = async () => {
       try {
-        console.log("useAuthSession: Verificando sesión...");
-        const { data: { session: currentSession }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error("Error al verificar sesión:", error);
-          setSession(null);
-        } else if (!currentSession) {
-          console.log("No hay sesión activa");
-          setSession(null);
-        } else {
-          console.log("Sesión encontrada:", currentSession);
-          setSession(currentSession);
-        }
+        const { data } = await supabase.auth.getSession();
+        setSession(data.session);
       } catch (error) {
-        console.error("Error inesperado:", error);
-        setSession(null);
+        console.error("Error al verificar sesión:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    // Verificar sesión al montar el componente
     checkSession();
 
     // Suscribirse a cambios en el estado de autenticación
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      console.log("Cambio en el estado de autenticación:", _event);
-      
-      // Actualizar el estado de la sesión
       setSession(newSession);
       
-      // Si hay un cierre de sesión y no estamos en la página de autenticación, redirigir
-      if (_event === 'SIGNED_OUT' && window.location.pathname !== '/auth') {
-        console.log("Sesión terminada, redirigiendo a /auth");
+      if (_event === 'SIGNED_OUT' && window.location.pathname !== '/auth' && 
+          !window.location.pathname.includes('/reset-password')) {
         navigate('/auth', { replace: true });
       }
     });
 
-    // Limpiar la suscripción al desmontar
-    return () => {
-      console.log("useAuthSession: Limpiando suscripción");
-      subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, [navigate]);
 
   return { session, loading };
