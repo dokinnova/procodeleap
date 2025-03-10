@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -148,13 +147,9 @@ const App = () => {
             <Route path="/auth" element={<AuthForm />} />
             <Route path="/password-reset" element={<PasswordReset />} />
             
-            {/* Ruta dedicada para manejar callbacks de autenticación */}
-            <Route path="/auth/callback" element={<AuthCallback />} />
-            
-            {/* Redirect root path with parameters to appropriate pages */}
+            {/* Redirect root path with code parameter to password reset */}
             <Route path="/" element={
-              window.location.search.includes('code=') || 
-              window.location.search.includes('token=') ? 
+              window.location.search.includes('code=') ? 
               <Navigate to={`/password-reset${window.location.search}`} replace /> : 
               <Navigate to="/auth" replace />
             } />
