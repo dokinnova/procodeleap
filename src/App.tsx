@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Navigation from "./components/Navigation";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { useState, useEffect } from "react";
@@ -69,7 +69,7 @@ const App = () => {
         <BrowserRouter>
           <Routes>
             {/* Public routes */}
-            <Route path="/auth" element={
+            <Route path="/auth/*" element={
               <div className="min-h-screen bg-gray-100 flex flex-col justify-center">
                 <div className="max-w-md mx-auto w-full px-4">
                   <div className="mb-8 text-center">
@@ -84,7 +84,7 @@ const App = () => {
             {/* Public route for password reset */}
             <Route path="/reset-password" element={<ResetPassword />} />
             
-            {/* Protected routes */}
+            {/* Redirect root to auth if not authenticated */}
             <Route path="/" element={
               <ProtectedRoute>
                 <div className="flex min-h-screen bg-gradient-to-br from-background to-secondary/50">

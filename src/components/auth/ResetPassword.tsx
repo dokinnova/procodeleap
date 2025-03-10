@@ -21,23 +21,39 @@ export const ResetPassword = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Extraer token de la URL
+    // Extraer token de la URL y parámetros
     const queryParams = new URLSearchParams(location.search);
     const type = queryParams.get("type");
     const token = queryParams.get("token");
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const accessToken = hashParams.get("access_token");
+    
+    console.log("Verificando token de recuperación:");
+    console.log("- Tipo (query):", type);
+    console.log("- Token (query):", token);
+    console.log("- Access Token (hash):", accessToken);
     
     if (type === "recovery" && token) {
-      console.log("Token de recuperación detectado:", token);
+      console.log("Token de recuperación detectado (query):", token);
       setRecoveryToken(token);
+    } else if (accessToken) {
+      console.log("Token de acceso detectado (hash):", accessToken);
+      setRecoveryToken(accessToken);
     } else {
       console.log("No se encontró token de recuperación válido");
-      console.log("Query params:", queryParams.toString());
-      console.log("Type:", type, "Token:", token);
       
-      // No mostrar error inmediatamente, podría ser acceso directo a la página
-      if (location.search) {
-        setError("Enlace de recuperación inválido o expirado.");
-      }
+      // Verificar estado actual de autenticación para password recovery
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session?.user) {
+          console.log("Sesión activa encontrada durante recuperación");
+          setRecoveryToken("session-active");
+        } else {
+          // No mostrar error inmediatamente, podría ser acceso directo a la página
+          if (location.search || window.location.hash) {
+            setError("Enlace de recuperación inválido o expirado.");
+          }
+        }
+      });
     }
   }, [location]);
 

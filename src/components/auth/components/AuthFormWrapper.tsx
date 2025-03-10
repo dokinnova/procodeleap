@@ -44,6 +44,10 @@ export const AuthFormWrapper = () => {
       
       if (event === 'SIGNED_IN') {
         console.log('Usuario ha iniciado sesión');
+        toast({
+          title: "Sesión iniciada",
+          description: "Has iniciado sesión correctamente.",
+        });
         navigate('/');
       } else if (event === 'PASSWORD_RECOVERY') {
         console.log('Redirección a página de recuperación de contraseña');
@@ -54,7 +58,7 @@ export const AuthFormWrapper = () => {
     return () => {
       subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, [navigate, toast]);
 
   return (
     <Auth

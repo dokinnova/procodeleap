@@ -64,6 +64,9 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
           title: "Sesión cerrada",
           description: "Has cerrado sesión correctamente.",
         });
+      } else if (event === 'PASSWORD_RECOVERY') {
+        // Redirigir a la página de restablecimiento de contraseña
+        navigate('/reset-password', { replace: true });
       }
       setSession(session);
     });
@@ -82,18 +85,19 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
+  // Si no hay sesión y estamos en rutas protegidas
   if (!session) {
     // Estas rutas no necesitan protección
-    if (location.pathname === '/reset-password' || location.pathname === '/auth') {
-      return <>{children}</>;
-    }
-    
-    // Si estamos en la ruta de autenticación o sus subrutas, ya mostrará el formulario
-    if (location.pathname.startsWith('/auth')) {
+    if (
+      location.pathname === '/reset-password' || 
+      location.pathname === '/auth' || 
+      location.pathname.startsWith('/auth/')
+    ) {
       return <>{children}</>;
     }
     
     // Si no estamos en la ruta de autenticación y no hay sesión, redirigir a /auth
+    console.log('ProtectedRoute: No hay sesión, redirigiendo a /auth');
     navigate('/auth', { replace: true });
     return null;
   }
