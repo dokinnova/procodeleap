@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,7 +14,6 @@ export const usePasswordResetMode = () => {
   const [isTokenValid, setIsTokenValid] = useState(false);
 
   useEffect(() => {
-    // Limpiar mensajes de error y éxito al montar el componente
     setError(null);
     setSuccess(null);
     setIsTokenValid(false);
@@ -47,12 +45,10 @@ export const usePasswordResetMode = () => {
       }
     }
     
-    // Si tiene token o código, y no hay error, cambiamos a modo reset
     if ((token || code) && !errorParam) {
       console.log("Estableciendo modo reset");
       setMode("reset");
       
-      // Si tiene un código de recuperación pero no un token, verificamos la sesión
       if (code && !token) {
         const handleSupabaseCode = async () => {
           try {
@@ -66,36 +62,23 @@ export const usePasswordResetMode = () => {
               return;
             }
             
-            // Verificar si el código es válido sin verificarlo aún
             const checkToken = async () => {
               try {
-                // Solo verificamos que el token exista, no lo consumimos
-                // Esta operación solo comprueba si el token existe, no lo valida completamente
-                console.log("Verificando existencia del código de recuperación");
+                const apiUrl = "https://upmokuswronpozhhopts.supabase.co";
+                const projectId = "upmokuswronpozhhopts";
                 
-                // Obtener la URL base de Supabase para este proyecto
-                const supabaseUrl = supabase.supabaseUrl;
-                const apiUrl = new URL(`${supabaseUrl}/auth/v1`);
-                
-                // Extraer la API key
-                const apiKey = supabaseUrl.split('/').pop() || '';
-                
-                // Intentar obtener el token sin validarlo completamente
-                const response = await fetch(`${apiUrl.origin}/auth/v1/verify?type=recovery&token_hash=${code}`, {
+                const response = await fetch(`${apiUrl}/auth/v1/verify?type=recovery&token_hash=${code}`, {
                   method: 'GET',
                   headers: {
                     'Content-Type': 'application/json',
-                    'apikey': apiKey,
+                    'apikey': projectId,
                   },
-                  redirect: 'manual', // Importante para evitar la redirección automática
+                  redirect: 'manual',
                 });
                 
-                // Si el token existe, el servidor responderá con un 303 o similar
                 if (response.status !== 404 && response.status !== 400) {
                   console.log("Código válido detectado");
                   setIsTokenValid(true);
-                  // Si no hay sesión, necesitamos el email para verificar el código
-                  console.log("No hay sesión, solicitando email");
                   toast.info("Por favor ingresa tu correo electrónico para verificar tu identidad");
                 } else {
                   console.error("El código parece no ser válido");
@@ -104,14 +87,12 @@ export const usePasswordResetMode = () => {
                 }
               } catch (err) {
                 console.error("Error al verificar la existencia del token:", err);
-                // Asumimos que el token puede ser válido y dejamos que el usuario intente verificarlo
                 setIsTokenValid(true);
                 toast.info("Por favor ingresa tu correo electrónico para verificar tu identidad");
               }
             };
             
             await checkToken();
-            
           } catch (err) {
             console.error("Error al verificar la sesión:", err);
             toast.error("Ocurrió un error al procesar tu solicitud");
@@ -121,7 +102,6 @@ export const usePasswordResetMode = () => {
         
         handleSupabaseCode();
       } else if (token) {
-        // Si hay un token JWT, asumimos que es válido por ahora
         setIsTokenValid(true);
       }
     } else if (!token && !code) {
