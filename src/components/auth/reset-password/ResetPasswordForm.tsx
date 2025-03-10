@@ -12,12 +12,14 @@ interface ResetPasswordFormProps {
   setError: (error: string | null) => void;
   loading: boolean;
   setLoading: (loading: boolean) => void;
+  recoveryToken?: string | null;
 }
 
 export const ResetPasswordForm = ({ 
   setError, 
   loading, 
-  setLoading 
+  setLoading,
+  recoveryToken
 }: ResetPasswordFormProps) => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -42,6 +44,18 @@ export const ResetPasswordForm = ({
 
     try {
       console.log("Intentando actualizar contraseña...");
+      
+      // Comprobamos si tenemos un token de recuperación
+      if (!recoveryToken) {
+        console.log("No hay token de recuperación válido");
+        const { data: sessionData } = await supabase.auth.getSession();
+        
+        if (!sessionData.session) {
+          throw new Error("No hay sesión de autenticación. Por favor, utilice el enlace de recuperación enviado al correo electrónico.");
+        }
+      }
+
+      // Intentamos actualizar la contraseña
       const { error: updateError } = await supabase.auth.updateUser({
         password: newPassword
       });

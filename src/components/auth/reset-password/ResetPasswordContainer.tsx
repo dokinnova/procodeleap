@@ -1,21 +1,48 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { AuthLogo } from "../components/AuthLogo";
 import { ResetPasswordForm } from "./ResetPasswordForm";
 import { RecoveryRequestForm } from "./RecoveryRequestForm";
 import { useResetPasswordToken } from "./useResetPasswordToken";
+import { supabase } from "@/integrations/supabase/client";
 
 export const ResetPasswordContainer = () => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isSessionReady, setIsSessionReady] = useState(false);
   const navigate = useNavigate();
   const { recoveryToken } = useResetPasswordToken();
+
+  // Verificar si hay una sesión válida cuando se carga el componente
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        console.log("Estado de sesión al cargar ResetPasswordContainer:", data.session ? "Con sesión" : "Sin sesión");
+        setIsSessionReady(true);
+      } catch (err) {
+        console.error("Error al verificar sesión:", err);
+        setIsSessionReady(true);
+      }
+    };
+    
+    checkSession();
+  }, []);
 
   // Determine which form to show based on recovery token
   const showPasswordResetForm = recoveryToken && 
                               recoveryToken !== "recovery-flow";
+  
+  if (!isSessionReady) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex flex-col justify-center items-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <p className="mt-4 text-gray-600">Verificando sesión...</p>
+      </div>
+    );
+  }
   
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col justify-center">
@@ -45,7 +72,8 @@ export const ResetPasswordContainer = () => {
               <ResetPasswordForm 
                 setError={setError} 
                 loading={loading} 
-                setLoading={setLoading} 
+                setLoading={setLoading}
+                recoveryToken={recoveryToken}
               />
             ) : (
               <RecoveryRequestForm 

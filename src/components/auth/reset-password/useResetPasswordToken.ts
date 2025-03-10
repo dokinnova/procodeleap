@@ -17,78 +17,95 @@ export const useResetPasswordToken = () => {
   console.log("- Route params:", params);
 
   useEffect(() => {
-    // Extraer token de múltiples fuentes posibles
-    const getTokenFromUrl = () => {
-      // Verificar parámetros de URL (query string)
-      const queryParams = new URLSearchParams(location.search);
+    const extractTokenFromUrl = () => {
+      // 1. Extraer de query params
+      const searchParams = new URLSearchParams(location.search);
+      const queryToken = searchParams.get('token');
+      const queryCode = searchParams.get('code');
+      const queryType = searchParams.get('type');
       
-      // Verificar varios nombres de parámetros utilizados en diferentes flujos
-      const code = queryParams.get("code"); // Para formato ?code=xxx
-      const token = queryParams.get("token"); // Para formato ?token=xxx
-      const type = queryParams.get("type"); // Para formato ?type=recovery
+      // 2. Extraer de URL path parameters 
+      const routeToken = params.token;
       
-      // Verificar parámetros de ruta de diferentes patrones de ruta
-      const routeToken = params.token; // Para /reset-password/:token
-      
-      // Verificar fragmento hash (para tokens de acceso en algunos flujos de autenticación)
-      const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      const accessToken = hashParams.get("access_token");
-      
-      // Intentar extraer token de la ruta si está en un formato no estándar
-      const pathSegments = location.pathname.split('/');
-      let pathToken = null;
-      
-      // Buscar token o código en la ruta URL
-      for (let i = 0; i < pathSegments.length; i++) {
-        if (pathSegments[i] === 'token' || pathSegments[i] === 'code') {
-          // El token podría estar en el siguiente segmento
-          pathToken = pathSegments[i + 1];
-          break;
+      // 3. Extraer de hash fragment (#)
+      let hashToken = null;
+      try {
+        // A veces el token puede estar en el hash como #access_token=xxx
+        if (window.location.hash) {
+          const hashParams = new URLSearchParams(window.location.hash.substring(1));
+          hashToken = hashParams.get('access_token');
         }
+      } catch (e) {
+        console.error("Error al parsear hash:", e);
       }
       
-      console.log("Detalles de extracción de token:");
-      console.log("- Parámetro code:", code);
-      console.log("- Parámetro token:", token);
-      console.log("- Parámetro type:", type);
-      console.log("- Token de ruta:", routeToken);
-      console.log("- Token de ruta:", pathToken);
-      console.log("- Token de acceso (hash):", accessToken);
+      console.log("Tokens extraídos:", { queryToken, queryCode, routeToken, hashToken });
       
       // Devolver el primer token válido encontrado
-      return code || token || routeToken || pathToken || (type === "recovery" ? "recovery-flow" : null) || accessToken;
+      return queryToken || queryCode || routeToken || hashToken || 
+             (queryType === 'recovery' ? 'recovery-flow' : null);
     };
-    
-    const token = getTokenFromUrl();
-    
-    if (token) {
-      console.log("Token de recuperación encontrado:", token);
-      setRecoveryToken(token);
-      setError(null);
-    } else {
-      console.log("No se encontró token de recuperación en URL");
+
+    const processAuthSession = async () => {
+      // Verificar primero si hay parámetros en la URL
+      const token = extractTokenFromUrl();
       
-      // Verificar si esto es un flujo de recuperación sin un token en la URL
-      const isRecoveryFlow = location.search.includes("type=recovery") || 
-                            location.pathname.includes("reset-password");
-      
-      if (isRecoveryFlow) {
-        console.log("Flujo de recuperación detectado sin token");
-        // Esta es la página de iniciación, permitir solicitud de restablecimiento de contraseña
-        setRecoveryToken("recovery-flow");
-      } else {
-        // Verificar si el usuario tiene una sesión activa
-        supabase.auth.getSession().then(({ data: { session } }) => {
-          if (session?.user) {
-            console.log("Sesión activa encontrada durante la recuperación");
-            setRecoveryToken("session-active");
-          } else if (location.search || window.location.hash) {
-            // Mostrar error solo si esperábamos un token
-            setError("Enlace de recuperación inválido o expirado.");
+      if (token) {
+        console.log("Token encontrado en URL:", token);
+        setRecoveryToken(token);
+        
+        // Si tenemos un código de autenticación real (no el indicador "recovery-flow")
+        if (token !== 'recovery-flow') {
+          // Intentar procesar explícitamente el token o código con Supabase
+          try {
+            // Esto es necesario para que Supabase procese el código de autenticación
+            const { data, error: sessionError } = await supabase.auth.getSession();
+            
+            if (sessionError) {
+              console.error("Error al obtener sesión con token:", sessionError);
+              setError(sessionError.message);
+            } else {
+              console.log("Sesión obtenida después de procesar token:", data.session ? "Válida" : "No hay sesión");
+            }
+          } catch (err) {
+            console.error("Error al procesar token de autenticación:", err);
           }
-        });
+        }
+      } else {
+        console.log("No se encontró token en URL, verificando estado de sesión...");
+        
+        // Si estamos en la ruta de reset-password pero sin token, asumimos que es
+        // la página de solicitud de recuperación 
+        if (location.pathname.includes('reset-password')) {
+          setRecoveryToken('recovery-flow');
+        } else {
+          const { data } = await supabase.auth.getSession();
+          if (data.session) {
+            console.log("Sesión activa encontrada, usuario ya autenticado");
+            setRecoveryToken('session-active');
+          } else {
+            console.log("No hay sesión activa y no se encontró token");
+            setRecoveryToken(null);
+          }
+        }
       }
-    }
+    };
+
+    processAuthSession();
+    
+    // Suscribirse a cambios de autenticación para actualizar el estado
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Evento de autenticación:", event, session ? "Con sesión" : "Sin sesión");
+      
+      if (event === 'PASSWORD_RECOVERY') {
+        console.log("Evento PASSWORD_RECOVERY detectado");
+        setRecoveryToken('recovery-token-event');
+      }
+    });
+    
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [location, params]);
 
   return { recoveryToken, error };
