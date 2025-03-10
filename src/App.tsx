@@ -3,10 +3,11 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import Navigation from "./components/Navigation";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { useState, useEffect } from "react";
+import { supabase } from "./integrations/supabase/client";
 
 // Import all page components
 import Index from "./pages/Index";
@@ -28,6 +29,49 @@ import PasswordReset from "./pages/PasswordReset";
 import { AuthForm } from "./components/auth/AuthForm";
 
 const queryClient = new QueryClient();
+
+// Componente para manejar el callback de autenticación de Supabase
+const AuthCallback = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  useEffect(() => {
+    const handleAuthCallback = async () => {
+      try {
+        // Obtener el código del URL
+        const searchParams = new URLSearchParams(location.search);
+        const code = searchParams.get('code');
+        
+        if (code) {
+          console.log("Procesando código de autenticación:", code);
+          
+          // Intentar intercambiar el código por una sesión
+          const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+          
+          if (error) {
+            console.error("Error al procesar código de autenticación:", error);
+            // Redirigir a la página de reset con los parámetros
+            navigate(`/password-reset${location.search}`, { replace: true });
+          } else {
+            console.log("Código procesado correctamente:", data);
+            // Si la autenticación fue exitosa, redirigir a la página de reset de contraseña
+            navigate('/password-reset', { replace: true });
+          }
+        } else {
+          // Si no hay código, simplemente redirigir a la página de reset
+          navigate(`/password-reset${location.search}`, { replace: true });
+        }
+      } catch (error) {
+        console.error("Error general en callback:", error);
+        navigate(`/password-reset${location.search}`, { replace: true });
+      }
+    };
+    
+    handleAuthCallback();
+  }, [navigate, location]);
+  
+  return null; // Este componente no renderiza nada
+};
 
 const App = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -72,10 +116,8 @@ const App = () => {
             <Route path="/auth" element={<AuthForm />} />
             <Route path="/password-reset" element={<PasswordReset />} />
             
-            {/* Redirect the callback to password-reset page with all parameters preserved */}
-            <Route path="/auth/callback" element={
-              <Navigate to={`/password-reset${window.location.search}`} replace />
-            } />
+            {/* Procesador de callback de autenticación */}
+            <Route path="/auth/callback" element={<AuthCallback />} />
             
             {/* Redirect root path with parameters to appropriate pages */}
             <Route path="/" element={

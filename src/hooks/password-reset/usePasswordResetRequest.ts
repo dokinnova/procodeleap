@@ -32,7 +32,7 @@ export const usePasswordResetRequest = () => {
         ? "https://procodeli-makipurays-projects.vercel.app" 
         : window.location.origin;
       
-      const redirectUrl = `${baseUrl}/password-reset`;
+      const redirectUrl = `${baseUrl}/auth/callback`;
       
       console.log("URL de origen detectada:", baseUrl);
       console.log("URL de redirección configurada:", redirectUrl);

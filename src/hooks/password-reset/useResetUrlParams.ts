@@ -37,8 +37,14 @@ export const useResetUrlParams = () => {
     };
   };
 
+  const constructResetUrl = (baseUrl: string) => {
+    const allParams = new URLSearchParams(searchParams);
+    return `${baseUrl}?${allParams.toString()}`;
+  };
+
   return {
     getUrlParams,
+    constructResetUrl,
     searchParams
   };
 };

@@ -26,6 +26,9 @@ export const useTokenValidation = () => {
     console.log("Verificando código de recuperación para:", email);
     
     try {
+      // Verificar que tenemos la sesión más reciente
+      await verifySession();
+      
       // Try to verify the code with Supabase's built-in method
       const { data, error: verifyError } = await supabase.auth.verifyOtp({
         email,
@@ -93,6 +96,23 @@ export const useTokenValidation = () => {
         if (code) {
           console.log("Código de recuperación detectado:", code);
           
+          // Intentar intercambiar el código por una sesión directamente
+          try {
+            console.log("Intentando intercambiar código por sesión");
+            const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+            
+            if (error) {
+              console.error("Error al intercambiar código por sesión:", error);
+            } else if (data?.session) {
+              console.log("Código intercambiado exitosamente, sesión establecida");
+              setSession(data.session);
+              setIsTokenValid(true);
+              return { success: true };
+            }
+          } catch (exchangeErr) {
+            console.error("Error al intercambiar código:", exchangeErr);
+          }
+          
           // If we have an email parameter, try to verify with it
           if (emailParam) {
             try {
@@ -106,24 +126,6 @@ export const useTokenValidation = () => {
               }
             } catch (err) {
               console.error("Error al verificar código con email:", err);
-            }
-          } else {
-            // If no email is provided, try to verify the session directly
-            // This approach relies on Supabase's session handling mechanism
-            try {
-              console.log("Intentando verificar sesión directamente con código");
-              const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-              
-              if (error) {
-                console.error("Error al intercambiar código por sesión:", error);
-              } else if (data?.session) {
-                console.log("Sesión obtenida exitosamente");
-                setSession(data.session);
-                setIsTokenValid(true);
-                return { success: true };
-              }
-            } catch (err) {
-              console.error("Error al intercambiar código por sesión:", err);
             }
           }
         }
