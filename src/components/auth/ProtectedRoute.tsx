@@ -62,7 +62,11 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
           setLoading(false);
           if (location.pathname === '/auth') {
             console.log('ProtectedRoute: On auth page with session - Redirecting to home');
-            navigate('/', { replace: true });
+            setTimeout(() => {
+              if (isMounted.current) {
+                navigate('/', { replace: true });
+              }
+            }, 100);
           }
         }
       } catch (error: any) {
@@ -94,7 +98,11 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
         setSession(newSession);
         if (location.pathname === '/auth') {
           console.log('ProtectedRoute: SIGNED_IN - Redirecting to home from auth page');
-          navigate('/', { replace: true });
+          setTimeout(() => {
+            if (isMounted.current) {
+              navigate('/', { replace: true });
+            }
+          }, 100);
         }
       } else if (event === 'SIGNED_OUT') {
         console.log('ProtectedRoute: User signed out');

@@ -14,12 +14,15 @@ export const DashboardHeader = () => {
     try {
       console.log("Attempting to sign out...");
       
-      // Sign out without checking session first
+      // Sign out
       const { error } = await supabase.auth.signOut();
       
       if (error) {
         console.error("Error during signOut:", error);
-        throw error;
+        toast("Error al cerrar sesión", {
+          description: error.message,
+        });
+        return;
       }
 
       // Show success toast
@@ -27,17 +30,16 @@ export const DashboardHeader = () => {
         description: "Has cerrado sesión correctamente",
       });
 
-      // Force navigation to login
+      // Navigate to auth page
+      console.log("Signed out successfully, redirecting to auth page");
       navigate("/auth", { replace: true });
     } catch (error: any) {
       console.error("Error signing out:", error);
-      uiToast({
-        title: "Error",
-        description: "No se pudo cerrar sesión correctamente. Redirigiendo a inicio de sesión.",
-        variant: "destructive",
+      toast("Error", {
+        description: "No se pudo cerrar sesión correctamente.",
       });
       
-      // Even if there's an error, redirect to auth page
+      // Even if there's an error, try to redirect to auth page
       navigate("/auth", { replace: true });
     }
   };

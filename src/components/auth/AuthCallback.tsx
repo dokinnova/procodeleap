@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -8,6 +8,7 @@ const AuthCallback = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [error, setError] = useState<string | null>(null);
+  const isMounted = useRef(true);
   
   useEffect(() => {
     const handleAuthCallback = async () => {
@@ -34,17 +35,17 @@ const AuthCallback = () => {
             
             if (error) {
               console.error("Error processing authentication code:", error);
-              setError(error.message);
+              if (isMounted.current) setError(error.message);
               
               if (isPasswordReset) {
                 // If it's a password reset with an error, redirect to reset page
                 console.log("Redirecting to password reset page with error");
-                navigate(`/password-reset${location.search}`, { replace: true });
+                if (isMounted.current) navigate(`/password-reset${location.search}`, { replace: true });
               } else {
                 // If it's a normal login with an error, show message and redirect to auth
                 console.error("Authentication error:", error.message);
                 toast.error("Error de inicio de sesión: " + error.message);
-                navigate("/auth", { replace: true });
+                if (isMounted.current) navigate("/auth", { replace: true });
               }
               return;
             }
@@ -54,42 +55,50 @@ const AuthCallback = () => {
             // If it's a password reset, redirect to the reset page
             if (isPasswordReset) {
               console.log("Redirecting to password reset page");
-              navigate(`/password-reset${location.search}`, { replace: true });
+              if (isMounted.current) navigate(`/password-reset${location.search}`, { replace: true });
             } else {
               // For normal login, redirect to dashboard
               console.log("Session started successfully, redirecting to home");
               toast.success("Sesión iniciada correctamente");
               
-              // Delay the navigation slightly to ensure session is properly set
+              // Delay the navigation to ensure session is properly set and propagated
               setTimeout(() => {
-                navigate("/", { replace: true });
+                if (isMounted.current) {
+                  navigate("/", { replace: true });
+                }
               }, 500);
             }
           } catch (error: any) {
             console.error("Error in code exchange:", error);
-            setError(error.message);
+            if (isMounted.current) setError(error.message);
             
             if (isPasswordReset) {
-              navigate(`/password-reset${location.search}`, { replace: true });
+              if (isMounted.current) navigate(`/password-reset${location.search}`, { replace: true });
             } else {
               toast.error("Error al procesar la autenticación");
-              navigate("/auth", { replace: true });
+              if (isMounted.current) navigate("/auth", { replace: true });
             }
           }
         } else {
           // If there's no code, redirect to the sign in page
           console.log("No code found, redirecting to sign in");
-          navigate("/auth", { replace: true });
+          if (isMounted.current) navigate("/auth", { replace: true });
         }
       } catch (error: any) {
         console.error("Critical error in callback:", error);
-        setError(error.message);
-        toast.error("Error durante el proceso de autenticación");
-        navigate("/auth", { replace: true });
+        if (isMounted.current) {
+          setError(error.message);
+          toast.error("Error durante el proceso de autenticación");
+          navigate("/auth", { replace: true });
+        }
       }
     };
     
     handleAuthCallback();
+    
+    return () => {
+      isMounted.current = false;
+    };
   }, [navigate, location]);
   
   // Show a loading indicator while processing

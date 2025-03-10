@@ -33,14 +33,19 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           return;
         }
         
-        console.log('AuthProvider: Session check result:', data?.session ? 'Session exists' : 'No session');
+        console.log('AuthProvider: Session check result:', data?.session ? 'Session exists' : 'No session', 
+                    'Current path:', location.pathname);
         
         if (data?.session) {
-          console.log('AuthProvider: Existing session detected');
+          console.log('AuthProvider: Existing session detected, user authenticated');
           
           if (location.pathname === '/auth') {
             console.log('AuthProvider: On auth page with session, redirecting to home');
-            navigate('/', { replace: true });
+            setTimeout(() => {
+              if (isMounted.current) {
+                navigate('/', { replace: true });
+              }
+            }, 100);
           }
         } else {
           console.log('AuthProvider: No session detected');
@@ -64,7 +69,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('AuthProvider: Auth state change:', event, 'Session exists:', !!session);
+      console.log('AuthProvider: Auth state change:', event, 'Session exists:', !!session, 
+                  'Current path:', location.pathname);
       
       if (!isMounted.current) return;
 
@@ -73,7 +79,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         toast("Bienvenido", {
           description: "Has iniciado sesión correctamente."
         });
-        navigate('/', { replace: true });
+        
+        // Use setTimeout to allow the state to be updated before navigating
+        setTimeout(() => {
+          if (isMounted.current) {
+            navigate('/', { replace: true });
+          }
+        }, 100);
       } else if (event === 'PASSWORD_RECOVERY') {
         console.log('AuthProvider: Password recovery event, redirecting to password reset');
         navigate('/password-reset');
