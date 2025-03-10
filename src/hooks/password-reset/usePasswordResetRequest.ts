@@ -22,25 +22,24 @@ export const usePasswordResetRequest = () => {
     setLoading(true);
     
     try {
-      // Use standard Supabase auth method for password reset
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/password-reset`,
-      });
+      console.log("Solicitando restablecimiento para:", email);
+      
+      const { error } = await supabase.auth.resetPasswordForEmail(email);
       
       if (error) throw error;
       
-      console.log("Solicitud de restablecimiento enviada con éxito");
-      toast.success("Se ha enviado un enlace de recuperación a tu correo electrónico");
+      console.log("Solicitud enviada exitosamente");
+      toast.success("Se ha enviado un enlace de recuperación a tu correo");
       setSuccess("Se ha enviado un enlace de recuperación a tu correo electrónico. Por favor revisa tu bandeja de entrada y spam.");
     } catch (err: any) {
-      console.error("Error al solicitar restablecimiento de contraseña:", err);
+      console.error("Error al solicitar restablecimiento:", err);
       
       if (err.message && err.message.includes("User not found")) {
-        setError("No se encontró ninguna cuenta con este correo electrónico. Por favor verifica e intenta de nuevo.");
+        setError("No se encontró ninguna cuenta con este correo. Por favor verifica e intenta de nuevo.");
       } else if (err.message && err.message.includes("rate limit")) {
-        setError("Has solicitado demasiados enlaces de recuperación. Por favor espera unos minutos antes de intentarlo de nuevo.");
+        setError("Has solicitado demasiados enlaces. Por favor espera unos minutos antes de intentarlo de nuevo.");
       } else {
-        setError("Ocurrió un error al solicitar el restablecimiento de contraseña. Por favor intenta de nuevo más tarde.");
+        setError("Ocurrió un error al solicitar el restablecimiento. Por favor intenta de nuevo más tarde.");
       }
     } finally {
       setLoading(false);
