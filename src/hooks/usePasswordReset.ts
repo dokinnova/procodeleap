@@ -11,6 +11,7 @@ export const usePasswordReset = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [mode, setMode] = useState<"request" | "reset">("request");
   const [email, setEmail] = useState("");
   const [session, setSession] = useState(null);
@@ -57,6 +58,7 @@ export const usePasswordReset = () => {
   const handleRequestPasswordReset = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccess(null);
     
     if (!email) {
       setError("Por favor ingresa tu correo electrónico");
@@ -75,6 +77,7 @@ export const usePasswordReset = () => {
       }
       
       toast.success("Se ha enviado un enlace de recuperación a tu correo electrónico");
+      setSuccess("Revisa tu correo electrónico para el enlace de restablecimiento de contraseña");
       // Don't navigate away, just show a success message
     } catch (err: any) {
       console.error("Error al solicitar restablecimiento de contraseña:", err);
@@ -87,6 +90,7 @@ export const usePasswordReset = () => {
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccess(null);
     
     if (password !== confirmPassword) {
       setError("Las contraseñas no coinciden");
@@ -127,6 +131,7 @@ export const usePasswordReset = () => {
       }
       
       toast.success("Contraseña actualizada correctamente");
+      setSuccess("¡Tu contraseña ha sido actualizada correctamente!");
       // Redirect to login after successful password reset
       setTimeout(() => {
         navigate("/auth");
@@ -149,6 +154,7 @@ export const usePasswordReset = () => {
     setConfirmPassword,
     loading,
     error,
+    success,
     session,
     handleRequestPasswordReset,
     handleUpdatePassword,

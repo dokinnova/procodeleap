@@ -19,6 +19,7 @@ const PasswordReset = () => {
     setConfirmPassword,
     loading,
     error,
+    success,
     session,
     handleRequestPasswordReset,
     handleUpdatePassword,
@@ -45,7 +46,7 @@ const PasswordReset = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ErrorMessage error={error} />
+          <ErrorMessage error={error} success={success} />
           
           {mode === "request" ? (
             <PasswordRequestForm
