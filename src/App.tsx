@@ -81,10 +81,10 @@ const App = () => {
               </div>
             } />
             
-            {/* Public route for password reset */}
+            {/* Make reset password route public and directly accessible */}
             <Route path="/reset-password" element={<ResetPassword />} />
             
-            {/* Redirect root to auth if not authenticated */}
+            {/* Root route with protected routes */}
             <Route path="/" element={
               <ProtectedRoute>
                 <div className="flex min-h-screen bg-gradient-to-br from-background to-secondary/50">
