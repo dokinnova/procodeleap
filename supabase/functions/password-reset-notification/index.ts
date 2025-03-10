@@ -45,19 +45,23 @@ const handler = async (req: Request): Promise<Response> => {
       const url = new URL(resetLink);
       const code = url.searchParams.get('code');
       
-      // Create an absolute URL to the password-reset page
-      // Instead of using localhost, we take the origin from the request headers
+      // Determine the origin from request headers or URL
       let origin = req.headers.get('origin');
+      
+      // If origin header is missing, try to use the X-Forwarded-Host or Host header
       if (!origin) {
-        // If no origin header is present, try to fallback to referer
-        const referer = req.headers.get('referer');
-        if (referer) {
-          origin = new URL(referer).origin;
+        const host = req.headers.get('x-forwarded-host') || req.headers.get('host');
+        if (host) {
+          // Determine if the connection is secure
+          const proto = req.headers.get('x-forwarded-proto') || 'https';
+          origin = `${proto}://${host}`;
         } else {
-          // If we can't determine the origin, use a relative path
+          // If all else fails, extract the origin from the resetLink
           origin = url.origin;
         }
       }
+      
+      console.log(`Origen determinado: ${origin}`);
       
       // Create the properly formatted reset link with the code
       const formattedResetLink = `${origin}/password-reset?code=${code}`;

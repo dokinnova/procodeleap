@@ -19,6 +19,18 @@ export const usePasswordReset = () => {
   useEffect(() => {
     const token = searchParams.get("token");
     const code = searchParams.get("code");
+    const errorParam = searchParams.get("error");
+    const errorDescription = searchParams.get("error_description");
+    
+    if (errorParam && errorDescription) {
+      if (errorDescription.includes("expired")) {
+        setError("El enlace ha expirado. Por favor solicita un nuevo enlace de recuperación.");
+        setMode("request");
+        return;
+      } else {
+        setError(`Error: ${errorDescription}`);
+      }
+    }
     
     if (token || code) {
       setMode("reset");
@@ -61,7 +73,7 @@ export const usePasswordReset = () => {
     setLoading(true);
     
     try {
-      // Utilizamos el origen actual para construir la URL de redirección
+      // Obtenemos el origen actual para construir la URL de redirección
       const origin = window.location.origin;
       const redirectTo = `${origin}/password-reset`;
       
@@ -130,7 +142,12 @@ export const usePasswordReset = () => {
       }, 2000);
     } catch (err: any) {
       console.error("Error al actualizar contraseña:", err);
-      setError("Ocurrió un error al actualizar la contraseña");
+      
+      if (err.message && err.message.includes("Token has expired")) {
+        setError("El enlace de recuperación ha expirado. Por favor solicita uno nuevo.");
+      } else {
+        setError("Ocurrió un error al actualizar la contraseña");
+      }
     } finally {
       setLoading(false);
     }
