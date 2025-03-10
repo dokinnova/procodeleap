@@ -12,58 +12,61 @@ const AuthCallback = () => {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // Extract all URL parameters
+        // Extraer todos los parámetros de la URL
         const searchParams = new URLSearchParams(location.search);
         
-        // Convert to an object for debugging
+        // Convertir a objeto para depuración
         const params = Object.fromEntries(searchParams.entries());
-        console.log("Callback parameters received:", params);
+        console.log("Parámetros de callback recibidos:", params);
         
-        // Check if we're in a password reset flow
+        // Verificar si estamos en un flujo de recuperación de contraseña
         const isPasswordReset = searchParams.has("type") && searchParams.get("type") === "recovery";
         const hasCode = searchParams.has("code");
         
         if (hasCode) {
-          console.log("Authentication code detected");
+          console.log("Código de autenticación detectado");
           
           try {
-            // Exchange the code for a session
+            // Intercambiar el código por una sesión
             const { data, error } = await supabase.auth.exchangeCodeForSession(
               searchParams.get("code") as string
             );
             
             if (error) {
-              console.error("Error processing authentication code:", error);
+              console.error("Error procesando código de autenticación:", error);
               setError(error.message);
               
               if (isPasswordReset) {
-                // If it's a password reset with an error, redirect to reset page
-                console.log("Redirecting to password reset page with error");
+                // Si es recuperación de contraseña con error, redirigir a página de reset
+                console.log("Redirigiendo a página de reset de contraseña con error");
                 navigate(`/password-reset${location.search}`, { replace: true });
               } else {
-                // If it's a normal login with an error, show message and redirect to auth
-                console.error("Authentication error:", error.message);
+                // Si es inicio de sesión normal con error, mostrar mensaje y redirigir a auth
+                console.error("Error de autenticación:", error.message);
                 toast.error("Error de inicio de sesión: " + error.message);
                 navigate("/auth", { replace: true });
               }
               return;
             }
             
-            console.log("Code processed successfully:", data?.session ? "Session established" : "No session");
+            console.log("Código procesado correctamente:", data?.session ? "Sesión establecida" : "Sin sesión");
             
-            // If it's a password reset, redirect to the reset page
+            // Si es recuperación de contraseña, redirigir a la página de reset
             if (isPasswordReset) {
-              console.log("Redirecting to password reset page");
+              console.log("Redirigiendo a página de reset de contraseña");
               navigate(`/password-reset${location.search}`, { replace: true });
             } else {
-              // For normal login, redirect to dashboard
-              console.log("Session started successfully, redirecting to home");
+              // Para inicio de sesión normal, redirigir al dashboard
+              console.log("Sesión iniciada correctamente, redirigiendo a home");
               toast.success("Sesión iniciada correctamente");
-              // Forzar la redirección a la página principal
-              window.location.href = "/";
+              
+              // Usar setTimeout para evitar problemas de redirección instantánea
+              setTimeout(() => {
+                window.location.href = "/";
+              }, 500);
             }
           } catch (error: any) {
-            console.error("Error in code exchange:", error);
+            console.error("Error en intercambio de código:", error);
             setError(error.message);
             
             if (isPasswordReset) {
@@ -74,12 +77,12 @@ const AuthCallback = () => {
             }
           }
         } else {
-          // If there's no code, redirect to the sign in page
-          console.log("No code found, redirecting to sign in");
+          // Si no hay código, redirigir a la página de inicio de sesión
+          console.log("No se encontró código, redirigiendo a inicio de sesión");
           navigate("/auth", { replace: true });
         }
       } catch (error: any) {
-        console.error("Critical error in callback:", error);
+        console.error("Error crítico en callback:", error);
         setError(error.message);
         toast.error("Error durante el proceso de autenticación");
         navigate("/auth", { replace: true });
@@ -89,7 +92,7 @@ const AuthCallback = () => {
     handleAuthCallback();
   }, [navigate, location]);
   
-  // Show a loading indicator while processing
+  // Mostrar indicador de carga mientras se procesa
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background to-secondary/50">
       <div className="text-center">

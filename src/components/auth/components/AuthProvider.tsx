@@ -3,94 +3,109 @@ import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { AuthLoading } from "./AuthLoading";
 
 interface AuthProviderProps {
   children: React.ReactNode;
 }
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const navigate = useNavigate();
-  const location = useLocation();
   const [loading, setLoading] = useState(true);
+  const [session, setSession] = useState<any>(null);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Comprobar si estamos en una ruta pública que no requiere redirección
+  const isPublicRoute = 
+    location.pathname === '/auth' || 
+    location.pathname === '/password-reset' || 
+    location.pathname.startsWith('/auth/callback');
 
   useEffect(() => {
-    console.log('AuthProvider: Initializing...', location.pathname);
+    console.log('AuthProvider inicializando en ruta:', location.pathname);
     
-    // Check if we already have an active session
-    const checkExistingSession = async () => {
+    // Verificar sesión existente
+    const checkSession = async () => {
       try {
         setLoading(true);
         const { data, error } = await supabase.auth.getSession();
         
         if (error) {
-          console.error('AuthProvider: Error checking session:', error);
+          console.error('Error al verificar sesión:', error);
           setLoading(false);
           return;
         }
         
-        console.log('AuthProvider: Session check result:', data?.session ? 'Session exists' : 'No session', 
-                    'Current path:', location.pathname);
+        // Actualizar estado de sesión
+        setSession(data.session);
         
-        if (data?.session) {
-          console.log('AuthProvider: Existing session detected, user authenticated');
+        // Lógica de redirección basada en sesión y ruta actual
+        if (data.session) {
+          console.log('Sesión detectada:', isPublicRoute ? 'En ruta pública' : 'En ruta protegida');
           
-          // Only redirect if we're on the auth page to prevent unnecessary redirects
+          // Si el usuario está autenticado y en una ruta pública como /auth, redireccionar a home
           if (location.pathname === '/auth') {
-            console.log('AuthProvider: On auth page with session, redirecting to home');
+            console.log('Redirigiendo de /auth a home porque hay sesión');
             window.location.href = '/';
           }
+        } else if (!isPublicRoute) {
+          // Si no hay sesión y estamos en una ruta protegida, redireccionar a /auth
+          console.log('No hay sesión y estamos en ruta protegida, redirigiendo a /auth');
+          navigate('/auth', { replace: true });
         }
         
         setLoading(false);
-      } catch (err) {
-        console.error('AuthProvider: Unexpected error:', err);
+      } catch (error) {
+        console.error('Error inesperado:', error);
         setLoading(false);
       }
     };
     
-    checkExistingSession();
+    checkSession();
     
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('AuthProvider: Auth state change:', event, 'Session exists:', !!session, 
-                  'Current path:', location.pathname);
-
-      if (event === 'SIGNED_IN' && session) {
-        console.log('AuthProvider: User authenticated, redirecting to home');
+    // Suscribirse a cambios de autenticación
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
+      console.log('Cambio en estado de autenticación:', event, 'Sesión:', newSession ? 'Existe' : 'No existe');
+      
+      // Actualizar el estado de sesión
+      setSession(newSession);
+      
+      if (event === 'SIGNED_IN' && newSession) {
+        console.log('Usuario ha iniciado sesión');
         toast.success("Bienvenido", {
-          description: "Has iniciado sesión correctamente."
+          description: "Has iniciado sesión correctamente"
         });
-        window.location.href = '/';
-      } else if (event === 'PASSWORD_RECOVERY') {
-        console.log('AuthProvider: Password recovery event, redirecting to password reset');
-        navigate('/password-reset');
+        
+        // Usar window.location para forzar una redirección completa
+        if (location.pathname === '/auth') {
+          window.location.href = '/';
+        }
       } else if (event === 'SIGNED_OUT') {
-        console.log('AuthProvider: User signed out');
+        console.log('Usuario ha cerrado sesión');
         toast.success("Sesión cerrada", {
-          description: "Has cerrado sesión correctamente."
+          description: "Has cerrado sesión correctamente"
         });
         navigate('/auth', { replace: true });
+      } else if (event === 'PASSWORD_RECOVERY') {
+        console.log('Recuperación de contraseña');
+        navigate('/password-reset');
       } else if (event === 'USER_UPDATED') {
-        console.log('AuthProvider: User updated');
+        console.log('Usuario actualizado');
         toast.success("Perfil actualizado", {
-          description: "Tu perfil ha sido actualizado correctamente."
+          description: "Tu perfil ha sido actualizado correctamente"
         });
       }
     });
-
+    
     return () => {
-      console.log('AuthProvider: Cleaning up subscription');
+      console.log('Limpiando suscripción de AuthProvider');
       subscription.unsubscribe();
     };
-  }, [navigate, location.pathname]);
+  }, [navigate, location.pathname, isPublicRoute]);
 
+  // Mostrar indicador de carga mientras se verifica la sesión
   if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <AuthLoading />;
   }
 
   return <>{children}</>;
