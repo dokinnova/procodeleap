@@ -7,6 +7,7 @@ import { usePasswordReset } from "@/hooks/usePasswordReset";
 import { PasswordRequestForm } from "@/components/auth/password-reset/PasswordRequestForm";
 import { PasswordResetForm } from "@/components/auth/password-reset/PasswordResetForm";
 import { ErrorMessage } from "@/components/auth/password-reset/ErrorMessage";
+import { Loader2 } from "lucide-react";
 
 const PasswordReset = () => {
   const {
@@ -24,7 +25,8 @@ const PasswordReset = () => {
     handleUpdatePassword,
     searchParams,
     navigate,
-    isTokenValid
+    isTokenValid,
+    tokenChecked
   } = usePasswordReset();
 
   // Determine if we need to show the email field in the reset form
@@ -32,6 +34,22 @@ const PasswordReset = () => {
   const showEmailField = mode === "reset" && 
                          searchParams.get("code") && 
                          !searchParams.get("token");
+
+  // Show loading indicator while checking token validity
+  if (!tokenChecked) {
+    return (
+      <AuthContainer>
+        <Card className="w-full max-w-md">
+          <CardContent className="flex flex-col items-center justify-center py-10">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="mt-4 text-center text-sm text-muted-foreground">
+              Verificando enlace de recuperación...
+            </p>
+          </CardContent>
+        </Card>
+      </AuthContainer>
+    );
+  }
 
   return (
     <AuthContainer>
