@@ -58,7 +58,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
       if (event === 'SIGNED_IN' && session) {
         console.log('AuthProvider: User authenticated, redirecting to home');
-        toast("Bienvenido", {
+        toast.success("Bienvenido", {
           description: "Has iniciado sesión correctamente."
         });
         navigate('/', { replace: true });
@@ -67,13 +67,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         navigate('/password-reset');
       } else if (event === 'SIGNED_OUT') {
         console.log('AuthProvider: User signed out');
-        toast("Sesión cerrada", {
+        toast.success("Sesión cerrada", {
           description: "Has cerrado sesión correctamente."
         });
         navigate('/auth', { replace: true });
       } else if (event === 'USER_UPDATED') {
         console.log('AuthProvider: User updated');
-        toast("Perfil actualizado", {
+        toast.success("Perfil actualizado", {
           description: "Tu perfil ha sido actualizado correctamente."
         });
       }
