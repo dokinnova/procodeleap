@@ -15,30 +15,30 @@ interface PasswordResetRequest {
 }
 
 const handler = async (req: Request): Promise<Response> => {
-  console.log("Password reset notification function triggered");
+  console.log("Función de notificación de restablecimiento de contraseña activada");
   
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
-    console.log("Handling OPTIONS request");
+    console.log("Manejando solicitud OPTIONS");
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     // Verify API key first to fail fast
     if (!RESEND_API_KEY) {
-      console.error("RESEND_API_KEY is not configured");
-      throw new Error("Email service is not configured properly - RESEND_API_KEY is missing");
+      console.error("RESEND_API_KEY no está configurada");
+      throw new Error("El servicio de correo electrónico no está configurado correctamente - Falta RESEND_API_KEY");
     }
 
-    console.log(`RESEND_API_KEY starting with: ${RESEND_API_KEY.substring(0, 5)}...`);
+    console.log(`RESEND_API_KEY comienza con: ${RESEND_API_KEY.substring(0, 5)}...`);
     
     const { email, resetLink }: PasswordResetRequest = await req.json();
     
     if (!email) {
-      throw new Error("No email provided");
+      throw new Error("No se proporcionó correo electrónico");
     }
 
-    console.log(`Sending password reset email to ${email}`);
+    console.log(`Enviando correo de restablecimiento de contraseña a ${email}`);
     
     try {
       const response = await fetch("https://api.resend.com/emails", {
@@ -65,24 +65,24 @@ const handler = async (req: Request): Promise<Response> => {
 
       const result = await response.json();
       
-      console.log(`Full Resend API response for ${email}:`, JSON.stringify(result));
+      console.log(`Respuesta completa de la API Resend para ${email}:`, JSON.stringify(result));
       
       if (!response.ok) {
-        console.error(`Error sending to ${email}:`, result);
+        console.error(`Error al enviar a ${email}:`, result);
         return new Response(JSON.stringify({ success: false, error: result }), {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       
-      console.log(`Password reset email sent successfully to ${email}:`, result);
+      console.log(`Correo de restablecimiento de contraseña enviado exitosamente a ${email}:`, result);
       return new Response(JSON.stringify({ success: true, result }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
       
     } catch (err) {
-      console.error(`Exception sending to ${email}:`, err);
+      console.error(`Excepción al enviar a ${email}:`, err);
       return new Response(JSON.stringify({ success: false, error: err.message }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -90,7 +90,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
   } catch (error) {
-    console.error("Error in password reset notification:", error);
+    console.error("Error en la notificación de restablecimiento de contraseña:", error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
