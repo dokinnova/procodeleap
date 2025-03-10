@@ -3,12 +3,13 @@ import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export const AuthFormWrapper = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [isLoadingInitial, setIsLoadingInitial] = useState(true);
   
   // Usar window.location.origin para obtener el dominio actual
   const currentUrl = window.location.origin;
@@ -16,6 +17,25 @@ export const AuthFormWrapper = () => {
   const redirectTo = `${currentUrl}/reset-password`;
   
   console.log("AuthFormWrapper: Usando URL de redirección:", redirectTo);
+
+  // Verificar si hay una sesión activa al cargar el componente
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          console.log("AuthFormWrapper: Sesión activa encontrada, redirigiendo a inicio");
+          navigate('/', { replace: true });
+        }
+      } catch (error) {
+        console.error("Error verificando sesión:", error);
+      } finally {
+        setIsLoadingInitial(false);
+      }
+    };
+    
+    checkSession();
+  }, [navigate]);
 
   // Detectar errores en la URL cuando el componente se carga
   useEffect(() => {
@@ -50,10 +70,7 @@ export const AuthFormWrapper = () => {
       
       if (event === 'SIGNED_IN') {
         console.log('Usuario ha iniciado sesión');
-        toast({
-          title: "Sesión iniciada",
-          description: "Has iniciado sesión correctamente.",
-        });
+        // No mostrar este mensaje, lo dejamos al AuthProvider
         navigate('/', { replace: true });
       } else if (event === 'PASSWORD_RECOVERY') {
         console.log('Redirigiendo a página de recuperación de contraseña');
@@ -66,6 +83,14 @@ export const AuthFormWrapper = () => {
       subscription.unsubscribe();
     };
   }, [navigate, toast]);
+
+  if (isLoadingInitial) {
+    return (
+      <div className="flex justify-center items-center min-h-32">
+        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="auth-form-container">

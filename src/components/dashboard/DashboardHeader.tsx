@@ -4,10 +4,30 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useState, useEffect } from "react";
 
 export const DashboardHeader = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [hasSession, setHasSession] = useState(false);
+
+  // Verificar si hay una sesión antes de mostrar el botón de cerrar sesión
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      setHasSession(!!data.session);
+    };
+    
+    checkSession();
+    
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      checkSession();
+    });
+    
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -28,21 +48,13 @@ export const DashboardHeader = () => {
         throw error;
       }
 
-      // Show success toast
-      toast({
-        title: "Sesión cerrada",
-        description: "Has cerrado sesión exitosamente",
-      });
+      // No mostrar mensaje de éxito, dejemos que los componentes de auth manejen esto
+      console.log("Sesión cerrada exitosamente");
 
       // Force navigation to login
       navigate("/auth", { replace: true });
     } catch (error) {
       console.error("Error al cerrar sesión:", error);
-      toast({
-        title: "Error",
-        description: "No se pudo cerrar la sesión correctamente. Redirigiendo al inicio de sesión.",
-        variant: "destructive",
-      });
       
       // Even if there's an error, redirect to auth page
       navigate("/auth", { replace: true });
@@ -57,15 +69,18 @@ export const DashboardHeader = () => {
           Sistema de gestión COPRODELI
         </p>
       </div>
-      <Button 
-        variant="outline" 
-        onClick={handleLogout}
-        size="sm"
-        className="flex items-center gap-2 border-violet-200 hover:bg-violet-50"
-      >
-        <LogOut className="h-4 w-4 text-violet-600" />
-        Cerrar sesión
-      </Button>
+      
+      {hasSession && (
+        <Button 
+          variant="outline" 
+          onClick={handleLogout}
+          size="sm"
+          className="flex items-center gap-2 border-violet-200 hover:bg-violet-50"
+        >
+          <LogOut className="h-4 w-4 text-violet-600" />
+          Cerrar sesión
+        </Button>
+      )}
     </div>
   );
 };
