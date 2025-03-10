@@ -9,81 +9,81 @@ export const useResetPasswordToken = () => {
   const location = useLocation();
   const params = useParams();
 
-  // Debug logs to help troubleshoot
-  console.log("ResetPassword: Component loaded with:");
+  // Logs de depuración para ayudar a solucionar problemas
+  console.log("ResetPassword: Componente cargado con:");
   console.log("- URL:", window.location.href);
   console.log("- Location search:", location.search);
   console.log("- Location hash:", window.location.hash);
   console.log("- Route params:", params);
 
   useEffect(() => {
-    // Extract token from multiple possible sources
+    // Extraer token de múltiples fuentes posibles
     const getTokenFromUrl = () => {
-      // Check URL parameters (query string)
+      // Verificar parámetros de URL (query string)
       const queryParams = new URLSearchParams(location.search);
       
-      // Check for various parameter names used in different flows
-      const code = queryParams.get("code"); // For ?code=xxx format
-      const token = queryParams.get("token"); // For ?token=xxx format
-      const type = queryParams.get("type"); // For ?type=recovery format
+      // Verificar varios nombres de parámetros utilizados en diferentes flujos
+      const code = queryParams.get("code"); // Para formato ?code=xxx
+      const token = queryParams.get("token"); // Para formato ?token=xxx
+      const type = queryParams.get("type"); // Para formato ?type=recovery
       
-      // Check route parameters from different route patterns
-      const routeToken = params.token; // For /reset-password/:token
+      // Verificar parámetros de ruta de diferentes patrones de ruta
+      const routeToken = params.token; // Para /reset-password/:token
       
-      // Check hash fragment (for access tokens in some auth flows)
+      // Verificar fragmento hash (para tokens de acceso en algunos flujos de autenticación)
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
       const accessToken = hashParams.get("access_token");
       
-      // Try to extract token from path if it's in a non-standard format
+      // Intentar extraer token de la ruta si está en un formato no estándar
       const pathSegments = location.pathname.split('/');
       let pathToken = null;
       
-      // Look for token or code in the URL path
+      // Buscar token o código en la ruta URL
       for (let i = 0; i < pathSegments.length; i++) {
         if (pathSegments[i] === 'token' || pathSegments[i] === 'code') {
-          // The token might be in the next segment
+          // El token podría estar en el siguiente segmento
           pathToken = pathSegments[i + 1];
           break;
         }
       }
       
-      console.log("Token extraction details:");
-      console.log("- Code param:", code);
-      console.log("- Token param:", token);
-      console.log("- Type param:", type);
-      console.log("- Route token:", routeToken);
-      console.log("- Path token:", pathToken);
-      console.log("- Access token (hash):", accessToken);
+      console.log("Detalles de extracción de token:");
+      console.log("- Parámetro code:", code);
+      console.log("- Parámetro token:", token);
+      console.log("- Parámetro type:", type);
+      console.log("- Token de ruta:", routeToken);
+      console.log("- Token de ruta:", pathToken);
+      console.log("- Token de acceso (hash):", accessToken);
       
-      // Return the first valid token found
+      // Devolver el primer token válido encontrado
       return code || token || routeToken || pathToken || (type === "recovery" ? "recovery-flow" : null) || accessToken;
     };
     
     const token = getTokenFromUrl();
     
     if (token) {
-      console.log("Recovery token found:", token);
+      console.log("Token de recuperación encontrado:", token);
       setRecoveryToken(token);
       setError(null);
     } else {
-      console.log("No recovery token found in URL");
+      console.log("No se encontró token de recuperación en URL");
       
-      // Check if this is a recovery flow without a token in the URL
+      // Verificar si esto es un flujo de recuperación sin un token en la URL
       const isRecoveryFlow = location.search.includes("type=recovery") || 
                             location.pathname.includes("reset-password");
       
       if (isRecoveryFlow) {
-        console.log("Recovery flow detected without token");
-        // This is the initiation page, allow password reset request
+        console.log("Flujo de recuperación detectado sin token");
+        // Esta es la página de iniciación, permitir solicitud de restablecimiento de contraseña
         setRecoveryToken("recovery-flow");
       } else {
-        // Check if user has an active session
+        // Verificar si el usuario tiene una sesión activa
         supabase.auth.getSession().then(({ data: { session } }) => {
           if (session?.user) {
-            console.log("Active session found during recovery");
+            console.log("Sesión activa encontrada durante la recuperación");
             setRecoveryToken("session-active");
           } else if (location.search || window.location.hash) {
-            // Show error only if we expected a token
+            // Mostrar error solo si esperábamos un token
             setError("Enlace de recuperación inválido o expirado.");
           }
         });

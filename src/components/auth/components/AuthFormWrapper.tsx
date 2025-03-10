@@ -10,14 +10,14 @@ export const AuthFormWrapper = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   
-  // Use window.location.origin to get the current domain
+  // Usar window.location.origin para obtener el dominio actual
   const currentUrl = window.location.origin;
-  // Make sure the redirect URL is absolute and works for all domains
+  // URL de redirección simplificada que funciona en todos los dominios
   const redirectTo = `${currentUrl}/reset-password`;
   
-  console.log("AuthFormWrapper: Using redirect URL:", redirectTo);
+  console.log("AuthFormWrapper: Usando URL de redirección:", redirectTo);
 
-  // Detect errors in URL when component loads
+  // Detectar errores en la URL cuando el componente se carga
   useEffect(() => {
     const url = new URL(window.location.href);
     const error = url.searchParams.get('error');
@@ -25,7 +25,7 @@ export const AuthFormWrapper = () => {
     const errorDescription = url.searchParams.get('error_description');
     
     if (error && errorDescription) {
-      console.log('AuthFormWrapper: Error detected:', error, errorCode, errorDescription);
+      console.log('AuthFormWrapper: Error detectado:', error, errorCode, errorDescription);
       
       let message = errorDescription.replace(/\+/g, ' ');
       if (errorCode === 'otp_expired') {
@@ -38,27 +38,26 @@ export const AuthFormWrapper = () => {
         variant: "destructive",
       });
       
-      // Clean up error parameters from the URL
+      // Limpiar los parámetros de error de la URL
       navigate('/auth', { replace: true });
     }
   }, [toast, navigate]);
 
-  // Handle authentication events
+  // Manejar eventos de autenticación
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('AuthFormWrapper: Auth event:', event);
+      console.log('AuthFormWrapper: Evento de autenticación:', event);
       
       if (event === 'SIGNED_IN') {
-        console.log('User has signed in');
+        console.log('Usuario ha iniciado sesión');
         toast({
           title: "Sesión iniciada",
           description: "Has iniciado sesión correctamente.",
         });
-        navigate('/');
+        navigate('/', { replace: true });
       } else if (event === 'PASSWORD_RECOVERY') {
-        console.log('Redirecting to password recovery page');
-        // Always use the central reset password route
-        // The ResetPasswordContainer will handle token extraction
+        console.log('Redirigiendo a página de recuperación de contraseña');
+        // Usar siempre la ruta central de restablecimiento de contraseña
         navigate('/reset-password', { replace: true });
       }
     });

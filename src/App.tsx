@@ -69,7 +69,7 @@ const App = () => {
         <BrowserRouter>
           <Routes>
             {/* Public authentication routes */}
-            <Route path="/auth/*" element={
+            <Route path="/auth" element={
               <div className="min-h-screen bg-gray-100 flex flex-col justify-center">
                 <div className="max-w-md mx-auto w-full px-4">
                   <div className="mb-8 text-center">
@@ -117,6 +117,10 @@ const App = () => {
                   </div>
                 </ProtectedRoute>
             } />
+            
+            {/* Ruta para capturar el index y redirigir si es necesario */}
+            <Route path="/index" element={<Navigate to="/" replace />} />
+            <Route path="/index.html" element={<Navigate to="/" replace />} />
             
             {/* Protected routes */}
             <Route path="/*" element={

@@ -56,14 +56,14 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       }
     };
     
-    // Validate reset password flow
+    // Validar flujo de restablecimiento de contraseña
     const isResetPasswordRoute = () => {
       return location.pathname.startsWith('/reset-password');
     };
     
-    // Check if current route requires authentication
+    // Verificar si la ruta actual requiere autenticación
     const isProtectedRoute = () => {
-      // These routes don't need protection
+      // Estas rutas no necesitan protección
       const publicRoutes = [
         '/auth',
         '/reset-password',
@@ -78,7 +78,7 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       return !isPublic;
     };
 
-    // Special check for reset password routes
+    // Verificación especial para rutas de restablecimiento de contraseña
     if (isResetPasswordRoute() || location.search.includes('type=recovery') || location.search.includes('code=')) {
       console.log('ProtectedRoute: Permitiendo acceso a ruta de restablecimiento de contraseña');
       setLoading(false);
@@ -121,16 +121,16 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
-  // Always allow access to reset-password routes regardless of authentication state
+  // Permitir siempre el acceso a rutas de restablecimiento de contraseña independientemente del estado de autenticación
   if (location.pathname.startsWith('/reset-password') || 
       location.search.includes('type=recovery') || 
       location.search.includes('code=')) {
     return <>{children}</>;
   }
 
-  // For protected routes, check if user is authenticated
+  // Para rutas protegidas, verificar si el usuario está autenticado
   if (!session && !location.pathname.startsWith('/auth')) {
-    // We handle this redirect in the useEffect to avoid React state updates during render
+    // Manejamos esta redirección en el useEffect para evitar actualizaciones de estado de React durante la renderización
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
