@@ -9,13 +9,12 @@ import { useNavigate } from "react-router-dom";
 export const AuthFormWrapper = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  // Use either the current domain or the production domain
-  const currentUrl = window.location.origin === 'http://localhost:8080' 
-    ? window.location.origin 
-    : 'https://procodeli-makipurays-projects.vercel.app';
-    
-  // Use the deployment domain directly for the redirect URL
+  
+  // Always use the current domain from window.location
+  const currentUrl = window.location.origin;
   const redirectTo = `${currentUrl}/reset-password`;
+  
+  console.log("AuthFormWrapper: Using redirect URL:", redirectTo);
 
   // Detectar errores en la URL al cargar el componente
   useEffect(() => {

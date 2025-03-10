@@ -26,31 +26,19 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
             description: "Por favor, inicia sesión de nuevo.",
             variant: "destructive",
           });
+          
+          if (isProtectedRoute()) {
+            console.log('ProtectedRoute: Redirigiendo a /auth debido a error de sesión');
+            setTimeout(() => navigate('/auth', { replace: true }), 0);
+          }
         } else if (!currentSession) {
           console.log('ProtectedRoute: No se encontró sesión');
-          
-          // Verificar si estamos en una ruta de restablecimiento de contraseña
-          const isResetPasswordRoute = location.pathname === '/reset-password';
-          const hasResetToken = 
-            location.search.includes('code=') || 
-            location.search.includes('token=') || 
-            location.search.includes('type=recovery') || 
-            window.location.hash.includes('access_token=');
-            
-          if (isResetPasswordRoute && hasResetToken) {
-            console.log('ProtectedRoute: Permitiendo acceso a página de restablecimiento con token');
-            // Permitir acceso a la página de restablecimiento si tiene un token
-            setLoading(false);
-            return;
-          }
-          
-          // Si estamos en /auth/callback con errores, redirigir a /auth
-          if (location.pathname === '/auth/callback' && location.search.includes('error')) {
-            console.log('ProtectedRoute: Redirigiendo de callback con error a /auth');
-            navigate('/auth', { replace: true });
-          }
-          
           setSession(null);
+          
+          if (isProtectedRoute()) {
+            console.log('ProtectedRoute: Redirigiendo a /auth porque no hay sesión');
+            setTimeout(() => navigate('/auth', { replace: true }), 0);
+          }
         } else {
           console.log('ProtectedRoute: Sesión encontrada:', currentSession);
           setSession(currentSession);
@@ -67,6 +55,33 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
         setLoading(false);
       }
     };
+    
+    // Validate reset password flow
+    const isResetPasswordRoute = () => {
+      return location.pathname.startsWith('/reset-password');
+    };
+    
+    // Check if current route requires authentication
+    const isProtectedRoute = () => {
+      // These routes don't need protection
+      const publicRoutes = [
+        '/auth',
+        '/reset-password',
+      ];
+      
+      const isPublic = publicRoutes.some(route => 
+        location.pathname === route || location.pathname.startsWith(route + '/')
+      );
+      
+      return !isPublic;
+    };
+
+    // Special check for reset password routes
+    if (isResetPasswordRoute()) {
+      console.log('ProtectedRoute: Permitiendo acceso a ruta de restablecimiento de contraseña');
+      setLoading(false);
+      return;
+    }
 
     checkSession();
 
@@ -79,6 +94,10 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
           title: "Sesión cerrada",
           description: "Has cerrado sesión correctamente.",
         });
+        
+        if (isProtectedRoute()) {
+          navigate('/auth', { replace: true });
+        }
       } else if (event === 'PASSWORD_RECOVERY') {
         // Redirigir a la página de restablecimiento de contraseña
         navigate('/reset-password', { replace: true });
@@ -100,30 +119,19 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
-  // Si no hay sesión y estamos en rutas protegidas
-  if (!session) {
-    // Estas rutas no necesitan protección
-    const isPublicRoute = 
-      location.pathname === '/reset-password' || 
-      location.pathname === '/auth' || 
-      location.pathname.startsWith('/auth/');
-      
-    // Si es una ruta de reset password con un token, permitir acceso
-    const isResetWithToken = 
-      location.pathname === '/reset-password' && 
-      (location.search.includes('code=') || 
-       location.search.includes('token=') || 
-       location.search.includes('type=recovery') || 
-       window.location.hash.includes('access_token='));
-    
-    if (isPublicRoute || isResetWithToken) {
-      return <>{children}</>;
-    }
-    
-    // Si no estamos en la ruta de autenticación y no hay sesión, redirigir a /auth
-    console.log('ProtectedRoute: No hay sesión, redirigiendo a /auth');
-    navigate('/auth', { replace: true });
-    return null;
+  // Always allow access to reset-password routes regardless of authentication state
+  if (location.pathname.startsWith('/reset-password')) {
+    return <>{children}</>;
+  }
+
+  // For protected routes, check if user is authenticated
+  if (!session && !location.pathname.startsWith('/auth')) {
+    // We handle this redirect in the useEffect to avoid React state updates during render
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
   }
 
   return <>{children}</>;
