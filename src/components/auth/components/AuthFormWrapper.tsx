@@ -1,5 +1,4 @@
 
-
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
@@ -37,6 +36,25 @@ export const AuthFormWrapper = () => {
       navigate('/auth', { replace: true });
     }
   }, [toast, navigate]);
+
+  // Manejar errores durante la autenticación
+  useEffect(() => {
+    const authErrorHandler = (error: any) => {
+      console.error('Error de autenticación:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Ha ocurrido un error durante la autenticación",
+        variant: "destructive",
+      });
+    };
+
+    // Suscribirse al evento de error de autenticación
+    const { data: { subscription } } = supabase.auth.onError(authErrorHandler);
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [toast]);
 
   return (
     <Auth
@@ -95,15 +113,6 @@ export const AuthFormWrapper = () => {
       redirectTo={redirectTo}
       view="sign_in"
       showLinks={true}
-      onError={(error) => {
-        console.error('Error de autenticación:', error);
-        toast({
-          title: "Error",
-          description: error.message || "Ha ocurrido un error durante la autenticación",
-          variant: "destructive",
-        });
-      }}
     />
   );
 };
-
