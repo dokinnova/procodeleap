@@ -124,8 +124,8 @@ export const usePasswordResetMode = () => {
             const { error: verifyError } = await supabase.auth.verifyOtp({
               email: searchParams.get("email") || "",
               token: code,
-              type: 'recovery',
-            }, { shouldUpdateSession: false });
+              type: 'recovery'
+            });
             
             if (verifyError) {
               if (verifyError.message && (
