@@ -27,6 +27,10 @@ export const usePasswordReset = () => {
         setError("El enlace ha expirado. Por favor solicita un nuevo enlace de recuperación.");
         setMode("request");
         return;
+      } else if (errorDescription.includes("Email link")) {
+        setError("El enlace de recuperación es inválido o ha expirado. Por favor solicita uno nuevo.");
+        setMode("request");
+        return;
       } else {
         setError(`Error: ${errorDescription}`);
       }

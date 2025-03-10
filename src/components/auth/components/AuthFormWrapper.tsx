@@ -66,7 +66,8 @@ export const AuthFormWrapper = () => {
             email_input_placeholder: 'Tu correo electrónico',
             button_label: 'Enviar instrucciones',
             loading_button_label: 'Enviando instrucciones...',
-            link_text: '¿Olvidaste tu contraseña?'
+            link_text: '¿Olvidaste tu contraseña?',
+            confirmation_text: 'Revisa tu correo electrónico para obtener el enlace de recuperación de contraseña'
           },
           sign_up: {
             link_text: '',
