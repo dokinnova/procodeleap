@@ -9,6 +9,7 @@ const AuthCallback = () => {
   const location = useLocation();
   const [error, setError] = useState<string | null>(null);
   const isMounted = useRef(true);
+  const redirectingRef = useRef(false);
   
   useEffect(() => {
     const handleAuthCallback = async () => {
@@ -40,12 +41,28 @@ const AuthCallback = () => {
               if (isPasswordReset) {
                 // If it's a password reset with an error, redirect to reset page
                 console.log("Redirecting to password reset page with error");
-                if (isMounted.current) navigate(`/password-reset${location.search}`, { replace: true });
+                if (isMounted.current && !redirectingRef.current) {
+                  redirectingRef.current = true;
+                  setTimeout(() => {
+                    if (isMounted.current) {
+                      navigate(`/password-reset${location.search}`, { replace: true });
+                      redirectingRef.current = false;
+                    }
+                  }, 500);
+                }
               } else {
                 // If it's a normal login with an error, show message and redirect to auth
                 console.error("Authentication error:", error.message);
                 toast.error("Error de inicio de sesión: " + error.message);
-                if (isMounted.current) navigate("/auth", { replace: true });
+                if (isMounted.current && !redirectingRef.current) {
+                  redirectingRef.current = true;
+                  setTimeout(() => {
+                    if (isMounted.current) {
+                      navigate("/auth", { replace: true });
+                      redirectingRef.current = false;
+                    }
+                  }, 500);
+                }
               }
               return;
             }
@@ -55,41 +72,81 @@ const AuthCallback = () => {
             // If it's a password reset, redirect to the reset page
             if (isPasswordReset) {
               console.log("Redirecting to password reset page");
-              if (isMounted.current) navigate(`/password-reset${location.search}`, { replace: true });
+              if (isMounted.current && !redirectingRef.current) {
+                redirectingRef.current = true;
+                setTimeout(() => {
+                  if (isMounted.current) {
+                    navigate(`/password-reset${location.search}`, { replace: true });
+                    redirectingRef.current = false;
+                  }
+                }, 500);
+              }
             } else {
               // For normal login, redirect to dashboard
               console.log("Session started successfully, redirecting to home");
               toast.success("Sesión iniciada correctamente");
               
               // Delay the navigation to ensure session is properly set and propagated
-              setTimeout(() => {
-                if (isMounted.current) {
-                  navigate("/", { replace: true });
-                }
-              }, 500);
+              if (isMounted.current && !redirectingRef.current) {
+                redirectingRef.current = true;
+                setTimeout(() => {
+                  if (isMounted.current) {
+                    navigate("/", { replace: true });
+                    redirectingRef.current = false;
+                  }
+                }, 800);
+              }
             }
           } catch (error: any) {
             console.error("Error in code exchange:", error);
             if (isMounted.current) setError(error.message);
             
-            if (isPasswordReset) {
-              if (isMounted.current) navigate(`/password-reset${location.search}`, { replace: true });
-            } else {
+            if (isPasswordReset && isMounted.current && !redirectingRef.current) {
+              redirectingRef.current = true;
+              setTimeout(() => {
+                if (isMounted.current) {
+                  navigate(`/password-reset${location.search}`, { replace: true });
+                  redirectingRef.current = false;
+                }
+              }, 500);
+            } else if (isMounted.current && !redirectingRef.current) {
               toast.error("Error al procesar la autenticación");
-              if (isMounted.current) navigate("/auth", { replace: true });
+              redirectingRef.current = true;
+              setTimeout(() => {
+                if (isMounted.current) {
+                  navigate("/auth", { replace: true });
+                  redirectingRef.current = false;
+                }
+              }, 500);
             }
           }
         } else {
           // If there's no code, redirect to the sign in page
           console.log("No code found, redirecting to sign in");
-          if (isMounted.current) navigate("/auth", { replace: true });
+          if (isMounted.current && !redirectingRef.current) {
+            redirectingRef.current = true;
+            setTimeout(() => {
+              if (isMounted.current) {
+                navigate("/auth", { replace: true });
+                redirectingRef.current = false;
+              }
+            }, 500);
+          }
         }
       } catch (error: any) {
         console.error("Critical error in callback:", error);
         if (isMounted.current) {
           setError(error.message);
           toast.error("Error durante el proceso de autenticación");
-          navigate("/auth", { replace: true });
+          if (!redirectingRef.current) {
+            redirectingRef.current = true;
+            setTimeout(() => {
+              if (isMounted.current) {
+                navigate("/auth", { replace: true });
+                redirectingRef.current = false;
+              }
+            }, 500);
+          }
         }
       }
     };
@@ -109,7 +166,15 @@ const AuthCallback = () => {
           <div className="mb-4 text-red-500">
             <p>Error: {error}</p>
             <button 
-              onClick={() => navigate('/auth')}
+              onClick={() => {
+                if (!redirectingRef.current) {
+                  redirectingRef.current = true;
+                  setTimeout(() => {
+                    navigate('/auth');
+                    redirectingRef.current = false;
+                  }, 300);
+                }
+              }}
               className="mt-4 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
             >
               Volver a Iniciar Sesión

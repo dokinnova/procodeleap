@@ -13,6 +13,7 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const { toast: uiToast } = useToast();
   const isMounted = useRef(true);
+  const redirectingRef = useRef(false);
 
   useEffect(() => {
     console.log('ProtectedRoute: Checking session...', location.pathname);
@@ -29,11 +30,18 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
           if (isMounted.current) {
             setSession(null);
             setLoading(false);
-            if (location.pathname !== '/auth' && 
+            if (!redirectingRef.current && 
+                location.pathname !== '/auth' && 
                 location.pathname !== '/password-reset' && 
                 !location.pathname.startsWith('/auth/callback')) {
               console.log('ProtectedRoute: Error case - Redirecting to auth page');
-              navigate('/auth', { replace: true });
+              redirectingRef.current = true;
+              setTimeout(() => {
+                if (isMounted.current) {
+                  navigate('/auth', { replace: true });
+                  redirectingRef.current = false;
+                }
+              }, 500);
             }
           }
           return;
@@ -46,11 +54,18 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
           if (isMounted.current) {
             setSession(null);
             setLoading(false);
-            if (location.pathname !== '/auth' && 
+            if (!redirectingRef.current && 
+                location.pathname !== '/auth' && 
                 location.pathname !== '/password-reset' && 
                 !location.pathname.startsWith('/auth/callback')) {
               console.log('ProtectedRoute: No session - Redirecting to auth page');
-              navigate('/auth', { replace: true });
+              redirectingRef.current = true;
+              setTimeout(() => {
+                if (isMounted.current) {
+                  navigate('/auth', { replace: true });
+                  redirectingRef.current = false;
+                }
+              }, 500);
             }
           }
           return;
@@ -60,13 +75,15 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
         if (isMounted.current) {
           setSession(data.session);
           setLoading(false);
-          if (location.pathname === '/auth') {
+          if (location.pathname === '/auth' && !redirectingRef.current) {
             console.log('ProtectedRoute: On auth page with session - Redirecting to home');
+            redirectingRef.current = true;
             setTimeout(() => {
               if (isMounted.current) {
                 navigate('/', { replace: true });
+                redirectingRef.current = false;
               }
-            }, 100);
+            }, 500);
           }
         }
       } catch (error: any) {
@@ -74,11 +91,18 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
         if (isMounted.current) {
           setSession(null);
           setLoading(false);
-          if (location.pathname !== '/auth' && 
+          if (!redirectingRef.current && 
+              location.pathname !== '/auth' && 
               location.pathname !== '/password-reset' && 
               !location.pathname.startsWith('/auth/callback')) {
             console.log('ProtectedRoute: Error case - Redirecting to auth page');
-            navigate('/auth', { replace: true });
+            redirectingRef.current = true;
+            setTimeout(() => {
+              if (isMounted.current) {
+                navigate('/auth', { replace: true });
+                redirectingRef.current = false;
+              }
+            }, 500);
           }
         }
       }
@@ -96,13 +120,15 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       if (event === 'SIGNED_IN' && newSession) {
         console.log('ProtectedRoute: User signed in, setting session and redirecting if on auth page');
         setSession(newSession);
-        if (location.pathname === '/auth') {
+        if (location.pathname === '/auth' && !redirectingRef.current) {
           console.log('ProtectedRoute: SIGNED_IN - Redirecting to home from auth page');
+          redirectingRef.current = true;
           setTimeout(() => {
             if (isMounted.current) {
               navigate('/', { replace: true });
+              redirectingRef.current = false;
             }
-          }, 100);
+          }, 500);
         }
       } else if (event === 'SIGNED_OUT') {
         console.log('ProtectedRoute: User signed out');
@@ -111,11 +137,18 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
           description: "Has cerrado sesión.",
         });
         
-        if (location.pathname !== '/auth' && 
+        if (!redirectingRef.current && 
+            location.pathname !== '/auth' && 
             location.pathname !== '/password-reset' && 
             !location.pathname.startsWith('/auth/callback')) {
           console.log('ProtectedRoute: SIGNED_OUT - Redirecting to auth page');
-          navigate('/auth', { replace: true });
+          redirectingRef.current = true;
+          setTimeout(() => {
+            if (isMounted.current) {
+              navigate('/auth', { replace: true });
+              redirectingRef.current = false;
+            }
+          }, 500);
         }
       } else if (newSession) {
         console.log('ProtectedRoute: Setting session from auth state change');
@@ -123,11 +156,18 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       } else if (!newSession && event !== 'INITIAL_SESSION') {
         console.log('ProtectedRoute: No session after auth state change');
         setSession(null);
-        if (location.pathname !== '/auth' && 
+        if (!redirectingRef.current && 
+            location.pathname !== '/auth' && 
             location.pathname !== '/password-reset' && 
             !location.pathname.startsWith('/auth/callback')) {
           console.log('ProtectedRoute: No session after auth state change - Redirecting to auth');
-          navigate('/auth', { replace: true });
+          redirectingRef.current = true;
+          setTimeout(() => {
+            if (isMounted.current) {
+              navigate('/auth', { replace: true });
+              redirectingRef.current = false;
+            }
+          }, 500);
         }
       }
     });

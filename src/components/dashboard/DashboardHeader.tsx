@@ -5,13 +5,18 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { toast } from "sonner";
+import { useState } from "react";
 
 export const DashboardHeader = () => {
   const navigate = useNavigate();
   const { toast: uiToast } = useToast();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleLogout = async () => {
+    if (isLoggingOut) return;
+    
     try {
+      setIsLoggingOut(true);
       console.log("Attempting to sign out...");
       
       // Sign out
@@ -22,6 +27,7 @@ export const DashboardHeader = () => {
         toast("Error al cerrar sesión", {
           description: error.message,
         });
+        setIsLoggingOut(false);
         return;
       }
 
@@ -41,6 +47,8 @@ export const DashboardHeader = () => {
       
       // Even if there's an error, try to redirect to auth page
       navigate("/auth", { replace: true });
+    } finally {
+      setIsLoggingOut(false);
     }
   };
 
@@ -56,10 +64,11 @@ export const DashboardHeader = () => {
         variant="outline" 
         onClick={handleLogout}
         size="sm"
+        disabled={isLoggingOut}
         className="flex items-center gap-2 border-violet-200 hover:bg-violet-50"
       >
         <LogOut className="h-4 w-4 text-violet-600" />
-        Cerrar sesión
+        {isLoggingOut ? "Cerrando..." : "Cerrar sesión"}
       </Button>
     </div>
   );

@@ -15,6 +15,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const { toast: uiToast } = useToast();
   const [loading, setLoading] = useState(true);
   const isMounted = useRef(true);
+  const redirectingRef = useRef(false);
 
   useEffect(() => {
     console.log('AuthProvider: Initializing...', location.pathname);
@@ -39,21 +40,36 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         if (data?.session) {
           console.log('AuthProvider: Existing session detected, user authenticated');
           
-          if (location.pathname === '/auth') {
+          if (location.pathname === '/auth' && !redirectingRef.current) {
             console.log('AuthProvider: On auth page with session, redirecting to home');
-            setTimeout(() => {
-              if (isMounted.current) {
-                navigate('/', { replace: true });
-              }
-            }, 100);
+            redirectingRef.current = true;
+            
+            if (isMounted.current) {
+              setTimeout(() => {
+                if (isMounted.current) {
+                  navigate('/', { replace: true });
+                  redirectingRef.current = false;
+                }
+              }, 500);
+            }
           }
         } else {
           console.log('AuthProvider: No session detected');
           if (location.pathname !== '/auth' && 
               location.pathname !== '/password-reset' && 
-              !location.pathname.startsWith('/auth/callback')) {
+              !location.pathname.startsWith('/auth/callback') &&
+              !redirectingRef.current) {
             console.log('AuthProvider: Not on auth page with no session, redirecting to auth');
-            navigate('/auth', { replace: true });
+            redirectingRef.current = true;
+            
+            if (isMounted.current) {
+              setTimeout(() => {
+                if (isMounted.current) {
+                  navigate('/auth', { replace: true });
+                  redirectingRef.current = false;
+                }
+              }, 500);
+            }
           }
         }
         
@@ -74,27 +90,35 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       
       if (!isMounted.current) return;
 
-      if (event === 'SIGNED_IN' && session) {
+      if (event === 'SIGNED_IN' && session && !redirectingRef.current) {
         console.log('AuthProvider: User authenticated, redirecting to home');
         toast("Bienvenido", {
           description: "Has iniciado sesión correctamente."
         });
         
         // Use setTimeout to allow the state to be updated before navigating
+        redirectingRef.current = true;
         setTimeout(() => {
           if (isMounted.current) {
             navigate('/', { replace: true });
+            redirectingRef.current = false;
           }
-        }, 100);
+        }, 500);
       } else if (event === 'PASSWORD_RECOVERY') {
         console.log('AuthProvider: Password recovery event, redirecting to password reset');
         navigate('/password-reset');
-      } else if (event === 'SIGNED_OUT') {
+      } else if (event === 'SIGNED_OUT' && !redirectingRef.current) {
         console.log('AuthProvider: User signed out');
         toast("Sesión cerrada", {
           description: "Has cerrado sesión correctamente."
         });
-        navigate('/auth', { replace: true });
+        redirectingRef.current = true;
+        setTimeout(() => {
+          if (isMounted.current) {
+            navigate('/auth', { replace: true });
+            redirectingRef.current = false;
+          }
+        }, 500);
       } else if (event === 'USER_UPDATED') {
         console.log('AuthProvider: User updated');
         toast("Perfil actualizado", {
