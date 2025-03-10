@@ -22,13 +22,13 @@ export const usePasswordResetRequest = () => {
     setLoading(true);
     
     try {
-      // Obtenemos el origen actual para construir la URL de redirección
+      // Get the current origin for building the redirect URL
       const origin = window.location.origin;
-      // Es importante usar la ruta completa para password-reset
+      // It's important to use the full path for password-reset
       const redirectTo = `${origin}/password-reset`;
       
-      console.log("Solicitando reset de contraseña para:", email);
-      console.log("Redirigiendo a:", redirectTo);
+      console.log("Requesting password reset for:", email);
+      console.log("Redirecting to:", redirectTo);
       
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: redirectTo,
@@ -38,11 +38,11 @@ export const usePasswordResetRequest = () => {
         throw error;
       }
       
-      console.log("Solicitud de reseteo enviada exitosamente, revise su correo");
+      console.log("Password reset request sent successfully, check your email");
       toast.success("Se ha enviado un enlace de recuperación a tu correo electrónico");
       setSuccess("Se ha enviado un enlace de recuperación a tu correo electrónico. Por favor revisa tu bandeja de entrada y spam.");
     } catch (err: any) {
-      console.error("Error al solicitar restablecimiento de contraseña:", err);
+      console.error("Error requesting password reset:", err);
       
       if (err.message && err.message.includes("User not found")) {
         setError("No se encontró ninguna cuenta con este correo electrónico. Por favor verifica e intenta de nuevo.");

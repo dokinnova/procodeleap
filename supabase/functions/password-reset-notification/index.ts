@@ -29,7 +29,7 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Email service is not properly configured - Missing RESEND_API_KEY");
     }
 
-    console.log(`RESEND_API_KEY begins with: ${RESEND_API_KEY.substring(0, 5)}...`);
+    console.log(`RESEND_API_KEY is configured and available`);
     
     const { email, resetLink }: PasswordResetRequest = await req.json();
     
@@ -37,7 +37,7 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("No email provided");
     }
 
-    console.log(`Sending password reset email to ${email}`);
+    console.log(`Processing password reset email to ${email}`);
     console.log(`Original link: ${resetLink}`);
     
     try {
@@ -75,6 +75,24 @@ const handler = async (req: Request): Promise<Response> => {
       
       console.log(`Formatted link: ${formattedResetLink}`);
       
+      const emailContent = `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+          <h1 style="color: #8B5CF6; margin-bottom: 24px;">Restablecimiento de contraseña</h1>
+          <p style="margin-bottom: 16px;">Hemos recibido una solicitud para restablecer tu contraseña. Haz clic en el siguiente enlace para crear una nueva contraseña:</p>
+          <a href="${formattedResetLink}" style="display: inline-block; background-color: #8B5CF6; color: white; text-decoration: none; padding: 12px 24px; border-radius: 4px; margin-bottom: 16px;">Restablecer contraseña</a>
+          <p style="margin-bottom: 16px;">Si no solicitaste restablecer tu contraseña, puedes ignorar este correo electrónico.</p>
+          <p style="color: #6B7280; font-size: 14px; margin-top: 32px;">Este enlace expirará en 24 horas.</p>
+        </div>
+      `;
+      
+      console.log("Attempting to send email through Resend API");
+      console.log("Request data:", JSON.stringify({
+        from: "onboarding@resend.dev",
+        to: [email],
+        subject: "Restablecimiento de contraseña",
+        html: emailContent
+      }));
+      
       const response = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: {
@@ -85,21 +103,16 @@ const handler = async (req: Request): Promise<Response> => {
           from: "onboarding@resend.dev",
           to: [email],
           subject: "Restablecimiento de contraseña",
-          html: `
-            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-              <h1 style="color: #8B5CF6; margin-bottom: 24px;">Restablecimiento de contraseña</h1>
-              <p style="margin-bottom: 16px;">Hemos recibido una solicitud para restablecer tu contraseña. Haz clic en el siguiente enlace para crear una nueva contraseña:</p>
-              <a href="${formattedResetLink}" style="display: inline-block; background-color: #8B5CF6; color: white; text-decoration: none; padding: 12px 24px; border-radius: 4px; margin-bottom: 16px;">Restablecer contraseña</a>
-              <p style="margin-bottom: 16px;">Si no solicitaste restablecer tu contraseña, puedes ignorar este correo electrónico.</p>
-              <p style="color: #6B7280; font-size: 14px; margin-top: 32px;">Este enlace expirará en 24 horas.</p>
-            </div>
-          `,
+          html: emailContent,
         }),
       });
 
+      const responseStatus = response.status;
+      console.log(`Resend API response status: ${responseStatus}`);
+      
       const result = await response.json();
       
-      console.log(`Complete Resend API response for ${email}:`, JSON.stringify(result));
+      console.log(`Resend API response for ${email}:`, JSON.stringify(result));
       
       if (!response.ok) {
         console.error(`Error sending to ${email}:`, result);
@@ -109,7 +122,7 @@ const handler = async (req: Request): Promise<Response> => {
         });
       }
       
-      console.log(`Password reset email sent successfully to ${email}:`, result);
+      console.log(`Password reset email sent successfully to ${email}`);
       return new Response(JSON.stringify({ success: true, result }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
