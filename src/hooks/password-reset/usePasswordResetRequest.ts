@@ -24,9 +24,9 @@ export const usePasswordResetRequest = () => {
     try {
       console.log("Solicitando restablecimiento para:", email);
       
-      // Use current site URL as the base URL for redirects
-      const baseUrl = window.location.origin;
-      // Use the password-reset page as the redirect destination
+      // Usar la URL de producción en Vercel como base
+      const baseUrl = "https://procodeli-makipurays-projects.vercel.app";
+      // Redirigir directamente a la página de restablecimiento
       const redirectUrl = `${baseUrl}/password-reset`;
       
       console.log("URL de redirección configurada:", redirectUrl);
