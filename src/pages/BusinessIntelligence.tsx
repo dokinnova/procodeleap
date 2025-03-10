@@ -72,26 +72,29 @@ const BusinessIntelligence = () => {
       </div>
 
       <Tabs defaultValue="general" value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-5 mb-6 w-full">
-          <TabsTrigger value="general" className="flex items-center gap-2 text-base font-medium transition-all">
-            <PieChart className="h-5 w-5" />
-            General
+        <TabsList className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 mb-6 w-full overflow-x-auto">
+          <TabsTrigger value="general" className="flex items-center gap-2 text-sm md:text-base font-medium transition-all">
+            <PieChart className="h-4 w-4 md:h-5 md:w-5" />
+            <span className="hidden sm:inline">General</span>
+            <span className="sm:hidden">Gral</span>
           </TabsTrigger>
-          <TabsTrigger value="children" className="flex items-center gap-2 text-base font-medium transition-all">
-            <BarChart className="h-5 w-5" />
-            Niños
+          <TabsTrigger value="children" className="flex items-center gap-2 text-sm md:text-base font-medium transition-all">
+            <BarChart className="h-4 w-4 md:h-5 md:w-5" />
+            <span>Niños</span>
           </TabsTrigger>
-          <TabsTrigger value="sponsors" className="flex items-center gap-2 text-base font-medium transition-all">
-            <LineChart className="h-5 w-5" />
-            Padrinos
+          <TabsTrigger value="sponsors" className="flex items-center gap-2 text-sm md:text-base font-medium transition-all">
+            <LineChart className="h-4 w-4 md:h-5 md:w-5" />
+            <span>Padrinos</span>
           </TabsTrigger>
-          <TabsTrigger value="children-analysis" className="flex items-center gap-2 text-base font-medium transition-all">
-            <Users className="h-5 w-5" />
-            Análisis de Niños
+          <TabsTrigger value="children-analysis" className="flex items-center gap-2 text-sm md:text-base font-medium transition-all">
+            <Users className="h-4 w-4 md:h-5 md:w-5" />
+            <span className="hidden sm:inline">Análisis de Niños</span>
+            <span className="sm:hidden">An. Niños</span>
           </TabsTrigger>
-          <TabsTrigger value="sponsors-analysis" className="flex items-center gap-2 text-base font-medium transition-all">
-            <TrendingUp className="h-5 w-5" />
-            Análisis de Padrinos
+          <TabsTrigger value="sponsors-analysis" className="flex items-center gap-2 text-sm md:text-base font-medium transition-all">
+            <TrendingUp className="h-4 w-4 md:h-5 md:w-5" />
+            <span className="hidden sm:inline">Análisis de Padrinos</span>
+            <span className="sm:hidden">An. Padrinos</span>
           </TabsTrigger>
         </TabsList>
         
