@@ -24,8 +24,12 @@ export const usePasswordResetRequest = () => {
     try {
       console.log("Solicitando restablecimiento para:", email);
       
+      // Actualizar la URL de redirección para que coincida exactamente con la URL de origen
+      const redirectUrl = `${window.location.origin}/password-reset`;
+      console.log("URL de redirección configurada:", redirectUrl);
+      
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/password-reset`
+        redirectTo: redirectUrl
       });
       
       if (error) throw error;

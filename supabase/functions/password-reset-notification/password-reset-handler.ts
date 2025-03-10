@@ -48,9 +48,11 @@ export const handlePasswordReset = async (
     const data = await response.json();
     console.log("Successfully requested reset token from Supabase");
 
-    // Let Supabase handle the full reset flow instead of building a custom URL
-    // This ensures the reset token is properly handled
-    const htmlContent = getResetEmailContent(`${resetLink}?token=${data.token}`);
+    // Asegurar que la URL de redirección sea correcta
+    const resetUrl = `${resetLink}?token=${data.token}`;
+    console.log("Reset URL generated:", resetUrl);
+    
+    const htmlContent = getResetEmailContent(resetUrl);
     
     const { success, result, error } = await sendEmail(
       email,
