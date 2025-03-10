@@ -7,9 +7,9 @@ import { usePasswordReset } from "@/hooks/usePasswordReset";
 import { PasswordRequestForm } from "@/components/auth/password-reset/PasswordRequestForm";
 import { PasswordResetForm } from "@/components/auth/password-reset/PasswordResetForm";
 import { ErrorMessage } from "@/components/auth/password-reset/ErrorMessage";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertCircle, RefreshCw } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { useEffect } from "react";
 
 const PasswordReset = () => {
   const {
@@ -28,7 +28,8 @@ const PasswordReset = () => {
     searchParams,
     navigate,
     isTokenValid,
-    tokenChecked
+    tokenChecked,
+    forceRequestMode
   } = usePasswordReset();
 
   // Determine if we need to show the email field in the reset form
@@ -37,6 +38,18 @@ const PasswordReset = () => {
                          searchParams.get("code") && 
                          !searchParams.get("token") &&
                          !searchParams.get("email");
+  
+  // Log the current state for debugging
+  useEffect(() => {
+    console.log("Password Reset Page State:", {
+      mode,
+      tokenChecked,
+      isTokenValid,
+      forceRequestMode,
+      error,
+      success
+    });
+  }, [mode, tokenChecked, isTokenValid, forceRequestMode, error, success]);
 
   // Show loading indicator while checking token validity
   if (!tokenChecked) {
@@ -94,19 +107,29 @@ const PasswordReset = () => {
             />
           ) : (
             <div className="space-y-4">
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  El enlace de recuperación ha expirado. Por favor solicita uno nuevo.
+              <Alert variant="destructive" className="border-destructive bg-destructive/10">
+                <AlertCircle className="h-4 w-4 text-destructive" />
+                <AlertDescription className="text-destructive">
+                  El enlace de recuperación ha expirado o es inválido. Por favor solicita uno nuevo.
                 </AlertDescription>
               </Alert>
+              
+              {/* Destacar más el botón de solicitar nuevo enlace */}
               <Button
                 variant="default"
-                className="w-full"
+                className="w-full gap-2"
                 onClick={() => navigate("/password-reset")}
               >
+                <RefreshCw className="h-4 w-4" />
                 Solicitar un nuevo enlace
               </Button>
+              
+              {/* Agregar campo de correo para facilitar la solicitud */}
+              {email && (
+                <div className="mt-4 text-center text-sm text-muted-foreground">
+                  <p>Tu correo registrado: <strong>{email}</strong></p>
+                </div>
+              )}
             </div>
           )}
         </CardContent>

@@ -32,8 +32,8 @@ export const usePasswordResetMode = () => {
       const errorDescription = searchParams.get("error_description");
       
       console.log("Verificando parámetros de URL:");
-      console.log("Token:", token);
-      console.log("Code:", code);
+      console.log("Token:", token ? "Present" : "Not present");
+      console.log("Code:", code ? "Present" : "Not present");
       console.log("Type:", type);
       console.log("Error:", errorParam);
       console.log("Error Description:", errorDescription);
@@ -107,7 +107,7 @@ export const usePasswordResetMode = () => {
             return;
           }
           
-          // Check if code matches OTP pattern (generally UUID format)
+          // Check if code looks like a UUID (OTP format)
           const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
           if (code && uuidPattern.test(code)) {
             console.log("Código parece válido por formato");
@@ -116,6 +116,31 @@ export const usePasswordResetMode = () => {
             console.log("Formato de código inválido");
             setError("El enlace de recuperación es inválido. Por favor solicita uno nuevo.");
             setIsTokenValid(false);
+          }
+          
+          // Attempt to verify if the code is valid
+          try {
+            // We only try this to see if the code is valid, without committing to a password change yet
+            const { error: verifyError } = await supabase.auth.verifyOtp({
+              email: searchParams.get("email") || "",
+              token: code,
+              type: 'recovery',
+            }, { shouldUpdateSession: false });
+            
+            if (verifyError) {
+              if (verifyError.message && (
+                verifyError.message.includes("token has expired") || 
+                verifyError.message.includes("token is invalid") ||
+                verifyError.message.includes("otp_expired")
+              )) {
+                console.log("Token expirado o inválido durante verificación previa");
+                setError("El enlace de recuperación ha expirado. Por favor solicita uno nuevo.");
+                setIsTokenValid(false);
+              }
+            }
+          } catch (e) {
+            // Just log the error, we'll proceed anyway since the real verification happens later
+            console.log("Error en verificación previa:", e);
           }
           
           setTokenChecked(true);

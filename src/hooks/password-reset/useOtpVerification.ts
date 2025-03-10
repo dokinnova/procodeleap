@@ -31,10 +31,14 @@ export const useOtpVerification = () => {
       if (verifyError) {
         console.error("Error al verificar OTP:", verifyError);
         
+        // Check for specific error types that indicate expired or invalid tokens
         if (verifyError.message && (
           verifyError.message.includes("expired") || 
           verifyError.message.includes("invalid") ||
-          verifyError.message.includes("not found")
+          verifyError.message.includes("not found") ||
+          verifyError.message.includes("token has expired") ||
+          verifyError.message.includes("token is invalid") ||
+          verifyError.message.includes("otp_expired")
         )) {
           return { 
             success: false, 
@@ -58,6 +62,21 @@ export const useOtpVerification = () => {
       return { success: true, error: null, session: data.session };
     } catch (err: any) {
       console.error("Error en verificación OTP:", err);
+      
+      // Check if the error message indicates an expired token
+      if (err.message && (
+        err.message.includes("expired") || 
+        err.message.includes("invalid") ||
+        err.message.includes("token has expired") ||
+        err.message.includes("token is invalid")
+      )) {
+        return { 
+          success: false, 
+          error: "El enlace de recuperación ha expirado. Por favor solicita uno nuevo.", 
+          session: null 
+        };
+      }
+      
       return { 
         success: false, 
         error: err.message || "Error desconocido al verificar el código", 
