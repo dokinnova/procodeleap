@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -11,33 +11,37 @@ interface AuthProviderProps {
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast: uiToast } = useToast();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     console.log('AuthProvider: Initializing...');
+    let mounted = true;
     
     // Check if we already have an active session
     const checkExistingSession = async () => {
       try {
+        if (!mounted) return;
+        
         setLoading(true);
         const { data, error } = await supabase.auth.getSession();
         
         if (error) {
           console.error('AuthProvider: Error checking session:', error);
-          setLoading(false);
+          if (mounted) setLoading(false);
           return;
         }
         
-        if (data?.session) {
+        if (data?.session && location.pathname === '/auth') {
           console.log('AuthProvider: Existing session detected, redirecting to home');
           navigate('/', { replace: true });
         }
         
-        setLoading(false);
+        if (mounted) setLoading(false);
       } catch (err) {
         console.error('AuthProvider: Unexpected error:', err);
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
     };
     
@@ -48,6 +52,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('AuthProvider: Auth state change:', event);
       
+      if (!mounted) return;
+
       if (event === 'SIGNED_IN' && session) {
         console.log('AuthProvider: User authenticated, redirecting to home');
         toast("Welcome", {
@@ -73,9 +79,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     return () => {
       console.log('AuthProvider: Cleaning up subscription');
+      mounted = false;
       subscription.unsubscribe();
     };
-  }, [navigate, uiToast]);
+  }, [navigate, uiToast, location.pathname]);
 
   if (loading) {
     return (

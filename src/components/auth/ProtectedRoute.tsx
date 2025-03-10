@@ -15,44 +15,56 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     console.log('ProtectedRoute: Checking session...');
-    let isMounted = true;
+    let mounted = true;
     
     const checkSession = async () => {
       try {
-        // Clear previous session state
-        if (isMounted) setLoading(true);
+        if (!mounted) return;
+        setLoading(true);
         
         const { data, error } = await supabase.auth.getSession();
         
         if (error) {
           console.error('ProtectedRoute: Error checking session:', error);
-          if (isMounted) {
+          if (mounted) {
             setSession(null);
-            uiToast({
-              title: "Authentication Error",
-              description: "Please sign in again.",
-              variant: "destructive",
-            });
+            setLoading(false);
+            if (location.pathname !== '/auth') {
+              navigate('/auth', { replace: true });
+            }
           }
-        } else if (!data.session) {
+          return;
+        }
+        
+        if (!data.session) {
           console.log('ProtectedRoute: No session found');
-          if (isMounted) setSession(null);
-        } else {
-          console.log('ProtectedRoute: Session found:', data.session ? "Present" : "Not present");
-          if (isMounted) setSession(data.session);
+          if (mounted) {
+            setSession(null);
+            setLoading(false);
+            if (location.pathname !== '/auth') {
+              navigate('/auth', { replace: true });
+            }
+          }
+          return;
+        }
+        
+        console.log('ProtectedRoute: Session found');
+        if (mounted) {
+          setSession(data.session);
+          setLoading(false);
+          if (location.pathname === '/auth') {
+            navigate('/', { replace: true });
+          }
         }
       } catch (error: any) {
         console.error('ProtectedRoute: Error:', error);
-        if (isMounted) {
+        if (mounted) {
           setSession(null);
-          uiToast({
-            title: "Unexpected Error",
-            description: "An error occurred checking your session.",
-            variant: "destructive",
-          });
+          setLoading(false);
+          if (location.pathname !== '/auth') {
+            navigate('/auth', { replace: true });
+          }
         }
-      } finally {
-        if (isMounted) setLoading(false);
       }
     };
 
@@ -63,6 +75,8 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     } = supabase.auth.onAuthStateChange(async (event, newSession) => {
       console.log('ProtectedRoute: Auth state change:', event);
       
+      if (!mounted) return;
+
       if (event === 'SIGNED_OUT') {
         toast("Session ended", {
           description: "You have been signed out.",
@@ -71,29 +85,24 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
         if (location.pathname !== '/auth' && 
             location.pathname !== '/password-reset' && 
             !location.pathname.startsWith('/auth/callback')) {
-          navigate('/auth');
+          navigate('/auth', { replace: true });
         }
-      } else if (event === 'PASSWORD_RECOVERY') {
-        navigate('/password-reset');
-      } else if (event === 'USER_UPDATED') {
-        toast("Profile updated", {
-          description: "Your profile has been updated successfully.",
-        });
       } else if (event === 'SIGNED_IN') {
-        toast("Session started", {
-          description: "You have successfully signed in.",
-        });
+        setSession(newSession);
+        if (location.pathname === '/auth') {
+          navigate('/', { replace: true });
+        }
       }
       
-      if (isMounted) setSession(newSession);
+      if (mounted) setSession(newSession);
     });
 
     return () => {
       console.log('ProtectedRoute: Cleaning up subscription');
-      isMounted = false;
+      mounted = false;
       subscription.unsubscribe();
     };
-  }, [navigate, uiToast, location]);
+  }, [navigate, uiToast, location.pathname]);
 
   if (loading) {
     return (
@@ -103,7 +112,7 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
-  if (!session) {
+  if (!session && location.pathname !== '/auth') {
     return (
       <div className="min-h-screen bg-gray-100 flex flex-col justify-center">
         <div className="max-w-md mx-auto w-full px-4">
