@@ -15,11 +15,7 @@ export const DashboardHeader = () => {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session) {
-        // If no session, just redirect to auth page
-        toast({
-          title: "Sesión finalizada",
-          description: "No hay sesión activa",
-        });
+        // Si no hay sesión, simplemente redirigir sin mostrar mensaje
         navigate("/auth", { replace: true });
         return;
       }

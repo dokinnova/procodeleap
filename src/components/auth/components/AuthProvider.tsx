@@ -39,7 +39,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('AuthProvider: Cambio de estado de auth:', event);
       
-      if (event === 'SIGNED_IN' && session) {
+      // Solo mostrar mensaje y redirigir si el usuario inicia sesión manualmente
+      // No mostrar mensajes en la carga inicial de la página de auth
+      if (event === 'SIGNED_IN' && session && location.pathname !== '/auth') {
         console.log('AuthProvider: Usuario conectado, redireccionando a inicio');
         toast({
           title: "Sesión iniciada",
