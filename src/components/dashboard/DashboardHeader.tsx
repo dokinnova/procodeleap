@@ -4,51 +4,52 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { toast } from "sonner";
-import { useState } from "react";
 
 export const DashboardHeader = () => {
   const navigate = useNavigate();
-  const { toast: uiToast } = useToast();
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const { toast } = useToast();
 
   const handleLogout = async () => {
-    if (isLoggingOut) return;
-    
     try {
-      setIsLoggingOut(true);
-      console.log("Attempting to sign out...");
+      // First check if we have a session
+      const { data: { session } } = await supabase.auth.getSession();
       
-      // Sign out
+      if (!session) {
+        // If no session, just redirect to auth page
+        toast({
+          title: "Sesión finalizada",
+          description: "No hay sesión activa",
+        });
+        navigate("/auth", { replace: true });
+        return;
+      }
+      
+      // If we have a session, try to sign out
       const { error } = await supabase.auth.signOut();
       
       if (error) {
         console.error("Error during signOut:", error);
-        toast("Error al cerrar sesión", {
-          description: error.message,
-        });
-        setIsLoggingOut(false);
-        return;
+        throw error;
       }
 
       // Show success toast
-      toast("Sesión cerrada", {
-        description: "Has cerrado sesión correctamente",
+      toast({
+        title: "Sesión cerrada",
+        description: "Has cerrado sesión exitosamente",
       });
 
-      // Navigate to auth page
-      console.log("Signed out successfully, redirecting to auth page");
+      // Force navigation to login
       navigate("/auth", { replace: true });
-    } catch (error: any) {
-      console.error("Error signing out:", error);
-      toast("Error", {
-        description: "No se pudo cerrar sesión correctamente.",
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo cerrar la sesión correctamente. Redirigiendo al inicio de sesión.",
+        variant: "destructive",
       });
       
-      // Even if there's an error, try to redirect to auth page
+      // Even if there's an error, redirect to auth page
       navigate("/auth", { replace: true });
-    } finally {
-      setIsLoggingOut(false);
     }
   };
 
@@ -64,11 +65,10 @@ export const DashboardHeader = () => {
         variant="outline" 
         onClick={handleLogout}
         size="sm"
-        disabled={isLoggingOut}
         className="flex items-center gap-2 border-violet-200 hover:bg-violet-50"
       >
         <LogOut className="h-4 w-4 text-violet-600" />
-        {isLoggingOut ? "Cerrando..." : "Cerrar sesión"}
+        Cerrar sesión
       </Button>
     </div>
   );

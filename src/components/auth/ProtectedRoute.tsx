@@ -1,63 +1,92 @@
-
 import { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { AuthLoading } from "./components/AuthLoading";
-import { AuthRequired } from "./components/AuthRequired";
+import { AuthForm } from "./AuthForm";
+import { useToast } from "@/hooks/use-toast";
 
 export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
-  const location = useLocation();
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  
+  const { toast } = useToast();
+
   useEffect(() => {
-    const checkAuth = async () => {
+    console.log('ProtectedRoute: Checking session...');
+    
+    const checkSession = async () => {
       try {
-        setLoading(true);
-        const { data, error } = await supabase.auth.getSession();
+        const { data: { session: currentSession }, error } = await supabase.auth.getSession();
         
         if (error) {
-          console.error("Error verificando sesión en ProtectedRoute:", error);
+          console.error('ProtectedRoute: Error checking session:', error);
           setSession(null);
-          setLoading(false);
-          return;
-        }
-        
-        if (!data.session) {
-          console.log("No hay sesión en ProtectedRoute, mostrando AuthRequired");
+          toast({
+            title: "Error de autenticación",
+            description: "Por favor, inicia sesión de nuevo.",
+            variant: "destructive",
+          });
+        } else if (!currentSession) {
+          console.log('ProtectedRoute: No session found');
           setSession(null);
         } else {
-          console.log("Sesión válida en ProtectedRoute");
-          setSession(data.session);
+          console.log('ProtectedRoute: Session found:', currentSession);
+          setSession(currentSession);
         }
-        
-        setLoading(false);
-      } catch (error) {
-        console.error("Error inesperado en ProtectedRoute:", error);
+      } catch (error: any) {
+        console.error('ProtectedRoute: Error:', error);
         setSession(null);
+        toast({
+          title: "Error inesperado",
+          description: "Ha ocurrido un error al verificar tu sesión.",
+          variant: "destructive",
+        });
+      } finally {
         setLoading(false);
       }
     };
-    
-    checkAuth();
-    
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      setSession(newSession);
+
+    checkSession();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      console.log('ProtectedRoute: Auth state changed:', _event);
+      if (_event === 'SIGNED_OUT') {
+        toast({
+          title: "Sesión cerrada",
+          description: "Has cerrado sesión correctamente.",
+        });
+      }
+      setSession(session);
     });
-    
+
     return () => {
+      console.log('ProtectedRoute: Cleaning up subscription');
       subscription.unsubscribe();
     };
-  }, [navigate, location.pathname]);
-  
+  }, [navigate, toast]);
+
   if (loading) {
-    return <AuthLoading />;
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
   }
-  
+
   if (!session) {
-    return <AuthRequired />;
+    return (
+      <div className="min-h-screen bg-gray-100 flex flex-col justify-center">
+        <div className="max-w-md mx-auto w-full px-4">
+          <div className="mb-8 text-center">
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">COPRODELI</h1>
+            <p className="text-gray-600">Inicia sesión para continuar</p>
+          </div>
+          <AuthForm />
+        </div>
+      </div>
+    );
   }
-  
+
   return <>{children}</>;
 };

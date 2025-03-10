@@ -1,32 +1,12 @@
 
-import { useEffect } from "react";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
 
 export const AuthFormWrapper = () => {
   const { toast } = useToast();
-  const navigate = useNavigate();
   const redirectTo = `${window.location.origin}/auth/callback`;
-
-  // Handle "Forgot password" navigation via useEffect instead of onViewChange
-  useEffect(() => {
-    // Add event listener for Auth UI view changes
-    const handleViewChange = (event: CustomEvent<{ view: string }>) => {
-      if (event.detail.view === 'forgotten_password') {
-        navigate('/password-reset');
-      }
-    };
-
-    // Listen for view change events from Auth UI
-    document.addEventListener('supabaseAuthViewChange', handleViewChange as EventListener);
-
-    return () => {
-      document.removeEventListener('supabaseAuthViewChange', handleViewChange as EventListener);
-    };
-  }, [navigate]);
 
   return (
     <Auth
@@ -66,8 +46,7 @@ export const AuthFormWrapper = () => {
             email_input_placeholder: 'Tu correo electrónico',
             button_label: 'Enviar instrucciones',
             loading_button_label: 'Enviando instrucciones...',
-            link_text: '¿Olvidaste tu contraseña?',
-            confirmation_text: 'Revisa tu correo electrónico para obtener el enlace de recuperación de contraseña'
+            link_text: '¿Olvidaste tu contraseña?'
           },
           sign_up: {
             link_text: '',
