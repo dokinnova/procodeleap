@@ -1,152 +1,32 @@
 
-import { useState, useEffect } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { toast } from "sonner";
 import { AuthLogo } from "@/components/auth/components/AuthLogo";
 import { AuthContainer } from "@/components/auth/components/AuthContainer";
+import { usePasswordReset } from "@/hooks/usePasswordReset";
+import { PasswordRequestForm } from "@/components/auth/password-reset/PasswordRequestForm";
+import { PasswordResetForm } from "@/components/auth/password-reset/PasswordResetForm";
+import { ErrorMessage } from "@/components/auth/password-reset/ErrorMessage";
 
 const PasswordReset = () => {
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [mode, setMode] = useState<"request" | "reset">("request");
-  const [email, setEmail] = useState("");
-  const [session, setSession] = useState(null);
+  const {
+    mode,
+    email,
+    setEmail,
+    password,
+    setPassword,
+    confirmPassword,
+    setConfirmPassword,
+    loading,
+    error,
+    session,
+    handleRequestPasswordReset,
+    handleUpdatePassword,
+    searchParams,
+    navigate
+  } = usePasswordReset();
 
-  useEffect(() => {
-    // Check if we have a token or code in the URL parameters
-    const token = searchParams.get("token");
-    const code = searchParams.get("code");
-    
-    if (token || code) {
-      setMode("reset");
-      
-      // If we have a code from Supabase but not a token, handle that scenario
-      if (code && !token) {
-        const handleSupabaseCode = async () => {
-          try {
-            // Check if we already have a session (user is already authenticated)
-            const { data: { session: currentSession } } = await supabase.auth.getSession();
-            
-            if (currentSession) {
-              // User is already authenticated, we can proceed with password reset
-              setSession(currentSession);
-              return;
-            }
-            
-            // If no valid email is provided with the code, we can't verify the OTP
-            // The user will need to enter their email to continue
-            toast.info("Por favor ingresa tu correo electrónico para verificar tu identidad");
-            
-            // Note: At this point, the user will need to provide their email in the form
-            // When they submit the form, we'll handle the OTP verification in handleUpdatePassword
-            
-          } catch (err) {
-            console.error("Error al verificar la sesión:", err);
-            toast.error("Ocurrió un error al procesar tu solicitud");
-            setError("Ocurrió un error al procesar tu solicitud");
-          }
-        };
-        
-        handleSupabaseCode();
-      }
-    } else {
-      setMode("request");
-    }
-  }, [searchParams]);
-
-  const handleRequestPasswordReset = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    
-    if (!email) {
-      setError("Por favor ingresa tu correo electrónico");
-      return;
-    }
-
-    setLoading(true);
-    
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/password-reset`,
-      });
-      
-      if (error) {
-        throw error;
-      }
-      
-      toast.success("Se ha enviado un enlace de recuperación a tu correo electrónico");
-      // Don't navigate away, just show a success message
-    } catch (err: any) {
-      console.error("Error al solicitar restablecimiento de contraseña:", err);
-      setError(err.message || "Error al solicitar restablecimiento de contraseña");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleUpdatePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    
-    if (password !== confirmPassword) {
-      setError("Las contraseñas no coinciden");
-      return;
-    }
-    
-    if (password.length < 6) {
-      setError("La contraseña debe tener al menos 6 caracteres");
-      return;
-    }
-
-    setLoading(true);
-    
-    try {
-      // Check if we have a code from the URL
-      const code = searchParams.get("code");
-      
-      // If we have a code and email but no session, we need to verify the OTP first
-      if (code && email && !session) {
-        const { error: verifyError } = await supabase.auth.verifyOtp({
-          email,
-          token: code,
-          type: 'recovery',
-        });
-        
-        if (verifyError) {
-          throw verifyError;
-        }
-      }
-      
-      // Now update the password
-      const { error } = await supabase.auth.updateUser({
-        password: password
-      });
-      
-      if (error) {
-        throw error;
-      }
-      
-      toast.success("Contraseña actualizada correctamente");
-      // Redirect to login after successful password reset
-      setTimeout(() => {
-        navigate("/auth");
-      }, 2000);
-    } catch (err: any) {
-      console.error("Error al actualizar contraseña:", err);
-      setError(err.message || "Error al actualizar contraseña");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const showEmailField = searchParams.get("code") && !session && !searchParams.get("token");
 
   return (
     <AuthContainer>
@@ -165,75 +45,27 @@ const PasswordReset = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {error && (
-            <div className="bg-destructive/15 text-destructive text-sm p-3 rounded-md mb-4">
-              {error}
-            </div>
-          )}
+          <ErrorMessage error={error} />
           
           {mode === "request" ? (
-            <form onSubmit={handleRequestPasswordReset} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Correo electrónico</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="tu@correo.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={loading}
-                  required
-                />
-              </div>
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Enviando..." : "Enviar enlace de recuperación"}
-              </Button>
-            </form>
+            <PasswordRequestForm
+              email={email}
+              setEmail={setEmail}
+              loading={loading}
+              onSubmit={handleRequestPasswordReset}
+            />
           ) : (
-            <form onSubmit={handleUpdatePassword} className="space-y-4">
-              {/* If we have a code but no session and no token, show email field */}
-              {searchParams.get("code") && !session && !searchParams.get("token") && (
-                <div className="space-y-2">
-                  <Label htmlFor="reset-email">Correo electrónico</Label>
-                  <Input
-                    id="reset-email"
-                    type="email"
-                    placeholder="tu@correo.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    disabled={loading}
-                    required
-                  />
-                </div>
-              )}
-              <div className="space-y-2">
-                <Label htmlFor="password">Nueva contraseña</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="********"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={loading}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirmar contraseña</Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  placeholder="********"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  disabled={loading}
-                  required
-                />
-              </div>
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Actualizando..." : "Actualizar contraseña"}
-              </Button>
-            </form>
+            <PasswordResetForm
+              email={email}
+              setEmail={setEmail}
+              password={password}
+              setPassword={setPassword}
+              confirmPassword={confirmPassword}
+              setConfirmPassword={setConfirmPassword}
+              loading={loading}
+              onSubmit={handleUpdatePassword}
+              showEmailField={!!showEmailField}
+            />
           )}
         </CardContent>
         <CardFooter>
