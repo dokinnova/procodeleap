@@ -1,3 +1,4 @@
+
 // Helper function to convert location string to coordinates
 export const getCoordinatesFromLocation = (location: string): { lat: number; lng: number } | null => {
   // This is a placeholder implementation
@@ -60,6 +61,13 @@ export const loadGoogleMapsScript = (
         extend() {}
       }
       
+      // Add the missing MockLatLng class
+      class MockLatLng {
+        constructor(lat: number, lng: number) {}
+        lat() { return 0; }
+        lng() { return 0; }
+      }
+      
       // Create the mock SymbolPath enum with all required properties
       const MockSymbolPath = {
         CIRCLE: 0,
@@ -81,6 +89,7 @@ export const loadGoogleMapsScript = (
           Marker: MockMarker as unknown as typeof google.maps.Marker,
           InfoWindow: MockInfoWindow as unknown as typeof google.maps.InfoWindow,
           LatLngBounds: MockLatLngBounds as unknown as typeof google.maps.LatLngBounds,
+          LatLng: MockLatLng as unknown as typeof google.maps.LatLng,
           SymbolPath: MockSymbolPath as unknown as typeof google.maps.SymbolPath,
           event: MockEvent as unknown as typeof google.maps.event
         }
