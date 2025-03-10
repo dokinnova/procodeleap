@@ -30,9 +30,9 @@ export const PasswordResetForm: React.FC<PasswordResetFormProps> = ({
     <form onSubmit={onSubmit} className="space-y-4">
       {showEmailField && (
         <div className="space-y-2">
-          <Label htmlFor="reset-email">Correo electrónico</Label>
+          <Label htmlFor="email">Correo electrónico</Label>
           <Input
-            id="reset-email"
+            id="email"
             type="email"
             placeholder="tu@correo.com"
             value={email}
@@ -47,7 +47,7 @@ export const PasswordResetForm: React.FC<PasswordResetFormProps> = ({
         <Input
           id="password"
           type="password"
-          placeholder="********"
+          placeholder="••••••••"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           disabled={loading}
@@ -59,7 +59,7 @@ export const PasswordResetForm: React.FC<PasswordResetFormProps> = ({
         <Input
           id="confirmPassword"
           type="password"
-          placeholder="********"
+          placeholder="••••••••"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
           disabled={loading}

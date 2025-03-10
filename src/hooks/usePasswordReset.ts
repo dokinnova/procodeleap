@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,30 +16,23 @@ export const usePasswordReset = () => {
   const [session, setSession] = useState(null);
 
   useEffect(() => {
-    // Check if we have a token or code in the URL parameters
     const token = searchParams.get("token");
     const code = searchParams.get("code");
     
     if (token || code) {
       setMode("reset");
       
-      // If we have a code from Supabase but not a token, handle that scenario
       if (code && !token) {
         const handleSupabaseCode = async () => {
           try {
-            // Check if we already have a session (user is already authenticated)
             const { data: { session: currentSession } } = await supabase.auth.getSession();
             
             if (currentSession) {
-              // User is already authenticated, we can proceed with password reset
               setSession(currentSession);
               return;
             }
             
-            // If no valid email is provided with the code, we can't verify the OTP
-            // The user will need to enter their email to continue
             toast.info("Por favor ingresa tu correo electrónico para verificar tu identidad");
-            
           } catch (err) {
             console.error("Error al verificar la sesión:", err);
             toast.error("Ocurrió un error al procesar tu solicitud");
@@ -77,11 +69,10 @@ export const usePasswordReset = () => {
       }
       
       toast.success("Se ha enviado un enlace de recuperación a tu correo electrónico");
-      setSuccess("Revisa tu correo electrónico para el enlace de restablecimiento de contraseña");
-      // Don't navigate away, just show a success message
+      setSuccess("Se ha enviado un enlace de recuperación a tu correo electrónico. Por favor revisa tu bandeja de entrada.");
     } catch (err: any) {
       console.error("Error al solicitar restablecimiento de contraseña:", err);
-      setError(err.message || "Error al solicitar restablecimiento de contraseña");
+      setError("Ocurrió un error al solicitar el restablecimiento de contraseña");
     } finally {
       setLoading(false);
     }
@@ -105,10 +96,8 @@ export const usePasswordReset = () => {
     setLoading(true);
     
     try {
-      // Check if we have a code from the URL
       const code = searchParams.get("code");
       
-      // If we have a code and email but no session, we need to verify the OTP first
       if (code && email && !session) {
         const { error: verifyError } = await supabase.auth.verifyOtp({
           email,
@@ -121,7 +110,6 @@ export const usePasswordReset = () => {
         }
       }
       
-      // Now update the password
       const { error } = await supabase.auth.updateUser({
         password: password
       });
@@ -130,15 +118,14 @@ export const usePasswordReset = () => {
         throw error;
       }
       
-      toast.success("Contraseña actualizada correctamente");
-      setSuccess("¡Tu contraseña ha sido actualizada correctamente!");
-      // Redirect to login after successful password reset
+      toast.success("¡Tu contraseña ha sido actualizada correctamente!");
+      setSuccess("¡Tu contraseña ha sido actualizada correctamente! Serás redirigido al inicio de sesión.");
       setTimeout(() => {
         navigate("/auth");
       }, 2000);
     } catch (err: any) {
       console.error("Error al actualizar contraseña:", err);
-      setError(err.message || "Error al actualizar contraseña");
+      setError("Ocurrió un error al actualizar la contraseña");
     } finally {
       setLoading(false);
     }
