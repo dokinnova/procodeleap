@@ -14,6 +14,11 @@ interface PasswordResetRequest {
   resetLink: string;
 }
 
+interface PasswordChangeConfirmation {
+  email: string;
+  type: "confirmation";
+}
+
 const handler = async (req: Request): Promise<Response> => {
   console.log("Password reset notification function triggered");
   
@@ -31,7 +36,53 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`RESEND_API_KEY is configured and available`);
     
-    const { email, resetLink }: PasswordResetRequest = await req.json();
+    const requestData = await req.json();
+    const { type } = requestData;
+
+    // Handle password change confirmation email
+    if (type === "confirmation") {
+      const { email } = requestData as PasswordChangeConfirmation;
+      console.log(`Sending password change confirmation to ${email}`);
+
+      const confirmationEmailContent = `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+          <h1 style="color: #8B5CF6; margin-bottom: 24px;">Contraseña actualizada</h1>
+          <p style="margin-bottom: 16px;">Tu contraseña ha sido actualizada exitosamente.</p>
+          <p style="margin-bottom: 16px;">Si no realizaste este cambio, por favor contacta con soporte inmediatamente.</p>
+          <p style="color: #6B7280; font-size: 14px; margin-top: 32px;">Este es un mensaje automático, por favor no respondas a este correo.</p>
+        </div>
+      `;
+
+      const emailResponse = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${RESEND_API_KEY}`,
+        },
+        body: JSON.stringify({
+          from: "noreply@tuaplicacion.com",
+          to: [email],
+          subject: "Tu contraseña ha sido actualizada",
+          html: confirmationEmailContent,
+        }),
+      });
+
+      console.log(`Confirmation email response status: ${emailResponse.status}`);
+      const result = await emailResponse.json();
+      
+      if (!emailResponse.ok) {
+        console.error(`Error sending confirmation email to ${email}:`, result);
+        throw new Error(result.message || "Error sending confirmation email");
+      }
+      
+      console.log(`Password change confirmation email sent successfully to ${email}`);
+      return new Response(JSON.stringify({ success: true, result }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Handle password reset request email
+    const { email, resetLink } = requestData as PasswordResetRequest;
     
     if (!email) {
       throw new Error("No email provided");

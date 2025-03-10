@@ -39,6 +39,22 @@ export const usePasswordUpdateSubmit = () => {
         
         throw updateError;
       }
+
+      // Send confirmation email
+      try {
+        const { error: notificationError } = await supabase.functions.invoke("password-reset-notification", {
+          body: { 
+            email: sessionData?.session?.user?.email,
+            type: "confirmation"
+          }
+        });
+
+        if (notificationError) {
+          console.error("Error al enviar correo de confirmación:", notificationError);
+        }
+      } catch (emailError) {
+        console.error("Error al enviar correo de confirmación:", emailError);
+      }
       
       console.log("Contraseña actualizada exitosamente");
       toast.success("¡Tu contraseña ha sido actualizada correctamente!");
