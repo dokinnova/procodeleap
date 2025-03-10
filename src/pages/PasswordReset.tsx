@@ -20,14 +20,17 @@ const PasswordReset = () => {
     loading,
     error,
     success,
-    session,
     handleRequestPasswordReset,
     handleUpdatePassword,
     searchParams,
     navigate
   } = usePasswordReset();
 
-  const showEmailField = searchParams.get("code") && !session && !searchParams.get("token");
+  // Determine if we need to show the email field in the reset form
+  // This is needed when we have a code but no session
+  const showEmailField = mode === "reset" && 
+                         searchParams.get("code") && 
+                         !searchParams.get("token");
 
   return (
     <AuthContainer>
@@ -65,7 +68,7 @@ const PasswordReset = () => {
               setConfirmPassword={setConfirmPassword}
               loading={loading}
               onSubmit={handleUpdatePassword}
-              showEmailField={!!showEmailField}
+              showEmailField={showEmailField}
             />
           )}
         </CardContent>
