@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -91,11 +92,27 @@ const App = () => {
               (window.location.search.includes('type=recovery') || 
                window.location.search.includes('code=')) ? 
                 <Navigate to={`/reset-password${window.location.search}`} replace /> : 
-                <Navigate to="/" replace />
+                <ProtectedRoute>
+                  <div className="flex min-h-screen bg-gradient-to-br from-background to-secondary/50">
+                    <Navigation 
+                      isMobileMenuOpen={isMobileMenuOpen} 
+                      setIsMobileMenuOpen={setIsMobileMenuOpen} 
+                    />
+                    <main 
+                      className={`flex-1 transition-all duration-300 ease-in-out
+                        ${isMobileMenuOpen ? 'ml-0' : 'ml-0 md:ml-64'} 
+                        p-4 md:p-8 overflow-auto`}
+                    >
+                      <div className="max-w-7xl mx-auto space-y-8">
+                        <Index />
+                      </div>
+                    </main>
+                  </div>
+                </ProtectedRoute>
             } />
             
-            {/* Root route with protected routes */}
-            <Route path="/" element={
+            {/* Protected routes */}
+            <Route path="/*" element={
               <ProtectedRoute>
                 <div className="flex min-h-screen bg-gradient-to-br from-background to-secondary/50">
                   <Navigation 
@@ -109,7 +126,6 @@ const App = () => {
                   >
                     <div className="max-w-7xl mx-auto space-y-8">
                       <Routes>
-                        <Route path="/" element={<Index />} />
                         <Route path="/children" element={<Children />} />
                         <Route path="/sponsors" element={<Sponsors />} />
                         <Route path="/management" element={<Management />} />

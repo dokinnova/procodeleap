@@ -1,3 +1,4 @@
+
 import { Card, CardContent } from "@/components/ui/card";
 import { AuthContainer } from "./components/AuthContainer";
 import { AuthProvider } from "./components/AuthProvider";
@@ -11,7 +12,9 @@ export const AuthForm = () => {
         <Card className="w-full max-w-md">
           <CardContent className="pt-6">
             <AuthLogo />
-            <AuthFormWrapper />
+            <div className="w-full">
+              <AuthFormWrapper />
+            </div>
           </CardContent>
         </Card>
       </AuthContainer>

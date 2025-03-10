@@ -67,63 +67,65 @@ export const AuthFormWrapper = () => {
   }, [navigate, toast]);
 
   return (
-    <Auth
-      supabaseClient={supabase}
-      appearance={{
-        theme: ThemeSupa,
-        variables: {
-          default: {
-            colors: {
-              brand: '#0f172a',
-              brandAccent: '#1e293b',
+    <div className="auth-form-container">
+      <Auth
+        supabaseClient={supabase}
+        appearance={{
+          theme: ThemeSupa,
+          variables: {
+            default: {
+              colors: {
+                brand: '#0f172a',
+                brandAccent: '#1e293b',
+              }
+            }
+          },
+          className: {
+            container: 'w-full',
+            button: 'w-full',
+            input: 'rounded-md',
+            message: 'text-sm text-red-600 mb-4'
+          }
+        }}
+        localization={{
+          variables: {
+            sign_in: {
+              email_label: 'Correo electrónico',
+              password_label: 'Contraseña',
+              email_input_placeholder: 'Tu correo electrónico',
+              password_input_placeholder: 'Tu contraseña',
+              button_label: 'Iniciar sesión',
+              loading_button_label: 'Iniciando sesión...',
+              social_provider_text: 'Iniciar sesión con {{provider}}',
+              link_text: '¿Ya tienes una cuenta? Inicia sesión'
+            },
+            forgotten_password: {
+              email_label: 'Correo electrónico',
+              password_label: 'Contraseña',
+              email_input_placeholder: 'Tu correo electrónico',
+              button_label: 'Enviar instrucciones',
+              loading_button_label: 'Enviando instrucciones...',
+              link_text: '¿Olvidaste tu contraseña?',
+              confirmation_text: 'Revisa tu correo electrónico para obtener el enlace de recuperación'
+            },
+            sign_up: {
+              email_label: 'Correo electrónico',
+              password_label: 'Contraseña',
+              email_input_placeholder: 'Tu correo electrónico',
+              password_input_placeholder: 'Tu contraseña',
+              button_label: 'Registrarse',
+              loading_button_label: 'Registrando...',
+              link_text: '¿No tienes una cuenta? Regístrate',
+              confirmation_text: 'Revisa tu correo electrónico para confirmar tu registro'
             }
           }
-        },
-        className: {
-          container: 'w-full',
-          button: 'w-full',
-          input: 'rounded-md',
-          message: 'text-sm text-red-600 mb-4'
-        }
-      }}
-      localization={{
-        variables: {
-          sign_in: {
-            email_label: 'Correo electrónico',
-            password_label: 'Contraseña',
-            email_input_placeholder: 'Tu correo electrónico',
-            password_input_placeholder: 'Tu contraseña',
-            button_label: 'Iniciar sesión',
-            loading_button_label: 'Iniciando sesión...',
-            social_provider_text: 'Iniciar sesión con {{provider}}',
-            link_text: '¿Ya tienes una cuenta? Inicia sesión'
-          },
-          forgotten_password: {
-            email_label: 'Correo electrónico',
-            password_label: 'Contraseña',
-            email_input_placeholder: 'Tu correo electrónico',
-            button_label: 'Enviar instrucciones',
-            loading_button_label: 'Enviando instrucciones...',
-            link_text: '¿Olvidaste tu contraseña?',
-            confirmation_text: 'Revisa tu correo electrónico para obtener el enlace de recuperación'
-          },
-          sign_up: {
-            email_label: 'Correo electrónico',
-            password_label: 'Contraseña',
-            email_input_placeholder: 'Tu correo electrónico',
-            password_input_placeholder: 'Tu contraseña',
-            button_label: 'Registrarse',
-            loading_button_label: 'Registrando...',
-            link_text: '¿No tienes una cuenta? Regístrate',
-            confirmation_text: 'Revisa tu correo electrónico para confirmar tu registro'
-          }
-        }
-      }}
-      theme="light"
-      providers={[]}
-      redirectTo={redirectTo}
-      view="sign_in"
-      showLinks={true}
-    />
+        }}
+        theme="light"
+        providers={[]}
+        redirectTo={redirectTo}
+        view="sign_in"
+        showLinks={true}
+      />
+    </div>
   );
 };
