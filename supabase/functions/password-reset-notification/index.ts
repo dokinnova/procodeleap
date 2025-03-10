@@ -15,67 +15,65 @@ interface PasswordResetRequest {
 }
 
 const handler = async (req: Request): Promise<Response> => {
-  console.log("Función de notificación de restablecimiento de contraseña activada");
+  console.log("Password reset notification function triggered");
   
-  // Manejar solicitudes CORS preflight
+  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
-    console.log("Manejando solicitud OPTIONS");
+    console.log("Handling OPTIONS request");
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Verificar primero la clave API para fallar rápido
     if (!RESEND_API_KEY) {
-      console.error("RESEND_API_KEY no está configurada");
-      throw new Error("El servicio de correo electrónico no está configurado correctamente - Falta RESEND_API_KEY");
+      console.error("RESEND_API_KEY not configured");
+      throw new Error("Email service is not properly configured - Missing RESEND_API_KEY");
     }
 
-    console.log(`RESEND_API_KEY comienza con: ${RESEND_API_KEY.substring(0, 5)}...`);
+    console.log(`RESEND_API_KEY begins with: ${RESEND_API_KEY.substring(0, 5)}...`);
     
     const { email, resetLink }: PasswordResetRequest = await req.json();
     
     if (!email) {
-      throw new Error("No se proporcionó correo electrónico");
+      throw new Error("No email provided");
     }
 
-    console.log(`Enviando correo de restablecimiento de contraseña a ${email}`);
-    console.log(`Link original: ${resetLink}`);
+    console.log(`Sending password reset email to ${email}`);
+    console.log(`Original link: ${resetLink}`);
     
     try {
-      // Extraer el código del resetLink
+      // Extract the code from resetLink
       const url = new URL(resetLink);
       const code = url.searchParams.get('code');
       
       if (!code) {
-        console.error("No se encontró código en el enlace de restablecimiento");
-        throw new Error("Enlace de restablecimiento inválido - No se encontró código");
+        console.error("No code found in reset link");
+        throw new Error("Invalid reset link - No code found");
       }
       
-      console.log(`Código extraído: ${code}`);
+      console.log(`Extracted code: ${code}`);
       
-      // Determinar el origen desde los encabezados de solicitud o URL
+      // Determine origin from request headers or URL
       let origin = req.headers.get('origin');
       
-      // Si el encabezado de origen falta, intentar usar el encabezado X-Forwarded-Host o Host
+      // If origin header is missing, try using X-Forwarded-Host or Host
       if (!origin) {
         const host = req.headers.get('x-forwarded-host') || req.headers.get('host');
         if (host) {
-          // Determinar si la conexión es segura
+          // Determine if connection is secure
           const proto = req.headers.get('x-forwarded-proto') || 'https';
           origin = `${proto}://${host}`;
         } else {
-          // Si todo lo demás falla, extraer el origen del resetLink
+          // If all else fails, extract origin from resetLink
           origin = url.origin;
         }
       }
       
-      console.log(`Origen determinado: ${origin}`);
+      console.log(`Determined origin: ${origin}`);
       
-      // Crear el enlace de restablecimiento formateado correctamente con el código
-      // Asegurarse de que todos los parámetros necesarios estén presentes
+      // Create properly formatted reset link with the code and all necessary parameters
       const formattedResetLink = `${origin}/password-reset?code=${code}&type=recovery&email=${encodeURIComponent(email)}`;
       
-      console.log(`Enlace formateado: ${formattedResetLink}`);
+      console.log(`Formatted link: ${formattedResetLink}`);
       
       const response = await fetch("https://api.resend.com/emails", {
         method: "POST",
@@ -101,24 +99,24 @@ const handler = async (req: Request): Promise<Response> => {
 
       const result = await response.json();
       
-      console.log(`Respuesta completa de la API Resend para ${email}:`, JSON.stringify(result));
+      console.log(`Complete Resend API response for ${email}:`, JSON.stringify(result));
       
       if (!response.ok) {
-        console.error(`Error al enviar a ${email}:`, result);
+        console.error(`Error sending to ${email}:`, result);
         return new Response(JSON.stringify({ success: false, error: result }), {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       
-      console.log(`Correo de restablecimiento de contraseña enviado exitosamente a ${email}:`, result);
+      console.log(`Password reset email sent successfully to ${email}:`, result);
       return new Response(JSON.stringify({ success: true, result }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
       
     } catch (err) {
-      console.error(`Excepción al enviar a ${email}:`, err);
+      console.error(`Exception when sending to ${email}:`, err);
       return new Response(JSON.stringify({ success: false, error: err.message }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -126,7 +124,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
   } catch (error) {
-    console.error("Error en la notificación de restablecimiento de contraseña:", error);
+    console.error("Error in password reset notification:", error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
