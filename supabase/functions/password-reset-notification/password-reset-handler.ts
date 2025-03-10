@@ -24,7 +24,7 @@ export const handlePasswordReset = async (
 
     console.log("Requesting password reset token from Supabase Auth");
 
-    // Make a request to Supabase Auth API to initiate the password reset flow
+    // Make request to Supabase Auth API to get password reset token
     const response = await fetch(`${supabaseUrl}/auth/v1/recover`, {
       method: "POST",
       headers: {
@@ -35,7 +35,7 @@ export const handlePasswordReset = async (
         email,
         gotrue_meta_security: {
           captcha_token: ""
-        },
+        }
       }),
     });
 
@@ -45,20 +45,13 @@ export const handlePasswordReset = async (
       throw new Error(`Supabase Auth error: ${errorData.message || errorData.error || "Unknown error"}`);
     }
 
+    const data = await response.json();
     console.log("Successfully requested reset token from Supabase");
 
-    // Parse the reset link and create a properly formatted URL
-    const url = new URL(resetLink);
-    const origin = url.origin;
-    console.log(`Using origin: ${origin}`);
-
-    // Instead of building a link with just the token, provide a link to our password reset page
-    // This way we can handle the reset process with our custom UI
-    const formattedResetLink = `${origin}/password-reset?type=recovery&email=${encodeURIComponent(email)}`;
-    console.log(`Formatted reset link: ${formattedResetLink}`);
-
-    // Send the email with our custom template in Spanish
-    const htmlContent = getResetEmailContent(formattedResetLink);
+    // Let Supabase handle the full reset flow instead of building a custom URL
+    // This ensures the reset token is properly handled
+    const htmlContent = getResetEmailContent(`${resetLink}?token=${data.token}`);
+    
     const { success, result, error } = await sendEmail(
       email,
       "Restablecimiento de contraseña",

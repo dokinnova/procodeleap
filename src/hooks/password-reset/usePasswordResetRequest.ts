@@ -22,50 +22,16 @@ export const usePasswordResetRequest = () => {
     setLoading(true);
     
     try {
-      // Get the current origin for building the redirect URL
-      const origin = window.location.origin;
-      // It's important to use the full path for password-reset
-      const redirectTo = `${origin}/password-reset`;
+      // Use standard Supabase auth method for password reset
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/password-reset`,
+      });
       
-      console.log("Solicitando restablecimiento de contraseña para:", email);
-      console.log("Redirigiendo a:", redirectTo);
+      if (error) throw error;
       
-      // First try with our custom function
-      try {
-        const functionResponse = await supabase.functions.invoke("password-reset-notification", {
-          body: { email, resetLink: redirectTo }
-        });
-        
-        console.log("Respuesta de función de restablecimiento:", functionResponse);
-        
-        if (functionResponse.error) {
-          throw new Error(functionResponse.error);
-        }
-
-        if (!functionResponse.data.success) {
-          throw new Error(functionResponse.data.error || "Error al enviar el correo de recuperación");
-        }
-        
-        console.log("Correo enviado a través de la función personalizada");
-        toast.success("Se ha enviado un enlace de recuperación a tu correo electrónico");
-        setSuccess("Se ha enviado un enlace de recuperación a tu correo electrónico. Por favor revisa tu bandeja de entrada y spam.");
-        return;
-      } catch (funcError) {
-        console.warn("Error con la función personalizada, usando método estándar:", funcError);
-        
-        // Fallback to standard Supabase method
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: redirectTo,
-        });
-        
-        if (error) {
-          throw error;
-        }
-        
-        console.log("Solicitud de restablecimiento enviada con éxito mediante método estándar");
-        toast.success("Se ha enviado un enlace de recuperación a tu correo electrónico");
-        setSuccess("Se ha enviado un enlace de recuperación a tu correo electrónico. Por favor revisa tu bandeja de entrada y spam.");
-      }
+      console.log("Solicitud de restablecimiento enviada con éxito");
+      toast.success("Se ha enviado un enlace de recuperación a tu correo electrónico");
+      setSuccess("Se ha enviado un enlace de recuperación a tu correo electrónico. Por favor revisa tu bandeja de entrada y spam.");
     } catch (err: any) {
       console.error("Error al solicitar restablecimiento de contraseña:", err);
       
