@@ -8,6 +8,8 @@ import { PasswordRequestForm } from "@/components/auth/password-reset/PasswordRe
 import { PasswordResetForm } from "@/components/auth/password-reset/PasswordResetForm";
 import { ErrorMessage } from "@/components/auth/password-reset/ErrorMessage";
 import { Loader2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 const PasswordReset = () => {
   const {
@@ -33,7 +35,8 @@ const PasswordReset = () => {
   // This is needed when we have a code but no email-to-token verification
   const showEmailField = mode === "reset" && 
                          searchParams.get("code") && 
-                         !searchParams.get("token");
+                         !searchParams.get("token") &&
+                         !searchParams.get("email");
 
   // Show loading indicator while checking token validity
   if (!tokenChecked) {
@@ -90,8 +93,13 @@ const PasswordReset = () => {
               showEmailField={showEmailField}
             />
           ) : (
-            <div className="text-center py-4">
-              <p className="text-red-500 mb-4">El enlace de recuperación es inválido o ha expirado.</p>
+            <div className="space-y-4">
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  El enlace de recuperación ha expirado. Por favor solicita uno nuevo.
+                </AlertDescription>
+              </Alert>
               <Button
                 variant="default"
                 className="w-full"

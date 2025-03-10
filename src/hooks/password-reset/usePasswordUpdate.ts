@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -15,6 +15,15 @@ export const usePasswordUpdate = () => {
   const [email, setEmail] = useState("");
   const [session, setSession] = useState(null);
   const [verificationAttempted, setVerificationAttempted] = useState(false);
+  const [verificationInProgress, setVerificationInProgress] = useState(false);
+
+  // Populate email from URL if available
+  useEffect(() => {
+    const emailParam = searchParams.get("email");
+    if (emailParam) {
+      setEmail(emailParam);
+    }
+  }, [searchParams]);
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,16 +51,17 @@ export const usePasswordUpdate = () => {
     setLoading(true);
     
     try {
+      console.log("Iniciando actualización de contraseña");
       const token = searchParams.get("token");
       
-      console.log("Intentando actualizar contraseña");
-      console.log("Código:", code);
-      console.log("Token:", token);
-      console.log("Email:", email);
-      console.log("Sesión:", !!session);
+      // Check for existing session first
+      const { data: sessionData } = await supabase.auth.getSession();
+      const currentSession = sessionData?.session;
       
-      // Approach 1: Direct password update with existing session
-      if (session) {
+      console.log("Sesión actual:", currentSession ? "Presente" : "Ausente");
+      
+      // Approach 1: Update with existing session
+      if (currentSession) {
         console.log("Actualizando contraseña con sesión existente");
         const { error: updateError } = await supabase.auth.updateUser({
           password: password
@@ -59,33 +69,44 @@ export const usePasswordUpdate = () => {
         
         if (updateError) {
           console.error("Error al actualizar con sesión:", updateError);
+          
+          if (updateError.message && (
+            updateError.message.includes("Auth session missing") ||
+            updateError.message.includes("JWT") ||
+            updateError.message.includes("expired")
+          )) {
+            throw new Error("El enlace de recuperación ha expirado. Por favor solicita uno nuevo.");
+          }
+          
           throw updateError;
-        } else {
-          // Success - password updated successfully
-          toast.success("¡Tu contraseña ha sido actualizada correctamente!");
-          setSuccess("¡Tu contraseña ha sido actualizada correctamente! Serás redirigido al inicio de sesión.");
-          setTimeout(() => {
-            navigate("/auth");
-          }, 2000);
-          return;
         }
+        
+        console.log("Contraseña actualizada exitosamente");
+        toast.success("¡Tu contraseña ha sido actualizada correctamente!");
+        setSuccess("¡Tu contraseña ha sido actualizada correctamente! Serás redirigido al inicio de sesión.");
+        setTimeout(() => {
+          navigate("/auth");
+        }, 2000);
+        return;
       }
       
-      // Approach 2: Using OTP code with email for recovery
-      if (code && email) {
-        console.log("Verificando OTP con email:", email);
+      // Approach 2: Verify OTP first, then update password
+      if (code && email && !verificationInProgress) {
+        console.log("Intentando verificar OTP para:", email);
+        setVerificationInProgress(true);
         
         try {
-          const { error: verifyError, data } = await supabase.auth.verifyOtp({
+          const { data, error: verifyError } = await supabase.auth.verifyOtp({
             email,
             token: code,
             type: 'recovery',
           });
           
+          setVerificationAttempted(true);
+          
           if (verifyError) {
             console.error("Error al verificar OTP:", verifyError);
             
-            // If the error suggests expired token, throw specific error
             if (verifyError.message && (
               verifyError.message.includes("expired") || 
               verifyError.message.includes("invalid") ||
@@ -97,45 +118,43 @@ export const usePasswordUpdate = () => {
             throw verifyError;
           }
           
-          // OTP verification successful, we should now have a session
-          if (data?.session) {
-            console.log("OTP verificado exitosamente, sesión obtenida");
-            
-            // Update password with the new session
-            const { error: updateError } = await supabase.auth.updateUser({
-              password: password
-            });
-            
-            if (updateError) {
-              console.error("Error al actualizar contraseña después de OTP:", updateError);
-              throw updateError;
-            }
-            
-            // Success!
-            toast.success("¡Tu contraseña ha sido actualizada correctamente!");
-            setSuccess("¡Tu contraseña ha sido actualizada correctamente! Serás redirigido al inicio de sesión.");
-            setTimeout(() => {
-              navigate("/auth");
-            }, 2000);
-            return;
-          } else {
-            console.error("No se obtuvo sesión después de verificar OTP");
+          if (!data?.session) {
+            console.error("Verificación exitosa pero no se obtuvo sesión");
             throw new Error("No se pudo establecer una sesión para actualizar la contraseña");
           }
-        } catch (verifyErr: any) {
-          // Specific known error, re-throw to be caught by outer handler
-          if (verifyErr.message === "El enlace de recuperación ha expirado. Por favor solicita uno nuevo.") {
-            throw verifyErr;
+          
+          console.log("OTP verificado exitosamente, actualizando contraseña");
+          const { error: updateError } = await supabase.auth.updateUser({
+            password: password
+          });
+          
+          if (updateError) {
+            console.error("Error al actualizar contraseña después de OTP:", updateError);
+            throw updateError;
           }
           
-          console.error("Error específico en verificación OTP:", verifyErr);
-          throw new Error("No se pudo verificar el código de recuperación. Por favor solicita uno nuevo.");
+          console.log("Contraseña actualizada exitosamente");
+          toast.success("¡Tu contraseña ha sido actualizada correctamente!");
+          setSuccess("¡Tu contraseña ha sido actualizada correctamente! Serás redirigido al inicio de sesión.");
+          setTimeout(() => {
+            navigate("/auth");
+          }, 2000);
+          
+        } catch (verifyErr: any) {
+          if (verifyErr.message === "El enlace de recuperación ha expirado. Por favor solicita uno nuevo.") {
+            setError(verifyErr.message);
+          } else if (verifyErr.message && verifyErr.message.includes("User not found")) {
+            setError("No se encontró ninguna cuenta con este correo electrónico. Por favor verifica e intenta de nuevo.");
+          } else {
+            console.error("Error en verificación OTP:", verifyErr);
+            setError("El enlace de recuperación ha expirado. Por favor solicita uno nuevo.");
+          }
+          setVerificationInProgress(false);
+          return;
         }
-      }
-      
-      // Approach 3: Using token-based recovery (when token is present in URL)
-      if (token) {
-        console.log("Intentando actualizar con token en URL");
+      } else if (token) {
+        // Approach 3: Token-based recovery (when token is in URL)
+        console.log("Intentando actualizar con token");
         
         const { error: updateError } = await supabase.auth.updateUser({
           password: password
@@ -144,33 +163,32 @@ export const usePasswordUpdate = () => {
         if (updateError) {
           console.error("Error al actualizar con token URL:", updateError);
           
-          // Check if error suggests session is missing or invalid
           if (updateError.message && (
             updateError.message.includes("Auth session missing") ||
-            updateError.message.includes("Invalid JWT")
+            updateError.message.includes("JWT") ||
+            updateError.message.includes("expired") ||
+            updateError.message.includes("invalid")
           )) {
             throw new Error("El enlace de recuperación ha expirado. Por favor solicita uno nuevo.");
           }
           
           throw updateError;
-        } else {
-          // Success!
-          toast.success("¡Tu contraseña ha sido actualizada correctamente!");
-          setSuccess("¡Tu contraseña ha sido actualizada correctamente! Serás redirigido al inicio de sesión.");
-          setTimeout(() => {
-            navigate("/auth");
-          }, 2000);
-          return;
         }
+        
+        console.log("Contraseña actualizada exitosamente con token");
+        toast.success("¡Tu contraseña ha sido actualizada correctamente!");
+        setSuccess("¡Tu contraseña ha sido actualizada correctamente! Serás redirigido al inicio de sesión.");
+        setTimeout(() => {
+          navigate("/auth");
+        }, 2000);
+        return;
+      } else {
+        throw new Error("No se pudo establecer una sesión válida para actualizar la contraseña. Por favor solicita un nuevo enlace de recuperación.");
       }
       
-      // If we've reached this point, we couldn't update the password
-      throw new Error("No se pudo establecer una sesión válida para actualizar la contraseña. Por favor solicita un nuevo enlace de recuperación.");
-      
     } catch (err: any) {
-      console.error("Error al actualizar contraseña:", err);
+      console.error("Error final en actualización:", err);
       
-      // Handle specific known error messages
       if (err.message && (
         err.message.includes("expired") || 
         err.message.includes("El enlace de recuperación ha expirado") ||
@@ -183,10 +201,11 @@ export const usePasswordUpdate = () => {
       } else if (err.message && err.message.includes("User not found")) {
         setError("No se encontró ninguna cuenta con este correo electrónico. Por favor verifica e intenta de nuevo.");
       } else {
-        setError("Ocurrió un error al actualizar la contraseña" + (err.message ? `: ${err.message}` : ""));
+        setError(`Ocurrió un error al actualizar la contraseña: ${err.message || "Error desconocido"}`);
       }
     } finally {
       setLoading(false);
+      setVerificationInProgress(false);
     }
   };
 
