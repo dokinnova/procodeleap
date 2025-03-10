@@ -31,4 +31,3 @@ export const handleConfirmation = async (
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 };
-
