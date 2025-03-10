@@ -10,62 +10,30 @@ const AuthCallback = () => {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // Extract all parameters from the URL
+        // Extraer todos los parámetros de la URL
         const searchParams = new URLSearchParams(location.search);
         
-        // Convert to an object for debugging
+        // Convertir a un objeto para depuración
         const params = Object.fromEntries(searchParams.entries());
-        console.log("Callback parameters received:", params);
+        console.log("Parámetros de callback recibidos:", params);
         
-        // Check if we're in a password reset flow
+        // Verificar si estamos en un flujo de restablecimiento de contraseña
         const isPasswordReset = searchParams.has("type") && searchParams.get("type") === "recovery";
         const hasCode = searchParams.has("code");
-        const hasToken = searchParams.has("token");
-        
-        // If we have a direct token from Supabase's email link
-        if (hasToken) {
-          console.log("Direct token detected, redirecting to password reset page");
-          navigate(`/password-reset${location.search}`, { replace: true });
-          return;
-        }
         
         if (hasCode) {
-          console.log("Authentication code detected, processing...");
+          console.log("Código de autenticación detectado, redirigiendo a página de reset");
           
-          try {
-            // Exchange the code for a session
-            const { data, error } = await supabase.auth.exchangeCodeForSession(
-              searchParams.get("code") as string
-            );
-            
-            if (error) {
-              console.error("Error processing authentication code:", error);
-              navigate(`/password-reset${location.search}`, { replace: true });
-              return;
-            }
-            
-            console.log("Code processed successfully:", data?.session ? "Session established" : "No session");
-            
-            // If it's a password reset, redirect to the reset page
-            if (isPasswordReset) {
-              console.log("Redirecting to password reset page");
-              navigate(`/password-reset${location.search}`, { replace: true });
-            } else {
-              // For normal login, redirect to dashboard
-              console.log("Redirecting to dashboard");
-              navigate("/", { replace: true });
-            }
-          } catch (error) {
-            console.error("Error in code exchange:", error);
-            navigate(`/password-reset${location.search}`, { replace: true });
-          }
+          // Redirigir inmediatamente a la página de restablecimiento con todos los parámetros
+          navigate(`/password-reset${location.search}`, { replace: true });
+          return;
         } else {
-          // If no code or token, redirect to password reset page
-          console.log("No code or token found, redirecting to login");
+          // Si no hay código, redirigir a la página de inicio de sesión
+          console.log("No se encontró código, redirigiendo a inicio de sesión");
           navigate("/auth", { replace: true });
         }
       } catch (error) {
-        console.error("Critical callback error:", error);
+        console.error("Error crítico en callback:", error);
         navigate("/auth", { replace: true });
       }
     };
@@ -73,7 +41,7 @@ const AuthCallback = () => {
     handleAuthCallback();
   }, [navigate, location]);
   
-  // Show a loading indicator while processing
+  // Mostrar un indicador de carga mientras se procesa
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background to-secondary/50">
       <div className="text-center">
