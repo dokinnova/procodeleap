@@ -1,12 +1,42 @@
 
+
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 export const AuthFormWrapper = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const redirectTo = `${window.location.origin}/auth/callback`;
+
+  // Detectar errores en la URL al cargar el componente
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const error = url.searchParams.get('error');
+    const errorCode = url.searchParams.get('error_code');
+    const errorDescription = url.searchParams.get('error_description');
+    
+    if (error && errorDescription) {
+      console.log('AuthFormWrapper: Error detectado:', error, errorCode, errorDescription);
+      
+      let message = errorDescription.replace(/\+/g, ' ');
+      if (errorCode === 'otp_expired') {
+        message = "El enlace de recuperación ha expirado. Por favor, solicita uno nuevo.";
+      }
+      
+      toast({
+        title: "Error de autenticación",
+        description: message,
+        variant: "destructive",
+      });
+      
+      // Limpiar los parámetros de error de la URL
+      navigate('/auth', { replace: true });
+    }
+  }, [toast, navigate]);
 
   return (
     <Auth
@@ -46,7 +76,8 @@ export const AuthFormWrapper = () => {
             email_input_placeholder: 'Tu correo electrónico',
             button_label: 'Enviar instrucciones',
             loading_button_label: 'Enviando instrucciones...',
-            link_text: '¿Olvidaste tu contraseña?'
+            link_text: '¿Olvidaste tu contraseña?',
+            confirmation_text: 'Revisa tu correo electrónico para obtener el enlace de recuperación'
           },
           sign_up: {
             link_text: '',
@@ -64,6 +95,15 @@ export const AuthFormWrapper = () => {
       redirectTo={redirectTo}
       view="sign_in"
       showLinks={true}
+      onError={(error) => {
+        console.error('Error de autenticación:', error);
+        toast({
+          title: "Error",
+          description: error.message || "Ha ocurrido un error durante la autenticación",
+          variant: "destructive",
+        });
+      }}
     />
   );
 };
+
