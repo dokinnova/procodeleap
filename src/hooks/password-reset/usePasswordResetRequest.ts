@@ -24,6 +24,7 @@ export const usePasswordResetRequest = () => {
     try {
       // Obtenemos el origen actual para construir la URL de redirección
       const origin = window.location.origin;
+      // Es importante usar la ruta completa para password-reset
       const redirectTo = `${origin}/password-reset`;
       
       console.log("Solicitando reset de contraseña para:", email);

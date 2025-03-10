@@ -17,14 +17,14 @@ interface PasswordResetRequest {
 const handler = async (req: Request): Promise<Response> => {
   console.log("Función de notificación de restablecimiento de contraseña activada");
   
-  // Handle CORS preflight requests
+  // Manejar solicitudes CORS preflight
   if (req.method === "OPTIONS") {
     console.log("Manejando solicitud OPTIONS");
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Verify API key first to fail fast
+    // Verificar primero la clave API para fallar rápido
     if (!RESEND_API_KEY) {
       console.error("RESEND_API_KEY no está configurada");
       throw new Error("El servicio de correo electrónico no está configurado correctamente - Falta RESEND_API_KEY");
@@ -42,7 +42,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log(`Link original: ${resetLink}`);
     
     try {
-      // Extract the code from the resetLink
+      // Extraer el código del resetLink
       const url = new URL(resetLink);
       const code = url.searchParams.get('code');
       
@@ -53,26 +53,27 @@ const handler = async (req: Request): Promise<Response> => {
       
       console.log(`Código extraído: ${code}`);
       
-      // Determine the origin from request headers or URL
+      // Determinar el origen desde los encabezados de solicitud o URL
       let origin = req.headers.get('origin');
       
-      // If origin header is missing, try to use the X-Forwarded-Host or Host header
+      // Si el encabezado de origen falta, intentar usar el encabezado X-Forwarded-Host o Host
       if (!origin) {
         const host = req.headers.get('x-forwarded-host') || req.headers.get('host');
         if (host) {
-          // Determine if the connection is secure
+          // Determinar si la conexión es segura
           const proto = req.headers.get('x-forwarded-proto') || 'https';
           origin = `${proto}://${host}`;
         } else {
-          // If all else fails, extract the origin from the resetLink
+          // Si todo lo demás falla, extraer el origen del resetLink
           origin = url.origin;
         }
       }
       
       console.log(`Origen determinado: ${origin}`);
       
-      // Create the properly formatted reset link with the code
-      const formattedResetLink = `${origin}/password-reset?code=${code}&type=recovery`;
+      // Crear el enlace de restablecimiento formateado correctamente con el código
+      // Asegurarse de que todos los parámetros necesarios estén presentes
+      const formattedResetLink = `${origin}/password-reset?code=${code}&type=recovery&email=${encodeURIComponent(email)}`;
       
       console.log(`Enlace formateado: ${formattedResetLink}`);
       

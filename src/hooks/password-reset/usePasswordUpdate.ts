@@ -36,7 +36,7 @@ export const usePasswordUpdate = () => {
     updatePassword
   } = usePasswordUpdateSubmit();
   
-  // Populate email from URL if available
+  // Extraer email del parámetro de URL si está disponible
   useEffect(() => {
     const emailParam = searchParams.get("email");
     if (emailParam) {
@@ -50,14 +50,14 @@ export const usePasswordUpdate = () => {
     setError(null);
     setSuccess(null);
     
-    // Validate passwords
+    // Validar contraseñas
     const { isValid, error: validationError } = validatePasswords();
     if (!isValid) {
       setError(validationError);
       return;
     }
     
-    // When using code-based reset, email is required
+    // Si usamos code-based reset, el email es requerido
     const code = searchParams.get("code");
     if (code && !email) {
       setError("Por favor ingresa tu correo electrónico para verificar tu identidad");
@@ -66,16 +66,14 @@ export const usePasswordUpdate = () => {
     
     try {
       console.log("Iniciando actualización de contraseña");
-      const token = searchParams.get("token");
-      const code = searchParams.get("code");
       
-      // Check for existing session first
+      // Verificar si ya tenemos una sesión activa
       const { data: sessionData } = await supabase.auth.getSession();
       const currentSession = sessionData?.session;
       
       console.log("Sesión actual:", currentSession ? "Presente" : "Ausente");
       
-      // Approach 1: Update with existing session
+      // Enfoque 1: Actualizar con sesión existente
       if (currentSession) {
         console.log("Actualizando contraseña con sesión existente");
         const success = await updatePassword(password);
@@ -88,7 +86,7 @@ export const usePasswordUpdate = () => {
         return;
       }
       
-      // Approach 2: Verify OTP first, then update password
+      // Enfoque 2: Verificar OTP primero, luego actualizar contraseña
       if (code && email) {
         console.log("Verificando OTP para email:", email, "con código:", code);
         
@@ -112,10 +110,11 @@ export const usePasswordUpdate = () => {
           }, 2000);
         }
         return;
-      } else if (token) {
-        // Approach 3: Token-based recovery (when token is in URL)
-        console.log("Intentando actualizar con token");
+      } else if (searchParams.has("token") || searchParams.has("access_token") || searchParams.has("refresh_token")) {
+        // Enfoque 3: Recuperación basada en token (cuando el token está en la URL)
+        console.log("Intentando actualizar con token de la URL");
         
+        // En este punto, Supabase debería haber establecido la sesión si el token es válido
         const passwordUpdated = await updatePassword(password);
         if (passwordUpdated) {
           setTimeout(() => {

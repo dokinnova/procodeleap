@@ -16,6 +16,10 @@ export const usePasswordUpdateSubmit = () => {
     try {
       console.log("Actualizando contraseña");
       
+      // Verificamos si tenemos una sesión activa
+      const { data: sessionData } = await supabase.auth.getSession();
+      console.log("Sesión activa al actualizar contraseña:", sessionData?.session ? "Presente" : "Ausente");
+      
       const { error: updateError } = await supabase.auth.updateUser({
         password: password
       });

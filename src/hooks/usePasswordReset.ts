@@ -44,7 +44,7 @@ export const usePasswordReset = () => {
     navigate
   } = usePasswordUpdate();
 
-  // Sync email between request and reset modes
+  // Sincronizar email entre los modos de solicitud y reset
   useEffect(() => {
     if (mode === "request" && updateEmail) {
       console.log("Sincronizando email de modo reset a request:", updateEmail);
@@ -55,13 +55,13 @@ export const usePasswordReset = () => {
     }
   }, [mode, requestEmail, updateEmail, setRequestEmail, setUpdateEmail]);
 
-  // Clear mode-level errors when mode changes
+  // Limpiar errores a nivel de modo cuando cambia el modo
   useEffect(() => {
     setModeError(null);
     setModeSuccess(null);
   }, [mode, setModeError, setModeSuccess]);
 
-  // Handle forced navigation when token is invalid
+  // Manejar navegación forzada cuando el token es inválido
   useEffect(() => {
     if (mode === "reset" && tokenChecked && !isTokenValid && !forceRequestMode) {
       console.log("Token inválido detectado, redirigiendo a solicitud de reset");
@@ -69,7 +69,7 @@ export const usePasswordReset = () => {
     }
   }, [mode, tokenChecked, isTokenValid, forceRequestMode, navigate]);
 
-  // Select appropriate email, loading and error state based on mode
+  // Seleccionar el estado apropiado basado en el modo
   const email = mode === "request" ? requestEmail : updateEmail;
   const setEmail = mode === "request" ? setRequestEmail : setUpdateEmail;
   const loading = mode === "request" ? requestLoading : updateLoading;
