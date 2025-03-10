@@ -15,7 +15,7 @@ export const handlePasswordReset = async (
   }
 
   console.log(`Processing password reset email to ${email}`);
-  console.log(`Redirect base: ${resetLink}`);
+  console.log(`Redirect base provided: ${resetLink}`);
 
   try {
     if (!supabaseUrl || !supabaseAnonKey) {
@@ -48,14 +48,17 @@ export const handlePasswordReset = async (
     const data = await response.json();
     console.log("Successfully requested reset token from Supabase");
 
-    // Asegurar que la URL de redirección sea correcta - NO usar vercel
-    // Eliminar cualquier parámetro de la URL base
-    let baseResetLink = resetLink;
-    if (baseResetLink.includes("?")) {
-      baseResetLink = baseResetLink.split("?")[0];
+    // Garantizar que la URL base no tenga ningún parámetro
+    let baseUrl = resetLink.trim();
+    if (baseUrl.includes("?")) {
+      baseUrl = baseUrl.split("?")[0];
+    }
+    // Eliminar cualquier barra diagonal al final
+    if (baseUrl.endsWith("/")) {
+      baseUrl = baseUrl.slice(0, -1);
     }
     
-    const resetUrl = `${baseResetLink}?token=${data.token}`;
+    const resetUrl = `${baseUrl}?token=${data.token}`;
     console.log("Reset URL generated:", resetUrl);
     
     const htmlContent = getResetEmailContent(resetUrl);

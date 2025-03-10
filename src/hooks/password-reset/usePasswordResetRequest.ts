@@ -24,20 +24,26 @@ export const usePasswordResetRequest = () => {
     try {
       console.log("Solicitando restablecimiento para:", email);
       
-      // Usar la URL actual (no la de vercel) para la redirección
-      const currentUrl = window.location.href;
+      // Obtener la URL de origen actual (sin importar si es vercel u otra)
       const baseUrl = window.location.origin;
       const redirectUrl = `${baseUrl}/password-reset`;
       
-      console.log("URL actual:", currentUrl);
-      console.log("URL base:", baseUrl);
+      console.log("URL de origen detectada:", baseUrl);
       console.log("URL de redirección configurada:", redirectUrl);
       
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: redirectUrl
+      // Usar nuestra función personalizada para garantizar el envío correcto
+      const { data, error: functionError } = await supabase.functions.invoke("password-reset-notification", {
+        body: { 
+          email, 
+          resetLink: redirectUrl 
+        }
       });
       
-      if (error) throw error;
+      if (functionError) throw functionError;
+      
+      if (!data.success) {
+        throw new Error(data.error || "Error al enviar el correo de recuperación");
+      }
       
       console.log("Solicitud enviada exitosamente");
       toast.success("Se ha enviado un enlace de recuperación a tu correo");
