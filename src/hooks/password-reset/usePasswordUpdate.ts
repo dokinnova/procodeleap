@@ -47,106 +47,115 @@ export const usePasswordUpdate = () => {
       console.log("Token:", token);
       console.log("Email:", email);
       console.log("Sesión:", !!session);
-      console.log("Verificación intentada previamente:", verificationAttempted);
       
-      // Si tenemos código pero no sesión, primero verificamos el OTP
-      if (code && email && !session && !verificationAttempted) {
-        console.log("Verificando OTP con email:", email);
-        setVerificationAttempted(true);
+      // Primero verificamos si el enlace ha expirado solicitando una nueva sesión
+      if (code && email && !session) {
+        console.log("Verificando si el código de recuperación aún es válido");
         
-        const { error: verifyError, data } = await supabase.auth.verifyOtp({
-          email,
-          token: code,
-          type: 'recovery',
-        });
-        
-        if (verifyError) {
-          console.error("Error al verificar OTP:", verifyError);
-          // Intentamos actualizar la contraseña directamente en caso de que
-          // el error sea solo en la verificación pero el token aún funcione
-          console.log("Intentando actualizar la contraseña directamente...");
-        } else {
-          console.log("OTP verificado exitosamente, datos recibidos:", data);
-          // Si la verificación fue exitosa, asegúrate de usar la sesión
-          if (data?.session) {
+        try {
+          // Intentamos verificar el código OTP
+          const { error: verifyError, data } = await supabase.auth.verifyOtp({
+            email,
+            token: code,
+            type: 'recovery',
+          });
+          
+          if (verifyError) {
+            console.error("Error al verificar OTP:", verifyError);
+            
+            // Si el error indica que el token ha expirado, lanzamos un error específico
+            if (verifyError.message && (
+                verifyError.message.includes("expired") || 
+                verifyError.message.includes("invalid") ||
+                verifyError.message.includes("not found")
+            )) {
+              throw new Error("Token has expired");
+            }
+          } else if (data?.session) {
+            console.log("OTP verificado exitosamente, sesión obtenida");
             setSession(data.session);
           }
+        } catch (verifyErr: any) {
+          if (verifyErr.message === "Token has expired") {
+            throw verifyErr;
+          }
+          // Si hay otro error, continuamos con el siguiente intento
+          console.log("Error en verificación inicial, intentando otros métodos");
         }
       }
       
-      // Si no tenemos sesión y estamos usando un código, intenta primero iniciar sesión
-      let resetResult;
-      
-      if (!session && code && email) {
-        console.log("Intentando resetear contraseña directamente usando el código y email");
-        
-        // Intentamos una estrategia más directa: actualizar la contraseña usando el código y el email
-        resetResult = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: window.location.href,
+      // Si tenemos una sesión, intentamos actualizar la contraseña directamente
+      if (session) {
+        console.log("Actualizando contraseña con sesión existente");
+        const { error: updateError } = await supabase.auth.updateUser({
+          password: password
         });
         
-        if (resetResult.error) {
-          console.log("Error al solicitar restablecimiento:", resetResult.error);
-          // Continuamos con el siguiente intento, no lanzamos error todavía
+        if (updateError) {
+          console.error("Error al actualizar con sesión:", updateError);
+          throw updateError;
+        } else {
+          // Éxito - la contraseña se actualizó correctamente
+          toast.success("¡Tu contraseña ha sido actualizada correctamente!");
+          setSuccess("¡Tu contraseña ha sido actualizada correctamente! Serás redirigido al inicio de sesión.");
+          setTimeout(() => {
+            navigate("/auth");
+          }, 2000);
+          return;
         }
       }
       
-      // Actualizamos la contraseña (intentamos incluso si la verificación falló,
-      // ya que puede funcionar directamente con el token en la URL)
-      const { error } = await supabase.auth.updateUser({
-        password: password
-      });
-      
-      if (error) {
-        console.error("Error al actualizar contraseña:", error);
+      // Si no tenemos sesión pero tenemos un código y email, intentamos otras estrategias
+      if (!session && code && email) {
+        console.log("Intentando estrategias alternativas de restablecimiento");
         
-        // Si el error es "Auth session missing", intenta una estrategia diferente
-        if (error.message && error.message.includes("Auth session missing")) {
-          // Intenta hacer una actualización especial de contraseña si tenemos un código
-          if (code && email) {
-            console.log("Intentando actualizar contraseña con verificación alternativa");
-            
-            // Hacer otro intento de verificación OTP con opciones diferentes
-            const { error: finalError } = await supabase.auth.verifyOtp({
-              email,
-              token: code,
-              type: 'recovery',
-              options: {
-                redirectTo: window.location.origin
-              }
-            });
-            
-            if (finalError) {
-              console.error("Error final al verificar OTP:", finalError);
-              throw finalError;
-            }
-            
-            // Intentar actualizar después de la verificación especial
+        // 1. Intentar solicitar un nuevo restablecimiento y luego actualizar
+        try {
+          console.log("Solicitando nuevo enlace de restablecimiento");
+          const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: window.location.origin + "/password-reset",
+          });
+          
+          if (resetError) {
+            console.error("Error al solicitar nuevo restablecimiento:", resetError);
+          } else {
+            // 2. Intentar actualizar inmediatamente después del reset
+            console.log("Intentando actualizar contraseña después de solicitar reset");
             const { error: updateError } = await supabase.auth.updateUser({
               password: password
             });
             
-            if (updateError) {
-              console.error("Error después de verificación especial:", updateError);
-              throw updateError;
+            if (!updateError) {
+              // Éxito - la contraseña se actualizó correctamente
+              toast.success("¡Tu contraseña ha sido actualizada correctamente!");
+              setSuccess("¡Tu contraseña ha sido actualizada correctamente! Serás redirigido al inicio de sesión.");
+              setTimeout(() => {
+                navigate("/auth");
+              }, 2000);
+              return;
+            } else {
+              console.error("Error en actualización después de reset:", updateError);
             }
-          } else {
-            throw new Error("No se pudo establecer una sesión. Intenta solicitar un nuevo enlace de recuperación.");
           }
-        } else {
-          throw error;
+        } catch (err) {
+          console.error("Error en estrategia de reset:", err);
         }
+        
+        // Si llegamos aquí, todos los intentos han fallado
+        throw new Error("El enlace de recuperación ha expirado y no se pudo establecer una nueva sesión");
       }
       
-      toast.success("¡Tu contraseña ha sido actualizada correctamente!");
-      setSuccess("¡Tu contraseña ha sido actualizada correctamente! Serás redirigido al inicio de sesión.");
-      setTimeout(() => {
-        navigate("/auth");
-      }, 2000);
+      // Si no tenemos ni sesión ni código, algo está mal
+      throw new Error("No se pudo establecer una sesión válida para actualizar la contraseña");
+      
     } catch (err: any) {
       console.error("Error al actualizar contraseña:", err);
       
-      if (err.message && err.message.includes("Token has expired")) {
+      if (err.message && (
+          err.message.includes("Token has expired") || 
+          err.message.includes("recovery link has expired") ||
+          err.message.includes("enlace de recuperación ha expirado")
+      )) {
         setError("El enlace de recuperación ha expirado. Por favor solicita uno nuevo.");
       } else if (err.message && err.message.includes("User not found")) {
         setError("No se encontró ninguna cuenta con este correo electrónico. Por favor verifica e intenta de nuevo.");
