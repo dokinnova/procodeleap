@@ -1,4 +1,5 @@
 
+import { useEffect } from "react";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,6 +10,23 @@ export const AuthFormWrapper = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const redirectTo = `${window.location.origin}/auth/callback`;
+
+  // Handle "Forgot password" navigation via useEffect instead of onViewChange
+  useEffect(() => {
+    // Add event listener for Auth UI view changes
+    const handleViewChange = (event: CustomEvent<{ view: string }>) => {
+      if (event.detail.view === 'forgotten_password') {
+        navigate('/password-reset');
+      }
+    };
+
+    // Listen for view change events from Auth UI
+    document.addEventListener('supabaseAuthViewChange', handleViewChange as EventListener);
+
+    return () => {
+      document.removeEventListener('supabaseAuthViewChange', handleViewChange as EventListener);
+    };
+  }, [navigate]);
 
   return (
     <Auth
@@ -66,14 +84,6 @@ export const AuthFormWrapper = () => {
       redirectTo={redirectTo}
       view="sign_in"
       showLinks={true}
-      onViewChange={(view) => {
-        // When the user clicks on "Forgot password" link, redirect to our custom reset page
-        if (view === 'forgotten_password') {
-          navigate('/password-reset');
-          return false; // Prevent default behavior
-        }
-        return true; // Allow other view changes
-      }}
     />
   );
 };
