@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -60,8 +61,12 @@ export const usePasswordReset = () => {
     setLoading(true);
     
     try {
+      // Utilizamos el origen actual para construir la URL de redirección
+      const origin = window.location.origin;
+      const redirectTo = `${origin}/password-reset`;
+      
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/password-reset`,
+        redirectTo: redirectTo,
       });
       
       if (error) {

@@ -41,12 +41,26 @@ const handler = async (req: Request): Promise<Response> => {
     console.log(`Enviando correo de restablecimiento de contraseña a ${email}`);
     
     try {
-      // Extract the token from the resetLink
+      // Extract the code from the resetLink
       const url = new URL(resetLink);
-      const token = url.searchParams.get('token');
+      const code = url.searchParams.get('code');
       
-      // Create a properly formatted reset link that points to the password-reset page
-      const formattedResetLink = `${url.origin}/password-reset?token=${token}`;
+      // Create an absolute URL to the password-reset page
+      // Instead of using localhost, we take the origin from the request headers
+      let origin = req.headers.get('origin');
+      if (!origin) {
+        // If no origin header is present, try to fallback to referer
+        const referer = req.headers.get('referer');
+        if (referer) {
+          origin = new URL(referer).origin;
+        } else {
+          // If we can't determine the origin, use a relative path
+          origin = url.origin;
+        }
+      }
+      
+      // Create the properly formatted reset link with the code
+      const formattedResetLink = `${origin}/password-reset?code=${code}`;
       
       console.log(`Reset link formatted: ${formattedResetLink}`);
       
