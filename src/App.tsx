@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -81,8 +80,10 @@ const App = () => {
               </div>
             } />
             
-            {/* Make reset password route public and directly accessible */}
+            {/* IMPORTANTE: Ruta de restablecimiento de contraseña - 
+                asegurarse de que esté en el nivel principal de rutas y no anidada */}
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/reset-password/:token" element={<ResetPassword />} />
             
             {/* Root route with protected routes */}
             <Route path="/" element={
