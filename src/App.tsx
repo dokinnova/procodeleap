@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,6 +8,7 @@ import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { useState, useEffect } from "react";
 import { AuthForm } from "./components/auth/AuthForm";
 import { ResetPassword } from "./components/auth/ResetPassword";
+import { AuthProvider } from "./components/auth/components/AuthProvider";
 
 // Import all page components
 import Index from "./pages/Index";
@@ -67,38 +67,60 @@ const App = () => {
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
-            {/* Public authentication routes */}
-            <Route path="/auth" element={
-              <div className="min-h-screen bg-gray-100 flex flex-col justify-center">
-                <div className="max-w-md mx-auto w-full px-4">
-                  <div className="mb-8 text-center">
-                    <h1 className="text-2xl font-bold text-gray-900 mb-2">COPRODELI</h1>
-                    <p className="text-gray-600">Inicia sesión para continuar</p>
+          <AuthProvider>
+            <Routes>
+              {/* Public authentication routes */}
+              <Route path="/auth" element={
+                <div className="min-h-screen bg-gray-100 flex flex-col justify-center">
+                  <div className="max-w-md mx-auto w-full px-4">
+                    <div className="mb-8 text-center">
+                      <h1 className="text-2xl font-bold text-gray-900 mb-2">COPRODELI</h1>
+                      <p className="text-gray-600">Inicia sesión para continuar</p>
+                    </div>
+                    <AuthForm />
                   </div>
-                  <AuthForm />
                 </div>
-              </div>
-            } />
-            
-            {/* Password reset routes - ensure all possible formats are handled */}
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/reset-password/:token" element={<ResetPassword />} />
-            
-            {/* 
-              Add support for potential legacy formats or different token formats
-              These will all be handled by the single ResetPassword component
-            */}
-            <Route path="/reset-password/token/:token" element={<ResetPassword />} />
-            <Route path="/reset-password/code/:code" element={<ResetPassword />} />
-            <Route path="/reset-password/token" element={<ResetPassword />} />
-            <Route path="/reset-password/code" element={<ResetPassword />} />
-            
-            {/* Catch all auth routes with recovery or code parameters */}
-            <Route path="/" element={
-              (window.location.search.includes('type=recovery') || 
-               window.location.search.includes('code=')) ? 
-                <Navigate to={`/reset-password${window.location.search}`} replace /> : 
+              } />
+              
+              {/* Password reset routes - ensure all possible formats are handled */}
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/reset-password/:token" element={<ResetPassword />} />
+              
+              {/* Add specific types of recovery URLs that Supabase might generate */}
+              <Route path="/auth/recovery" element={<ResetPassword />} />
+              <Route path="/auth/callback" element={<ResetPassword />} />
+              
+              {/* Catch all routes with type=recovery or token */}
+              <Route path="/" element={
+                (window.location.search.includes('type=recovery') || 
+                 window.location.search.includes('code=') ||
+                 window.location.search.includes('token=')) ? 
+                  <Navigate to={`/reset-password${window.location.search}`} replace /> : 
+                  <ProtectedRoute>
+                    <div className="flex min-h-screen bg-gradient-to-br from-background to-secondary/50">
+                      <Navigation 
+                        isMobileMenuOpen={isMobileMenuOpen} 
+                        setIsMobileMenuOpen={setIsMobileMenuOpen} 
+                      />
+                      <main 
+                        className={`flex-1 transition-all duration-300 ease-in-out
+                          ${isMobileMenuOpen ? 'ml-0' : 'ml-0 md:ml-64'} 
+                          p-4 md:p-8 overflow-auto`}
+                      >
+                        <div className="max-w-7xl mx-auto space-y-8">
+                          <Index />
+                        </div>
+                      </main>
+                    </div>
+                  </ProtectedRoute>
+              } />
+              
+              {/* Ruta para capturar el index y redirigir si es necesario */}
+              <Route path="/index" element={<Navigate to="/" replace />} />
+              <Route path="/index.html" element={<Navigate to="/" replace />} />
+              
+              {/* Protected routes */}
+              <Route path="/*" element={
                 <ProtectedRoute>
                   <div className="flex min-h-screen bg-gradient-to-br from-background to-secondary/50">
                     <Navigation 
@@ -111,53 +133,29 @@ const App = () => {
                         p-4 md:p-8 overflow-auto`}
                     >
                       <div className="max-w-7xl mx-auto space-y-8">
-                        <Index />
+                        <Routes>
+                          <Route path="/children" element={<Children />} />
+                          <Route path="/sponsors" element={<Sponsors />} />
+                          <Route path="/management" element={<Management />} />
+                          <Route path="/schools" element={<Schools />} />
+                          <Route path="/configuration" element={<Configuration />} />
+                          <Route path="/receipts" element={<Receipts />} />
+                          <Route path="/crm" element={<CRM />} />
+                          <Route path="/tasks" element={<Tasks />} />
+                          <Route path="/map" element={<Map />} />
+                          <Route path="/reports/children" element={<ChildrenReport />} />
+                          <Route path="/reports/sponsors" element={<SponsorsReport />} />
+                          <Route path="/reports/schools" element={<SchoolsReport />} />
+                          <Route path="/reports/sponsorships" element={<SponsorshipsReport />} />
+                          <Route path="/business-intelligence" element={<BusinessIntelligence />} />
+                        </Routes>
                       </div>
                     </main>
                   </div>
                 </ProtectedRoute>
-            } />
-            
-            {/* Ruta para capturar el index y redirigir si es necesario */}
-            <Route path="/index" element={<Navigate to="/" replace />} />
-            <Route path="/index.html" element={<Navigate to="/" replace />} />
-            
-            {/* Protected routes */}
-            <Route path="/*" element={
-              <ProtectedRoute>
-                <div className="flex min-h-screen bg-gradient-to-br from-background to-secondary/50">
-                  <Navigation 
-                    isMobileMenuOpen={isMobileMenuOpen} 
-                    setIsMobileMenuOpen={setIsMobileMenuOpen} 
-                  />
-                  <main 
-                    className={`flex-1 transition-all duration-300 ease-in-out
-                      ${isMobileMenuOpen ? 'ml-0' : 'ml-0 md:ml-64'} 
-                      p-4 md:p-8 overflow-auto`}
-                  >
-                    <div className="max-w-7xl mx-auto space-y-8">
-                      <Routes>
-                        <Route path="/children" element={<Children />} />
-                        <Route path="/sponsors" element={<Sponsors />} />
-                        <Route path="/management" element={<Management />} />
-                        <Route path="/schools" element={<Schools />} />
-                        <Route path="/configuration" element={<Configuration />} />
-                        <Route path="/receipts" element={<Receipts />} />
-                        <Route path="/crm" element={<CRM />} />
-                        <Route path="/tasks" element={<Tasks />} />
-                        <Route path="/map" element={<Map />} />
-                        <Route path="/reports/children" element={<ChildrenReport />} />
-                        <Route path="/reports/sponsors" element={<SponsorsReport />} />
-                        <Route path="/reports/schools" element={<SchoolsReport />} />
-                        <Route path="/reports/sponsorships" element={<SponsorshipsReport />} />
-                        <Route path="/business-intelligence" element={<BusinessIntelligence />} />
-                      </Routes>
-                    </div>
-                  </main>
-                </div>
-              </ProtectedRoute>
-            } />
-          </Routes>
+              } />
+            </Routes>
+          </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>

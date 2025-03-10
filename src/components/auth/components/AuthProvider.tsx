@@ -36,25 +36,30 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     // Esta función maneja los flujos de recuperación de contraseña
     const handleRecoveryFlow = () => {
-      const url = new URL(window.location.href);
-      const code = url.searchParams.get('code');
-      const type = url.searchParams.get('type');
-      const token = url.searchParams.get('token');
+      const pathname = window.location.pathname;
+      const search = window.location.search;
+      const hash = window.location.hash;
       
-      // Si detectamos un flujo de recuperación en la URL
-      if (type === 'recovery' || code || token) {
-        console.log("Flujo de recuperación detectado en URL", { type, code, token });
+      // Detectamos si estamos en un flujo de recuperación basado en la URL
+      const isRecoveryURL = 
+        search.includes('type=recovery') || 
+        search.includes('code=') ||
+        search.includes('token=') ||
+        pathname.includes('/auth/recovery') ||
+        pathname.includes('/auth/callback') ||
+        (hash && hash.includes('access_token='));
+      
+      if (isRecoveryURL) {
+        console.log("Flujo de recuperación detectado en URL:", { pathname, search, hash });
         
-        // Redirigir a la página de restablecimiento de contraseña
-        // manteniendo los parámetros originales
-        const currentPath = window.location.pathname;
-        if (!currentPath.includes('/reset-password')) {
+        // Si no estamos ya en la página de reset-password, redirigimos allí
+        if (!pathname.includes('/reset-password')) {
           console.log("Redirigiendo a reset-password con parámetros de URL");
-          navigate('/reset-password' + window.location.search, { replace: true });
+          navigate(`/reset-password${search}${hash}`, { replace: true });
+          return true; // Indica que se manejó un flujo de recuperación
         }
-        return true; // Indica que se encontró y manejó un flujo de recuperación
       }
-      return false; // No se encontró flujo de recuperación
+      return false; // No se encontró o ya estamos en la página correcta
     };
 
     // Lógica principal del useEffect

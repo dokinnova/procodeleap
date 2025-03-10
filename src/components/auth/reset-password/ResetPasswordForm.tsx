@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,8 +23,25 @@ export const ResetPasswordForm = ({
 }: ResetPasswordFormProps) => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [hasCheckedSession, setHasCheckedSession] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Verificar si hay una sesión activa cuando se monta el componente
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        console.log("ResetPasswordForm - Estado de sesión:", data.session ? "Con sesión" : "Sin sesión");
+        setHasCheckedSession(true);
+      } catch (err) {
+        console.error("Error al verificar sesión:", err);
+        setHasCheckedSession(true);
+      }
+    };
+    
+    checkSession();
+  }, []);
 
   const handlePasswordReset = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -44,37 +62,23 @@ export const ResetPasswordForm = ({
     try {
       console.log("Intentando actualizar contraseña con token:", recoveryToken);
       
-      // La solución clave: si tenemos un recoveryToken que no es 'recovery-flow',
-      // explícitamente pasamos el token para que Supabase pueda verificarlo
-      if (recoveryToken && recoveryToken !== 'recovery-flow') {
-        console.log("Usando token de recuperación explícito");
-        
-        // Este es el punto crítico - usamos el token directamente para actualizar la contraseña
-        const { error: updateError } = await supabase.auth.updateUser({
-          password: newPassword
-        });
+      // Verificamos primero si existe una sesión válida
+      const { data: sessionData } = await supabase.auth.getSession();
+      console.log("Estado de sesión al actualizar contraseña:", 
+                sessionData.session ? "Con sesión" : "Sin sesión");
+      
+      if (!sessionData.session) {
+        throw new Error("No hay sesión de autenticación. Por favor, utilice el enlace de recuperación enviado al correo electrónico o solicite uno nuevo.");
+      }
+      
+      // Actualizar contraseña usando la sesión actual
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: newPassword
+      });
 
-        if (updateError) {
-          console.error("Error al actualizar con token:", updateError);
-          throw updateError;
-        }
-      } else {
-        // Verificamos si existe una sesión válida
-        const { data: sessionData } = await supabase.auth.getSession();
-        
-        if (!sessionData.session) {
-          throw new Error("No hay sesión de autenticación. Por favor, utilice el enlace de recuperación enviado al correo electrónico.");
-        }
-        
-        // Actualizar contraseña usando la sesión actual
-        const { error: updateError } = await supabase.auth.updateUser({
-          password: newPassword
-        });
-
-        if (updateError) {
-          console.error("Error al actualizar con sesión:", updateError);
-          throw updateError;
-        }
+      if (updateError) {
+        console.error("Error al actualizar contraseña:", updateError);
+        throw updateError;
       }
 
       console.log("Contraseña actualizada correctamente");
@@ -94,6 +98,14 @@ export const ResetPasswordForm = ({
       setLoading(false);
     }
   };
+
+  if (!hasCheckedSession) {
+    return (
+      <div className="flex justify-center items-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handlePasswordReset} className="space-y-4">

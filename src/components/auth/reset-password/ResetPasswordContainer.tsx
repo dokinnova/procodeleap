@@ -13,7 +13,13 @@ export const ResetPasswordContainer = () => {
   const [loading, setLoading] = useState(false);
   const [isSessionReady, setIsSessionReady] = useState(false);
   const navigate = useNavigate();
-  const { recoveryToken } = useResetPasswordToken();
+  const { recoveryToken, error: tokenError, isProcessingToken } = useResetPasswordToken();
+
+  useEffect(() => {
+    if (tokenError) {
+      setError(tokenError);
+    }
+  }, [tokenError]);
 
   useEffect(() => {
     // Verificar si hay una sesión válida cuando se carga el componente
@@ -21,23 +27,6 @@ export const ResetPasswordContainer = () => {
     const checkSession = async () => {
       try {
         console.log("Verificando sesión y procesando tokens en URL...");
-        
-        // Esto fuerza a Supabase a procesar cualquier token en la URL
-        const currentUrl = window.location.href;
-        if (currentUrl.includes('code=') || currentUrl.includes('token=') || 
-            currentUrl.includes('type=recovery') || currentUrl.includes('access_token=')) {
-          console.log("URL contiene parámetros de autenticación, procesando...");
-          
-          // Si la URL contiene un código, intentamos intercambiarlo explícitamente
-          if (currentUrl.includes('code=')) {
-            try {
-              const result = await supabase.auth.exchangeCodeForSession(window.location.search);
-              console.log("Intercambio de código resultado:", result.error ? "Error" : "Éxito");
-            } catch (exchangeError) {
-              console.error("Error al intercambiar código:", exchangeError);
-            }
-          }
-        }
         
         // Verificar la sesión después de procesar los tokens
         const { data } = await supabase.auth.getSession();
@@ -58,7 +47,7 @@ export const ResetPasswordContainer = () => {
   const showPasswordResetForm = recoveryToken && 
                               recoveryToken !== "recovery-flow";
   
-  if (!isSessionReady) {
+  if (isProcessingToken || !isSessionReady) {
     return (
       <div className="min-h-screen bg-gray-100 flex flex-col justify-center items-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>

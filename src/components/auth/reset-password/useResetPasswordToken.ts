@@ -1,19 +1,22 @@
 
 import { useState, useEffect } from "react";
-import { useLocation, useParams } from "react-router-dom";
+import { useLocation, useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
 export const useResetPasswordToken = () => {
   const [recoveryToken, setRecoveryToken] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isProcessingToken, setIsProcessingToken] = useState(true);
   const location = useLocation();
   const params = useParams();
+  const navigate = useNavigate();
 
   // Logs de depuración para ayudar a solucionar problemas
   console.log("ResetPassword: Componente cargado con:");
-  console.log("- URL:", window.location.href);
+  console.log("- URL completa:", window.location.href);
+  console.log("- Location pathname:", location.pathname);
   console.log("- Location search:", location.search);
-  console.log("- Location hash:", window.location.hash);
+  console.log("- Location hash:", location.hash);
   console.log("- Route params:", params);
 
   useEffect(() => {
@@ -39,7 +42,7 @@ export const useResetPasswordToken = () => {
         console.error("Error al parsear hash:", e);
       }
       
-      console.log("Tokens extraídos:", { queryToken, queryCode, routeToken, hashToken });
+      console.log("Tokens extraídos:", { queryToken, queryCode, routeToken, hashToken, queryType });
       
       // Devolver el primer token válido encontrado
       return queryToken || queryCode || routeToken || hashToken || 
@@ -48,45 +51,57 @@ export const useResetPasswordToken = () => {
 
     const processAuthSession = async () => {
       try {
-        // Primero recuperamos la sesión actual
-        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-        console.log("Estado de sesión inicial:", sessionData.session ? "Con sesión" : "Sin sesión");
+        setIsProcessingToken(true);
         
-        // Verificar si hay un token en la URL
+        // Extraer token de la URL
         const token = extractTokenFromUrl();
+        console.log("Token extraído de URL:", token);
         
         if (token) {
+          // Si tenemos un token o código de recuperación en la URL
           console.log("Token encontrado en URL:", token);
           setRecoveryToken(token);
           
-          // Si tenemos un código de autorización pero no una sesión, intentamos verificarlo explícitamente
-          if (token !== 'recovery-flow' && !sessionData.session) {
-            console.log("Intentando verificar token explícitamente con Supabase");
+          // Si es un código de autorización real en la URL, intentamos canjearlo por una sesión
+          if (location.search.includes('code=')) {
+            console.log("Procesando código de recuperación:", location.search);
             
-            // Solo verificamos explícitamente si es un token/código real
-            if (location.search.includes('code=')) {
-              // La magia ocurre aquí: forzamos a Supabase a procesar el código de la URL
-              const result = await supabase.auth.exchangeCodeForSession(location.search);
-              console.log("Resultado de intercambio de código:", result.error ? "Error" : "Éxito");
+            try {
+              // Este paso es crítico: intercambia el código por una sesión
+              const { data, error } = await supabase.auth.exchangeCodeForSession(location.search);
               
-              if (result.error) {
-                console.error("Error al intercambiar código:", result.error);
+              if (error) {
+                console.error("Error al intercambiar código por sesión:", error);
+                setError("Error al procesar el código de recuperación");
               } else {
-                console.log("Intercambio de código exitoso");
+                console.log("Código intercambiado exitosamente por sesión:", data);
+                
+                // Redirigimos a la misma página pero sin los parámetros de la URL para evitar problemas
+                // al refrescar la página, pero mantenemos el token
+                if (location.search) {
+                  navigate(`/reset-password?processed=true`, { replace: true });
+                }
               }
+            } catch (exchangeError) {
+              console.error("Error durante el intercambio de código:", exchangeError);
+              setError("Error al procesar la autenticación");
             }
           }
         } else {
           console.log("No se encontró token en URL, verificando estado de sesión...");
           
-          // Si estamos en la ruta de reset-password pero sin token, asumimos que es
-          // la página de solicitud de recuperación 
-          if (location.pathname.includes('reset-password')) {
-            setRecoveryToken('recovery-flow');
+          // Verificamos si existe una sesión de Supabase primero
+          const { data: sessionData } = await supabase.auth.getSession();
+          
+          if (sessionData.session) {
+            console.log("Sesión activa encontrada, usuario ya autenticado");
+            setRecoveryToken('session-active');
           } else {
-            if (sessionData.session) {
-              console.log("Sesión activa encontrada, usuario ya autenticado");
-              setRecoveryToken('session-active');
+            // Si estamos en la ruta de reset-password pero sin token, asumimos que es
+            // la página de solicitud de recuperación
+            if (location.pathname.includes('reset-password')) {
+              console.log("En ruta de reset-password sin token, mostrando formulario de solicitud");
+              setRecoveryToken('recovery-flow');
             } else {
               console.log("No hay sesión activa y no se encontró token");
               setRecoveryToken(null);
@@ -96,6 +111,8 @@ export const useResetPasswordToken = () => {
       } catch (err) {
         console.error("Error al procesar sesión/token:", err);
         setError("Error al procesar la autenticación");
+      } finally {
+        setIsProcessingToken(false);
       }
     };
 
@@ -114,7 +131,7 @@ export const useResetPasswordToken = () => {
     return () => {
       subscription.unsubscribe();
     };
-  }, [location, params]);
+  }, [location, params, navigate]);
 
-  return { recoveryToken, error };
+  return { recoveryToken, error, isProcessingToken };
 };

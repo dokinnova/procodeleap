@@ -24,17 +24,17 @@ export const RecoveryRequestForm = ({
     setError(null);
     setLoading(true);
 
-    // Get the current origin for the redirect
-    const hostname = window.location.origin;
-    // Use a simple path that works on all domains
-    const redirectTo = `${hostname}/reset-password`;
-
     try {
       const email = (e.currentTarget.elements.namedItem('email') as HTMLInputElement).value;
       
       if (!email) {
         throw new Error("Por favor, introduce tu correo electrónico");
       }
+
+      // Get the current origin for the redirect
+      const origin = window.location.origin;
+      // Create a specific reset password URL that we know will work
+      const redirectTo = `${origin}/reset-password`;
 
       console.log("Solicitando recuperación de contraseña para:", email);
       console.log("Con redirect a:", redirectTo);
