@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,8 +52,6 @@ export const ResetPasswordForm = ({
         // Este es el punto crítico - usamos el token directamente para actualizar la contraseña
         const { error: updateError } = await supabase.auth.updateUser({
           password: newPassword
-        }, {
-          captchaToken: undefined // Aseguramos que captchaToken es undefined
         });
 
         if (updateError) {
