@@ -14,15 +14,16 @@ export const useResetUrlParams = () => {
     const accessToken = searchParams.get("access_token");
     const refreshToken = searchParams.get("refresh_token");
 
-    console.log("Verifying URL parameters for reset:");
-    console.log("Token:", token ? "Present" : "Not present");
-    console.log("Code:", code ? "Present" : "Not present");
+    console.log("Verificando parámetros en URL para reset:");
+    console.log("Token:", token ? "Presente" : "No presente");
+    console.log("Code:", code ? "Presente" : "No presente");
     console.log("Type:", type);
     console.log("Email:", emailParam);
     console.log("Error:", errorParam);
     console.log("Error Description:", errorDescription);
-    console.log("Access Token:", accessToken ? "Present" : "Not present");
-    console.log("Refresh Token:", refreshToken ? "Present" : "Not present");
+    console.log("Access Token:", accessToken ? "Presente" : "No presente");
+    console.log("Refresh Token:", refreshToken ? "Presente" : "No presente");
+    console.log("URL completa:", window.location.href);
 
     return {
       token,

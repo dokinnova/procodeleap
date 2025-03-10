@@ -62,6 +62,7 @@ export const useTokenValidation = () => {
     refreshToken?: string | null
   ) => {
     console.log("Validando token para reset de contraseña...");
+    console.log("Parámetros recibidos:", { token, code, type, emailParam, errorParam, accessToken: accessToken ? "Presente" : "Ausente" });
     
     try {
       // Mark as checked to stop showing loading state
@@ -89,21 +90,41 @@ export const useTokenValidation = () => {
         }
         
         // For recovery code with email
-        if (code && emailParam && type === 'recovery') {
-          try {
-            const { success, session: verifiedSession } = await verifyCodeWithEmail(code, emailParam);
-            
-            if (success && verifiedSession) {
-              setIsTokenValid(true);
-              setSession(verifiedSession);
-              return { success: true };
+        if (code) {
+          console.log("Código de recuperación detectado:", code);
+          
+          // If we have an email parameter, try to verify with it
+          if (emailParam) {
+            try {
+              console.log("Intentando verificar con email proporcionado:", emailParam);
+              const { success, session: verifiedSession } = await verifyCodeWithEmail(code, emailParam);
+              
+              if (success && verifiedSession) {
+                setIsTokenValid(true);
+                setSession(verifiedSession);
+                return { success: true };
+              }
+            } catch (err) {
+              console.error("Error al verificar código con email:", err);
             }
-          } catch (err) {
-            console.error("Error al verificar código:", err);
-            return { 
-              error: "El enlace de recuperación es inválido. Por favor solicita uno nuevo.", 
-              setRequestMode: true 
-            };
+          } else {
+            // If no email is provided, try to verify the session directly
+            // This approach relies on Supabase's session handling mechanism
+            try {
+              console.log("Intentando verificar sesión directamente con código");
+              const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+              
+              if (error) {
+                console.error("Error al intercambiar código por sesión:", error);
+              } else if (data?.session) {
+                console.log("Sesión obtenida exitosamente");
+                setSession(data.session);
+                setIsTokenValid(true);
+                return { success: true };
+              }
+            } catch (err) {
+              console.error("Error al intercambiar código por sesión:", err);
+            }
           }
         }
         

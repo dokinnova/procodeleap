@@ -38,25 +38,38 @@ export const usePasswordResetMode = () => {
         accessToken,
         refreshToken
       } = getUrlParams();
-      
-      const validationResult = await validateToken(
-        token,
-        code,
-        type,
-        emailParam,
-        errorParam,
-        errorDescription,
-        accessToken,
-        refreshToken
-      );
 
-      if (validationResult.error) {
-        setError(validationResult.error);
+      console.log("Iniciando validación de token/código en página de reset");
+      
+      // Si tenemos un código o token, intentamos validarlo
+      if (token || code || accessToken || refreshToken) {
+        console.log("Token o código detectado, intentando validación...");
+        
+        const validationResult = await validateToken(
+          token,
+          code,
+          type,
+          emailParam,
+          errorParam,
+          errorDescription,
+          accessToken,
+          refreshToken
+        );
+
+        if (validationResult.error) {
+          console.error("Error en validación:", validationResult.error);
+          setError(validationResult.error);
+          setMode("request");
+        } else if (validationResult.setRequestMode) {
+          console.log("Configurando modo solicitud");
+          setMode("request");
+        } else if (validationResult.success) {
+          console.log("Validación exitosa, configurando modo reset");
+          setMode("reset");
+        }
+      } else {
+        console.log("No se detectó token o código, modo solicitud por defecto");
         setMode("request");
-      } else if (validationResult.setRequestMode) {
-        setMode("request");
-      } else if (validationResult.success) {
-        setMode("reset");
       }
     };
     

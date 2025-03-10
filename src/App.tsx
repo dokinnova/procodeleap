@@ -71,11 +71,16 @@ const App = () => {
             {/* Public routes - accessible without authentication */}
             <Route path="/auth" element={<AuthForm />} />
             <Route path="/password-reset" element={<PasswordReset />} />
+            
             {/* Redirect the callback to password-reset page with all parameters preserved */}
-            <Route path="/auth/callback" element={<Navigate to="/password-reset" replace />} />
-            {/* Redirect root path with code parameter to password-reset page */}
+            <Route path="/auth/callback" element={
+              <Navigate to={`/password-reset${window.location.search}`} replace />
+            } />
+            
+            {/* Redirect root path with parameters to appropriate pages */}
             <Route path="/" element={
-              window.location.search.includes('code=') ? 
+              window.location.search.includes('code=') || 
+              window.location.search.includes('token=') ? 
               <Navigate to={`/password-reset${window.location.search}`} replace /> : 
               <Navigate to="/auth" replace />
             } />
