@@ -8,10 +8,18 @@ export const useOtpVerification = () => {
   const [email, setEmail] = useState("");
   
   const verifyOtp = async (code: string): Promise<{ success: boolean; error: string | null; session: any }> => {
-    if (!code || !email) {
+    if (!code) {
       return { 
         success: false, 
-        error: code ? "Por favor ingresa tu correo electrónico para verificar tu identidad" : "Código inválido", 
+        error: "Código inválido", 
+        session: null 
+      };
+    }
+    
+    if (!email) {
+      return { 
+        success: false, 
+        error: "Por favor ingresa tu correo electrónico para verificar tu identidad", 
         session: null 
       };
     }
@@ -20,7 +28,7 @@ export const useOtpVerification = () => {
     setVerificationAttempted(true);
     
     try {
-      console.log("Intentando verificar OTP para:", email);
+      console.log("Intentando verificar OTP para:", email, "con código:", code);
       
       const { data, error: verifyError } = await supabase.auth.verifyOtp({
         email,
@@ -58,6 +66,7 @@ export const useOtpVerification = () => {
         };
       }
       
+      console.log("Verificación OTP exitosa, sesión obtenida:", data.session ? "Presente" : "Ausente");
       return { success: true, error: null, session: data.session };
     } catch (err: any) {
       console.error("Error en verificación OTP:", err);
@@ -91,7 +100,6 @@ export const useOtpVerification = () => {
     verificationAttempted,
     setVerificationAttempted,
     verificationInProgress,
-    setVerificationInProgress,
     verifyOtp
   };
 };

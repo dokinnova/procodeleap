@@ -27,13 +27,15 @@ export const usePasswordResetMode = () => {
       const token = searchParams.get("token");
       const code = searchParams.get("code");
       const type = searchParams.get("type");
+      const emailParam = searchParams.get("email");
       const errorParam = searchParams.get("error");
       const errorDescription = searchParams.get("error_description");
       
       console.log("Verificando parámetros de URL:");
-      console.log("Token:", token ? "Present" : "Not present");
-      console.log("Code:", code ? "Present" : "Not present");
+      console.log("Token:", token ? "Presente" : "No presente");
+      console.log("Code:", code ? "Presente" : "No presente");
       console.log("Type:", type);
+      console.log("Email:", emailParam);
       console.log("Error:", errorParam);
       console.log("Error Description:", errorDescription);
       
@@ -91,7 +93,9 @@ export const usePasswordResetMode = () => {
       // Handle code-based reset
       if (code) {
         try {
-          console.log("Verificando sesión actual con código OTP");
+          console.log("Verificando código OTP:", code);
+          
+          // Check if we already have a session
           const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
           
           if (sessionError) {

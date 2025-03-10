@@ -123,7 +123,6 @@ const PasswordReset = () => {
                 </AlertDescription>
               </Alert>
               
-              {/* Destacar más el botón de solicitar nuevo enlace */}
               <Button
                 variant="default"
                 className="w-full gap-2"
@@ -133,7 +132,6 @@ const PasswordReset = () => {
                 Solicitar un nuevo enlace
               </Button>
               
-              {/* Agregar campo de correo para facilitar la solicitud */}
               {email && (
                 <div className="mt-4 text-center text-sm text-muted-foreground">
                   <p>Tu correo registrado: <strong>{email}</strong></p>

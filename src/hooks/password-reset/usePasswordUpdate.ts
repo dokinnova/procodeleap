@@ -40,6 +40,7 @@ export const usePasswordUpdate = () => {
   useEffect(() => {
     const emailParam = searchParams.get("email");
     if (emailParam) {
+      console.log("Estableciendo email desde URL:", emailParam);
       setEmail(emailParam);
     }
   }, [searchParams, setEmail]);
@@ -87,11 +88,16 @@ export const usePasswordUpdate = () => {
       }
       
       // Approach 2: Verify OTP first, then update password
-      if (code && email && !verificationInProgress) {
+      if (code && email) {
         console.log("Verificando OTP para email:", email, "con código:", code);
+        
         const { success: otpSuccess, error: otpError, session } = await verifyOtp(code);
         
-        console.log("Resultado de verificación OTP:", { success: otpSuccess, error: otpError, session: session ? "Presente" : "Ausente" });
+        console.log("Resultado de verificación OTP:", { 
+          success: otpSuccess, 
+          error: otpError, 
+          session: session ? "Presente" : "Ausente" 
+        });
         
         if (!otpSuccess) {
           setError(otpError);

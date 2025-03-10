@@ -47,8 +47,10 @@ export const usePasswordReset = () => {
   // Sync email between request and reset modes
   useEffect(() => {
     if (mode === "request" && updateEmail) {
+      console.log("Sincronizando email de modo reset a request:", updateEmail);
       setRequestEmail(updateEmail);
     } else if (mode === "reset" && requestEmail) {
+      console.log("Sincronizando email de modo request a reset:", requestEmail);
       setUpdateEmail(requestEmail);
     }
   }, [mode, requestEmail, updateEmail, setRequestEmail, setUpdateEmail]);
