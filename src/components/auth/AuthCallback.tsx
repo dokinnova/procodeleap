@@ -10,55 +10,55 @@ const AuthCallback = () => {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // Extraer todos los parámetros de la URL
+        // Extract all parameters from the URL
         const searchParams = new URLSearchParams(location.search);
         
-        // Convertir a un objeto para debug
+        // Convert to an object for debugging
         const params = Object.fromEntries(searchParams.entries());
-        console.log("Parámetros de callback recibidos:", params);
+        console.log("Callback parameters received:", params);
         
-        // Verificar si estamos en una redirección de recuperación de contraseña
+        // Check if we're in a password reset flow
         const isPasswordReset = searchParams.has("type") && searchParams.get("type") === "recovery";
         const hasCode = searchParams.has("code");
         
         if (hasCode) {
-          console.log("Código de autenticación detectado, procesando...");
+          console.log("Authentication code detected, processing...");
           
           try {
-            // Intentar intercambiar el código por una sesión
+            // Try to exchange the code for a session
             const { data, error } = await supabase.auth.exchangeCodeForSession(
               searchParams.get("code") as string
             );
             
             if (error) {
-              console.error("Error al procesar código de autenticación:", error);
-              // Preservar todos los parámetros y redirigir a la página de reset
+              console.error("Error processing authentication code:", error);
+              // Preserve all parameters and redirect to reset page
               navigate(`/password-reset${location.search}`, { replace: true });
               return;
             }
             
-            console.log("Código procesado correctamente:", data?.session ? "Sesión establecida" : "Sin sesión");
+            console.log("Code processed successfully:", data?.session ? "Session established" : "No session");
             
-            // Si es una redirección de password reset, mandar a esa página en vez del dashboard
+            // If it's a password reset redirect, send to that page instead of dashboard
             if (isPasswordReset || searchParams.has("token")) {
-              console.log("Redirigiendo a página de reset de contraseña");
+              console.log("Redirecting to password reset page");
               navigate(`/password-reset${location.search}`, { replace: true });
             } else {
-              // Si es un login normal, redirigir al dashboard
-              console.log("Redirigiendo al dashboard");
+              // If it's a normal login, redirect to dashboard
+              console.log("Redirecting to dashboard");
               navigate("/", { replace: true });
             }
           } catch (error) {
-            console.error("Error general en callback:", error);
+            console.error("General callback error:", error);
             navigate(`/password-reset${location.search}`, { replace: true });
           }
         } else {
-          // Si no hay código, simplemente redirigir a la página de reset con los parámetros
-          console.log("No se encontró código, redirigiendo a página de reset");
+          // If no code, simply redirect to reset page with parameters
+          console.log("No code found, redirecting to reset page");
           navigate(`/password-reset${location.search}`, { replace: true });
         }
       } catch (error) {
-        console.error("Error crítico en callback:", error);
+        console.error("Critical callback error:", error);
         navigate("/password-reset", { replace: true });
       }
     };
@@ -66,7 +66,7 @@ const AuthCallback = () => {
     handleAuthCallback();
   }, [navigate, location]);
   
-  // Mostrar un indicador de carga mientras se procesa
+  // Show a loading indicator while processing
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background to-secondary/50">
       <div className="text-center">

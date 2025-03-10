@@ -34,6 +34,10 @@ export const publicRoutes: RouteObject[] = [
     element: <PasswordReset />
   },
   {
+    path: "/auth/callback",
+    element: <AuthCallback />
+  },
+  {
     path: "/",
     element: window.location.search.includes('code=') ? 
       <Navigate to={`/password-reset${window.location.search}`} replace /> : 

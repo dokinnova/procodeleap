@@ -26,8 +26,8 @@ export const usePasswordResetRequest = () => {
       
       // Siempre usar la URL base de la aplicación en Vercel
       const baseUrl = "https://procodeli-makipurays-projects.vercel.app";
-      // Redirigir directamente a la página de reset sin pasar por el callback
-      const redirectUrl = `${baseUrl}/password-reset`;
+      // Redirigir a través de nuestro componente callback para manejar el código
+      const redirectUrl = `${baseUrl}/auth/callback`;
       
       console.log("URL de redirección configurada:", redirectUrl);
       
