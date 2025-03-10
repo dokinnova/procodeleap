@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -55,6 +56,13 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
         toast({
           title: "Sesión cerrada",
           description: "Has cerrado sesión correctamente.",
+        });
+      } else if (_event === 'PASSWORD_RECOVERY') {
+        navigate('/password-reset');
+      } else if (_event === 'USER_UPDATED') {
+        toast({
+          title: "Perfil actualizado",
+          description: "Tu perfil ha sido actualizado correctamente.",
         });
       }
       setSession(session);
