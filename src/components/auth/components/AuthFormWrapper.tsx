@@ -10,14 +10,14 @@ export const AuthFormWrapper = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   
-  // Siempre usar el dominio actual desde window.location
+  // Always use the current domain from window.location
   const currentUrl = window.location.origin;
-  // Asegúrate de que la URL de redirección es absoluta
-  const redirectTo = `${currentUrl}/reset-password/token`;
+  // Make sure the redirect URL is absolute
+  const redirectTo = `${currentUrl}/reset-password`;
   
   console.log("AuthFormWrapper: Using redirect URL:", redirectTo);
 
-  // Detectar errores en la URL al cargar el componente
+  // Detect errors in URL when component loads
   useEffect(() => {
     const url = new URL(window.location.href);
     const error = url.searchParams.get('error');
@@ -25,7 +25,7 @@ export const AuthFormWrapper = () => {
     const errorDescription = url.searchParams.get('error_description');
     
     if (error && errorDescription) {
-      console.log('AuthFormWrapper: Error detectado:', error, errorCode, errorDescription);
+      console.log('AuthFormWrapper: Error detected:', error, errorCode, errorDescription);
       
       let message = errorDescription.replace(/\+/g, ' ');
       if (errorCode === 'otp_expired') {
@@ -38,25 +38,25 @@ export const AuthFormWrapper = () => {
         variant: "destructive",
       });
       
-      // Limpiar los parámetros de error de la URL
+      // Clean up error parameters from the URL
       navigate('/auth', { replace: true });
     }
   }, [toast, navigate]);
 
-  // Manejamos los eventos de autenticación
+  // Handle authentication events
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('AuthFormWrapper: Auth event:', event);
       
       if (event === 'SIGNED_IN') {
-        console.log('Usuario ha iniciado sesión');
+        console.log('User has signed in');
         toast({
           title: "Sesión iniciada",
           description: "Has iniciado sesión correctamente.",
         });
         navigate('/');
       } else if (event === 'PASSWORD_RECOVERY') {
-        console.log('Redirección a página de recuperación de contraseña');
+        console.log('Redirecting to password recovery page');
         navigate('/reset-password');
       }
     });
