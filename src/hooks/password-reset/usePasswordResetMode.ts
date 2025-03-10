@@ -31,7 +31,7 @@ export const usePasswordResetMode = () => {
       const errorParam = searchParams.get("error");
       const errorDescription = searchParams.get("error_description");
       
-      console.log("Verificando parámetros de URL:");
+      console.log("Verificando parámetros de URL para reset:");
       console.log("Token:", token ? "Presente" : "No presente");
       console.log("Code:", code ? "Presente" : "No presente");
       console.log("Type:", type);
@@ -60,31 +60,28 @@ export const usePasswordResetMode = () => {
       // Set to reset mode if we have a token or code
       setMode("reset");
       
+      // Check if we already have an active session
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (sessionData?.session) {
+        console.log("Sesión activa encontrada:", sessionData.session);
+        setSession(sessionData.session);
+        setIsTokenValid(true);
+        setTokenChecked(true);
+        return;
+      }
+      
       // Handle token-based reset
       if (token) {
         try {
-          console.log("Validando sesión con token");
-          const { data, error: sessionError } = await supabase.auth.getSession();
-          
-          if (sessionError) {
-            console.error("Error al obtener sesión:", sessionError);
-            throw sessionError;
-          }
-          
-          if (data?.session) {
-            console.log("Sesión válida encontrada");
-            setSession(data.session);
-            setIsTokenValid(true);
-          } else {
-            console.log("No hay sesión activa con el token proporcionado");
-            setError("El enlace de recuperación ha expirado. Por favor solicita uno nuevo.");
-            setIsTokenValid(false);
-          }
+          console.log("Validando token de recuperación");
+          // We don't actually validate the token here, we'll let the update password operation handle that
+          // Just set as valid so the form shows up
+          setIsTokenValid(true);
+          setTokenChecked(true);
         } catch (err) {
           console.error("Error al verificar token:", err);
           setError("El enlace de recuperación ha expirado. Por favor solicita uno nuevo.");
           setIsTokenValid(false);
-        } finally {
           setTokenChecked(true);
         }
         return;
@@ -93,24 +90,9 @@ export const usePasswordResetMode = () => {
       // Handle code-based reset
       if (code) {
         try {
-          console.log("Verificando código OTP:", code);
+          console.log("Validando código OTP:", code);
           
-          // Check if we already have a session
-          const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
-          
-          if (sessionError) {
-            console.error("Error al obtener sesión:", sessionError);
-          }
-          
-          if (currentSession) {
-            console.log("Sesión existente encontrada:", currentSession);
-            setSession(currentSession);
-            setIsTokenValid(true);
-            setTokenChecked(true);
-            return;
-          }
-          
-          // Check if code looks like a UUID (OTP format)
+          // Check if code looks valid by format (don't actually verify yet)
           const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
           if (code && uuidPattern.test(code)) {
             console.log("Código parece válido por formato");

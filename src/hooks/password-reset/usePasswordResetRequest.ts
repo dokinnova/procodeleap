@@ -37,11 +37,19 @@ export const usePasswordResetRequest = () => {
         throw error;
       }
       
+      console.log("Solicitud de reseteo enviada exitosamente, revise su correo");
       toast.success("Se ha enviado un enlace de recuperación a tu correo electrónico");
-      setSuccess("Se ha enviado un enlace de recuperación a tu correo electrónico. Por favor revisa tu bandeja de entrada.");
+      setSuccess("Se ha enviado un enlace de recuperación a tu correo electrónico. Por favor revisa tu bandeja de entrada y spam.");
     } catch (err: any) {
       console.error("Error al solicitar restablecimiento de contraseña:", err);
-      setError("Ocurrió un error al solicitar el restablecimiento de contraseña");
+      
+      if (err.message && err.message.includes("User not found")) {
+        setError("No se encontró ninguna cuenta con este correo electrónico. Por favor verifica e intenta de nuevo.");
+      } else if (err.message && err.message.includes("rate limit")) {
+        setError("Has solicitado demasiados enlaces de recuperación. Por favor espera unos minutos antes de intentarlo de nuevo.");
+      } else {
+        setError("Ocurrió un error al solicitar el restablecimiento de contraseña. Por favor intenta de nuevo más tarde.");
+      }
     } finally {
       setLoading(false);
     }

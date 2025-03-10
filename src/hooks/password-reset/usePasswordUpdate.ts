@@ -67,6 +67,7 @@ export const usePasswordUpdate = () => {
     try {
       console.log("Iniciando actualización de contraseña");
       const token = searchParams.get("token");
+      const code = searchParams.get("code");
       
       // Check for existing session first
       const { data: sessionData } = await supabase.auth.getSession();

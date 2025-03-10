@@ -30,6 +30,13 @@ export const useOtpVerification = () => {
     try {
       console.log("Intentando verificar OTP para:", email, "con código:", code);
       
+      // First check if we already have a session
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (sessionData?.session) {
+        console.log("Sesión existente encontrada, no es necesario verificar OTP");
+        return { success: true, error: null, session: sessionData.session };
+      }
+      
       const { data, error: verifyError } = await supabase.auth.verifyOtp({
         email,
         token: code,
@@ -45,7 +52,8 @@ export const useOtpVerification = () => {
           verifyError.message.includes("not found") ||
           verifyError.message.includes("token has expired") ||
           verifyError.message.includes("token is invalid") ||
-          verifyError.message.includes("otp_expired")
+          verifyError.message.includes("otp_expired") ||
+          verifyError.message.includes("otp not found")
         )) {
           return { 
             success: false, 

@@ -27,7 +27,8 @@ export const usePasswordUpdateSubmit = () => {
           updateError.message.includes("Auth session missing") ||
           updateError.message.includes("JWT") ||
           updateError.message.includes("expired") ||
-          updateError.message.includes("invalid")
+          updateError.message.includes("invalid") ||
+          updateError.message.includes("not found")
         )) {
           throw new Error("El enlace de recuperación ha expirado. Por favor solicita uno nuevo.");
         }
@@ -48,7 +49,8 @@ export const usePasswordUpdateSubmit = () => {
         err.message.includes("not found") ||
         err.message.includes("invalid") ||
         err.message.includes("Invalid") ||
-        err.message.includes("Auth session missing")
+        err.message.includes("Auth session missing") ||
+        err.message.includes("JWT")
       )) {
         setError("El enlace de recuperación ha expirado. Por favor solicita uno nuevo.");
       } else if (err.message && err.message.includes("User not found")) {
