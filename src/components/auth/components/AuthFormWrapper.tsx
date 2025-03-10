@@ -37,24 +37,19 @@ export const AuthFormWrapper = () => {
     }
   }, [toast, navigate]);
 
-  // Manejar errores durante la autenticación
+  // Manejamos los eventos de autenticación, no los errores específicamente
   useEffect(() => {
-    // Usando el evento onAuthStateChange para detectar errores
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'PASSWORD_RECOVERY_ERROR' || event === 'USER_UPDATED_ERROR' || event === 'SIGNED_IN_ERROR') {
-        console.error('Error de autenticación:', event);
-        toast({
-          title: "Error",
-          description: "Ha ocurrido un error durante la autenticación",
-          variant: "destructive",
-        });
-      }
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      console.log('AuthFormWrapper: Auth event:', event);
+      
+      // Solo loggeamos los eventos, pero no tratamos de capturar errores específicos
+      // ya que eso se maneja a través de los parámetros de URL
     });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, [toast]);
+  }, []);
 
   return (
     <Auth
