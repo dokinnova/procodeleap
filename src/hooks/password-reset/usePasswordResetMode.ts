@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 
 export type PasswordResetMode = "request" | "reset";
 
@@ -116,31 +115,6 @@ export const usePasswordResetMode = () => {
             console.log("Formato de código inválido");
             setError("El enlace de recuperación es inválido. Por favor solicita uno nuevo.");
             setIsTokenValid(false);
-          }
-          
-          // Attempt to verify if the code is valid
-          try {
-            // We only try this to see if the code is valid, without committing to a password change yet
-            const { error: verifyError } = await supabase.auth.verifyOtp({
-              email: searchParams.get("email") || "",
-              token: code,
-              type: 'recovery'
-            });
-            
-            if (verifyError) {
-              if (verifyError.message && (
-                verifyError.message.includes("token has expired") || 
-                verifyError.message.includes("token is invalid") ||
-                verifyError.message.includes("otp_expired")
-              )) {
-                console.log("Token expirado o inválido durante verificación previa");
-                setError("El enlace de recuperación ha expirado. Por favor solicita uno nuevo.");
-                setIsTokenValid(false);
-              }
-            }
-          } catch (e) {
-            // Just log the error, we'll proceed anyway since the real verification happens later
-            console.log("Error en verificación previa:", e);
           }
           
           setTokenChecked(true);

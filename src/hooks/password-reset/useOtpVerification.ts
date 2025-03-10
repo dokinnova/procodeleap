@@ -31,7 +31,6 @@ export const useOtpVerification = () => {
       if (verifyError) {
         console.error("Error al verificar OTP:", verifyError);
         
-        // Check for specific error types that indicate expired or invalid tokens
         if (verifyError.message && (
           verifyError.message.includes("expired") || 
           verifyError.message.includes("invalid") ||
@@ -63,7 +62,6 @@ export const useOtpVerification = () => {
     } catch (err: any) {
       console.error("Error en verificación OTP:", err);
       
-      // Check if the error message indicates an expired token
       if (err.message && (
         err.message.includes("expired") || 
         err.message.includes("invalid") ||
