@@ -34,19 +34,39 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       return;
     }
     
+    // Check if user is already logged in when accessing auth page
+    const checkInitialSession = async () => {
+      // Only perform this check when on /auth page
+      if (location.pathname === '/auth') {
+        try {
+          const { data: { session: currentSession } } = await supabase.auth.getSession();
+          if (currentSession) {
+            console.log('AuthProvider: Usuario ya con sesión en página de auth, redirigiendo a inicio');
+            navigate('/', { replace: true });
+          }
+        } catch (err) {
+          console.error('Error checking initial session:', err);
+        }
+      }
+    };
+    
+    checkInitialSession();
+    
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('AuthProvider: Cambio de estado de auth:', event);
       
-      // Solo mostrar mensaje y redirigir si el usuario inicia sesión manualmente
-      // No mostrar mensajes en la carga inicial de la página de auth
-      if (event === 'SIGNED_IN' && session && location.pathname !== '/auth') {
-        console.log('AuthProvider: Usuario conectado, redireccionando a inicio');
-        toast({
-          title: "Sesión iniciada",
-          description: "Has iniciado sesión correctamente",
-        });
+      // Avoid showing messages on initial page load or when directly accessing auth page
+      if (event === 'SIGNED_IN' && session) {
+        // Don't show this message on initial page load in auth page
+        if (location.pathname !== '/auth') {
+          console.log('AuthProvider: Usuario conectado, redireccionando a inicio');
+          toast({
+            title: "Sesión iniciada",
+            description: "Has iniciado sesión correctamente",
+          });
+        }
         navigate('/', { replace: true });
       } else if (event === 'PASSWORD_RECOVERY') {
         console.log('AuthProvider: Recuperación de contraseña iniciada');

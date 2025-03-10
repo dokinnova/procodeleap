@@ -16,6 +16,12 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     
     const checkSession = async () => {
       try {
+        // If we're already on the auth page, don't check session to avoid redirects
+        if (location.pathname === '/auth') {
+          setLoading(false);
+          return;
+        }
+        
         const { data: { session: currentSession }, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -32,7 +38,7 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
             
             if (isProtectedRoute()) {
               console.log('ProtectedRoute: Redirigiendo a /auth debido a error de sesión');
-              setTimeout(() => navigate('/auth', { replace: true }), 0);
+              navigate('/auth', { replace: true });
             }
           }
         } else if (!currentSession) {
@@ -42,7 +48,7 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
           // Solo redirigir si la ruta requiere autenticación y no estamos ya en la página de auth
           if (isProtectedRoute() && !location.pathname.startsWith('/auth')) {
             console.log('ProtectedRoute: Redirigiendo a /auth porque no hay sesión');
-            setTimeout(() => navigate('/auth', { replace: true }), 0);
+            navigate('/auth', { replace: true });
           }
         } else {
           console.log('ProtectedRoute: Sesión encontrada:', currentSession);
@@ -94,23 +100,44 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       return;
     }
 
+    // If we're already on the auth page, simplify the check to avoid unnecessary redirects
+    if (location.pathname === '/auth') {
+      setLoading(false);
+      
+      // Still set up auth state change listener for when user logs in
+      const {
+        data: { subscription },
+      } = supabase.auth.onAuthStateChange((event, newSession) => {
+        console.log('ProtectedRoute: Cambio de estado de auth desde /auth:', event);
+        setSession(newSession);
+        
+        // If user logs in while on auth page, redirect to home
+        if (event === 'SIGNED_IN' && newSession) {
+          navigate('/', { replace: true });
+        }
+      });
+      
+      return () => {
+        console.log('ProtectedRoute: Limpiando suscripción en /auth');
+        subscription.unsubscribe();
+      };
+    }
+
     checkSession();
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('ProtectedRoute: Cambio de estado de auth:', event);
-      if (event === 'SIGNED_OUT') {
+      if (event === 'SIGNED_OUT' && !location.pathname.startsWith('/auth')) {
         // Solo mostrar mensaje si no estamos en la página de autenticación
-        if (!location.pathname.startsWith('/auth')) {
-          toast({
-            title: "Sesión cerrada",
-            description: "Has cerrado sesión correctamente.",
-          });
-          
-          if (isProtectedRoute()) {
-            navigate('/auth', { replace: true });
-          }
+        toast({
+          title: "Sesión cerrada",
+          description: "Has cerrado sesión correctamente.",
+        });
+        
+        if (isProtectedRoute()) {
+          navigate('/auth', { replace: true });
         }
       } else if (event === 'PASSWORD_RECOVERY') {
         // Redirigir a la página de restablecimiento de contraseña
@@ -133,15 +160,15 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
+  // Auth page should always be accessible
+  if (location.pathname === '/auth') {
+    return <>{children}</>;
+  }
+
   // Permitir siempre el acceso a rutas de restablecimiento de contraseña independientemente del estado de autenticación
   if (location.pathname.startsWith('/reset-password') || 
       location.search.includes('type=recovery') || 
       location.search.includes('code=')) {
-    return <>{children}</>;
-  }
-
-  // Permitir siempre el acceso a la página de autenticación
-  if (location.pathname.startsWith('/auth')) {
     return <>{children}</>;
   }
 
