@@ -51,7 +51,7 @@ const BusinessIntelligence = () => {
     <div className="space-y-6">
       <div className="flex items-center gap-3">
         <FilePieChart className="h-8 w-8 text-primary" />
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard de Business Intelligence</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Dashboard de Estadísticas</h1>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

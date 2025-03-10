@@ -70,7 +70,7 @@ const Navigation = ({ isMobileMenuOpen, setIsMobileMenuOpen }: NavigationProps) 
           </NavigationLink>
           
           <NavigationLink to="/business-intelligence" icon={PieChart} onClick={handleLinkClick}>
-            Business Intelligence
+            Estadísticas
           </NavigationLink>
 
           <NavigationLink to="/map" icon={Map} onClick={handleLinkClick}>
