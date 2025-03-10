@@ -14,25 +14,7 @@ export const DashboardHeader = () => {
     try {
       console.log("Attempting to sign out...");
       
-      // First check if we have a session
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError) {
-        console.error("Error checking session before logout:", sessionError);
-        throw sessionError;
-      }
-      
-      if (!session) {
-        // If no session, just redirect to auth page
-        console.log("No active session found");
-        toast("Session ended", {
-          description: "No active session",
-        });
-        navigate("/auth", { replace: true });
-        return;
-      }
-      
-      // If we have a session, try to sign out
+      // Sign out without checking session first
       const { error } = await supabase.auth.signOut();
       
       if (error) {
@@ -41,8 +23,8 @@ export const DashboardHeader = () => {
       }
 
       // Show success toast
-      toast("Session closed", {
-        description: "You have successfully signed out",
+      toast("Sesión cerrada", {
+        description: "Has cerrado sesión correctamente",
       });
 
       // Force navigation to login
@@ -51,7 +33,7 @@ export const DashboardHeader = () => {
       console.error("Error signing out:", error);
       uiToast({
         title: "Error",
-        description: "Could not sign out properly. Redirecting to sign in.",
+        description: "No se pudo cerrar sesión correctamente. Redirigiendo a inicio de sesión.",
         variant: "destructive",
       });
       
@@ -63,9 +45,9 @@ export const DashboardHeader = () => {
   return (
     <div className="flex justify-between items-center pb-4 border-b border-purple-100">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight text-gray-900 bg-gradient-to-r from-violet-600 to-pink-600 bg-clip-text text-transparent">Control Panel</h2>
+        <h2 className="text-2xl font-bold tracking-tight text-gray-900 bg-gradient-to-r from-violet-600 to-pink-600 bg-clip-text text-transparent">Panel de Control</h2>
         <p className="text-muted-foreground text-sm">
-          COPRODELI management system
+          Sistema de gestión COPRODELI
         </p>
       </div>
       <Button 
@@ -75,7 +57,7 @@ export const DashboardHeader = () => {
         className="flex items-center gap-2 border-violet-200 hover:bg-violet-50"
       >
         <LogOut className="h-4 w-4 text-violet-600" />
-        Sign out
+        Cerrar sesión
       </Button>
     </div>
   );

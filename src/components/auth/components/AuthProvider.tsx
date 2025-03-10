@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,34 +14,48 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const location = useLocation();
   const { toast: uiToast } = useToast();
   const [loading, setLoading] = useState(true);
+  const isMounted = useRef(true);
 
   useEffect(() => {
-    console.log('AuthProvider: Initializing...');
-    let mounted = true;
+    console.log('AuthProvider: Initializing...', location.pathname);
     
     // Check if we already have an active session
     const checkExistingSession = async () => {
       try {
-        if (!mounted) return;
+        if (!isMounted.current) return;
         
         setLoading(true);
         const { data, error } = await supabase.auth.getSession();
         
         if (error) {
           console.error('AuthProvider: Error checking session:', error);
-          if (mounted) setLoading(false);
+          if (isMounted.current) setLoading(false);
           return;
         }
         
-        if (data?.session && location.pathname === '/auth') {
-          console.log('AuthProvider: Existing session detected, redirecting to home');
-          navigate('/', { replace: true });
+        console.log('AuthProvider: Session check result:', data?.session ? 'Session exists' : 'No session');
+        
+        if (data?.session) {
+          console.log('AuthProvider: Existing session detected');
+          
+          if (location.pathname === '/auth') {
+            console.log('AuthProvider: On auth page with session, redirecting to home');
+            navigate('/', { replace: true });
+          }
+        } else {
+          console.log('AuthProvider: No session detected');
+          if (location.pathname !== '/auth' && 
+              location.pathname !== '/password-reset' && 
+              !location.pathname.startsWith('/auth/callback')) {
+            console.log('AuthProvider: Not on auth page with no session, redirecting to auth');
+            navigate('/auth', { replace: true });
+          }
         }
         
-        if (mounted) setLoading(false);
+        if (isMounted.current) setLoading(false);
       } catch (err) {
         console.error('AuthProvider: Unexpected error:', err);
-        if (mounted) setLoading(false);
+        if (isMounted.current) setLoading(false);
       }
     };
     
@@ -50,14 +64,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('AuthProvider: Auth state change:', event);
+      console.log('AuthProvider: Auth state change:', event, 'Session exists:', !!session);
       
-      if (!mounted) return;
+      if (!isMounted.current) return;
 
       if (event === 'SIGNED_IN' && session) {
         console.log('AuthProvider: User authenticated, redirecting to home');
-        toast("Welcome", {
-          description: "You have successfully signed in."
+        toast("Bienvenido", {
+          description: "Has iniciado sesión correctamente."
         });
         navigate('/', { replace: true });
       } else if (event === 'PASSWORD_RECOVERY') {
@@ -65,21 +79,21 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         navigate('/password-reset');
       } else if (event === 'SIGNED_OUT') {
         console.log('AuthProvider: User signed out');
-        toast("Signed out", {
-          description: "You have been signed out."
+        toast("Sesión cerrada", {
+          description: "Has cerrado sesión correctamente."
         });
         navigate('/auth', { replace: true });
       } else if (event === 'USER_UPDATED') {
         console.log('AuthProvider: User updated');
-        toast("Profile updated", {
-          description: "Your profile has been updated successfully."
+        toast("Perfil actualizado", {
+          description: "Tu perfil ha sido actualizado correctamente."
         });
       }
     });
 
     return () => {
       console.log('AuthProvider: Cleaning up subscription');
-      mounted = false;
+      isMounted.current = false;
       subscription.unsubscribe();
     };
   }, [navigate, uiToast, location.pathname]);

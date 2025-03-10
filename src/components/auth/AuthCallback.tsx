@@ -43,7 +43,7 @@ const AuthCallback = () => {
               } else {
                 // If it's a normal login with an error, show message and redirect to auth
                 console.error("Authentication error:", error.message);
-                toast.error("Sign in error: " + error.message);
+                toast.error("Error de inicio de sesión: " + error.message);
                 navigate("/auth", { replace: true });
               }
               return;
@@ -58,8 +58,12 @@ const AuthCallback = () => {
             } else {
               // For normal login, redirect to dashboard
               console.log("Session started successfully, redirecting to home");
-              toast.success("Session started successfully");
-              navigate("/", { replace: true });
+              toast.success("Sesión iniciada correctamente");
+              
+              // Delay the navigation slightly to ensure session is properly set
+              setTimeout(() => {
+                navigate("/", { replace: true });
+              }, 500);
             }
           } catch (error: any) {
             console.error("Error in code exchange:", error);
@@ -68,7 +72,7 @@ const AuthCallback = () => {
             if (isPasswordReset) {
               navigate(`/password-reset${location.search}`, { replace: true });
             } else {
-              toast.error("Error processing authentication");
+              toast.error("Error al procesar la autenticación");
               navigate("/auth", { replace: true });
             }
           }
@@ -80,7 +84,7 @@ const AuthCallback = () => {
       } catch (error: any) {
         console.error("Critical error in callback:", error);
         setError(error.message);
-        toast.error("Error during authentication process");
+        toast.error("Error durante el proceso de autenticación");
         navigate("/auth", { replace: true });
       }
     };
@@ -99,13 +103,13 @@ const AuthCallback = () => {
               onClick={() => navigate('/auth')}
               className="mt-4 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
             >
-              Return to Sign In
+              Volver a Iniciar Sesión
             </button>
           </div>
         ) : (
           <>
             <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto"></div>
-            <p className="text-muted-foreground">Processing authentication...</p>
+            <p className="text-muted-foreground">Procesando autenticación...</p>
           </>
         )}
       </div>
