@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,7 +12,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   useEffect(() => {
     console.log('AuthProvider: Inicializando...');
@@ -35,55 +34,34 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       return;
     }
     
-    // Solo verificar la sesión inicial una vez
-    const checkInitialSession = async () => {
-      try {
-        const { data: { session: currentSession } } = await supabase.auth.getSession();
-        
-        // Si estamos en la página de auth y hay una sesión activa, redirigir a inicio
-        if (location.pathname === '/auth' && currentSession) {
-          console.log('AuthProvider: Usuario ya con sesión en página de auth, redirigiendo a inicio');
-          navigate('/', { replace: true });
-        }
-        
-        setIsInitialLoad(false);
-      } catch (err) {
-        console.error('Error checking initial session:', err);
-        setIsInitialLoad(false);
-      }
-    };
-    
+    // Verificar si el usuario ya tiene sesión y está en la página de auth
     if (location.pathname === '/auth') {
-      checkInitialSession();
-    } else {
-      setIsInitialLoad(false);
+      const checkSession = async () => {
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session) {
+            console.log('AuthProvider: Usuario ya con sesión en página de auth, redirigiendo a inicio');
+            navigate('/', { replace: true });
+          }
+        } catch (err) {
+          console.error('Error checking session:', err);
+        }
+      };
+      
+      checkSession();
     }
     
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('AuthProvider: Cambio de estado de auth:', event);
       
-      // No mostrar mensajes en la carga inicial
-      if (isInitialLoad) return;
-      
       if (event === 'SIGNED_IN' && session) {
-        // No mostrar este mensaje en la carga inicial o en la página de auth
-        if (!isInitialLoad && location.pathname !== '/auth') {
+        if (location.pathname === '/auth') {
           console.log('AuthProvider: Usuario conectado, redireccionando a inicio');
-          toast({
-            title: "Sesión iniciada",
-            description: "Has iniciado sesión correctamente",
-          });
+          navigate('/', { replace: true });
         }
-        navigate('/', { replace: true });
       } else if (event === 'PASSWORD_RECOVERY') {
         console.log('AuthProvider: Recuperación de contraseña iniciada');
-        navigate('/auth', { replace: true });
-        toast({
-          title: "Recuperación de contraseña",
-          description: "Por favor, sigue las instrucciones para restablecer tu contraseña",
-        });
+        navigate('/reset-password', { replace: true });
       }
     });
 
@@ -91,7 +69,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       console.log('AuthProvider: Limpiando suscripción');
       subscription.unsubscribe();
     };
-  }, [navigate, toast, location, isInitialLoad]);
+  }, [navigate, toast, location]);
 
   return <>{children}</>;
 };

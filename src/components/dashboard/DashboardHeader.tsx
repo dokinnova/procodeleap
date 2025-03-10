@@ -13,18 +13,29 @@ export const DashboardHeader = () => {
 
   // Verificar si hay una sesión antes de mostrar el botón de cerrar sesión
   useEffect(() => {
+    let isMounted = true;
+
     const checkSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      setHasSession(!!data.session);
+      try {
+        const { data } = await supabase.auth.getSession();
+        if (isMounted) {
+          setHasSession(!!data.session);
+        }
+      } catch (error) {
+        console.error("Error al verificar sesión:", error);
+      }
     };
     
     checkSession();
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
-      checkSession();
+      if (isMounted) {
+        checkSession();
+      }
     });
     
     return () => {
+      isMounted = false;
       subscription.unsubscribe();
     };
   }, []);
@@ -48,15 +59,10 @@ export const DashboardHeader = () => {
         throw error;
       }
 
-      // No mostrar mensaje de éxito, dejemos que los componentes de auth manejen esto
       console.log("Sesión cerrada exitosamente");
-
-      // Force navigation to login
       navigate("/auth", { replace: true });
     } catch (error) {
       console.error("Error al cerrar sesión:", error);
-      
-      // Even if there's an error, redirect to auth page
       navigate("/auth", { replace: true });
     }
   };

@@ -7,7 +7,6 @@ export const useAuthSession = () => {
   const navigate = useNavigate();
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [isInitialCheck, setIsInitialCheck] = useState(true);
 
   useEffect(() => {
     console.log("useAuthSession: Inicializando efecto");
@@ -33,7 +32,6 @@ export const useAuthSession = () => {
         setSession(null);
       } finally {
         setLoading(false);
-        setIsInitialCheck(false);
       }
     };
 
@@ -47,8 +45,8 @@ export const useAuthSession = () => {
       // Actualizar el estado de la sesión
       setSession(newSession);
       
-      // Si no hay sesión y ya ha cargado y no es la verificación inicial, redirigir
-      if (!newSession && !loading && !isInitialCheck) {
+      // Si hay un cierre de sesión y no estamos en la página de autenticación, redirigir
+      if (_event === 'SIGNED_OUT' && window.location.pathname !== '/auth') {
         console.log("Sesión terminada, redirigiendo a /auth");
         navigate('/auth', { replace: true });
       }
@@ -59,7 +57,7 @@ export const useAuthSession = () => {
       console.log("useAuthSession: Limpiando suscripción");
       subscription.unsubscribe();
     };
-  }, [navigate, loading, isInitialCheck]);
+  }, [navigate]);
 
   return { session, loading };
 };
