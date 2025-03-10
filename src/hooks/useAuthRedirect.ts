@@ -42,7 +42,7 @@ export const useAuthRedirect = () => {
           setSession(data.session);
           if (location.pathname === '/auth') {
             console.log('useAuthRedirect: On auth page with session - Redirecting to home');
-            navigate('/', { replace: true });
+            window.location.href = '/';
           }
         }
         
@@ -66,12 +66,12 @@ export const useAuthRedirect = () => {
         setSession(newSession);
         if (location.pathname === '/auth') {
           console.log('useAuthRedirect: SIGNED_IN - Redirecting to home from auth page');
-          navigate('/', { replace: true });
+          window.location.href = '/';
         }
       } else if (event === 'SIGNED_OUT') {
         console.log('useAuthRedirect: User signed out');
         setSession(null);
-        toast("Sesión terminada", {
+        toast.success("Sesión terminada", {
           description: "Has cerrado sesión.",
         });
         

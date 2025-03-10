@@ -59,7 +59,8 @@ const AuthCallback = () => {
               // For normal login, redirect to dashboard
               console.log("Session started successfully, redirecting to home");
               toast.success("Sesión iniciada correctamente");
-              navigate("/", { replace: true });
+              // Forzar la redirección a la página principal
+              window.location.href = "/";
             }
           } catch (error: any) {
             console.error("Error in code exchange:", error);

@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           // Only redirect if we're on the auth page to prevent unnecessary redirects
           if (location.pathname === '/auth') {
             console.log('AuthProvider: On auth page with session, redirecting to home');
-            navigate('/', { replace: true });
+            window.location.href = '/';
           }
         }
         
@@ -61,7 +61,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         toast.success("Bienvenido", {
           description: "Has iniciado sesión correctamente."
         });
-        navigate('/', { replace: true });
+        window.location.href = '/';
       } else if (event === 'PASSWORD_RECOVERY') {
         console.log('AuthProvider: Password recovery event, redirecting to password reset');
         navigate('/password-reset');
