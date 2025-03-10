@@ -23,12 +23,6 @@ export const useAuthRedirect = () => {
           console.error('useAuthRedirect: Error checking session:', error);
           setSession(null);
           setLoading(false);
-          if (location.pathname !== '/auth' && 
-              location.pathname !== '/password-reset' && 
-              !location.pathname.startsWith('/auth/callback')) {
-            console.log('useAuthRedirect: Error case - Redirecting to auth page');
-            navigate('/auth', { replace: true });
-          }
           return;
         }
         
@@ -37,33 +31,26 @@ export const useAuthRedirect = () => {
         if (!data.session) {
           console.log('useAuthRedirect: No session found');
           setSession(null);
-          setLoading(false);
           if (location.pathname !== '/auth' && 
               location.pathname !== '/password-reset' && 
               !location.pathname.startsWith('/auth/callback')) {
             console.log('useAuthRedirect: No session - Redirecting to auth page');
             navigate('/auth', { replace: true });
           }
-          return;
+        } else {
+          console.log('useAuthRedirect: Session found', location.pathname);
+          setSession(data.session);
+          if (location.pathname === '/auth') {
+            console.log('useAuthRedirect: On auth page with session - Redirecting to home');
+            navigate('/', { replace: true });
+          }
         }
         
-        console.log('useAuthRedirect: Session found', location.pathname);
-        setSession(data.session);
         setLoading(false);
-        if (location.pathname === '/auth') {
-          console.log('useAuthRedirect: On auth page with session - Redirecting to home');
-          navigate('/', { replace: true });
-        }
       } catch (error: any) {
         console.error('useAuthRedirect: Error:', error);
         setSession(null);
         setLoading(false);
-        if (location.pathname !== '/auth' && 
-            location.pathname !== '/password-reset' && 
-            !location.pathname.startsWith('/auth/callback')) {
-          console.log('useAuthRedirect: Error case - Redirecting to auth page');
-          navigate('/auth', { replace: true });
-        }
       }
     };
 

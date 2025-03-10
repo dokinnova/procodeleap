@@ -1,9 +1,8 @@
 
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AuthProviderProps {
   children: React.ReactNode;
@@ -12,7 +11,6 @@ interface AuthProviderProps {
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { toast: uiToast } = useToast();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -36,17 +34,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         if (data?.session) {
           console.log('AuthProvider: Existing session detected, user authenticated');
           
+          // Only redirect if we're on the auth page to prevent unnecessary redirects
           if (location.pathname === '/auth') {
             console.log('AuthProvider: On auth page with session, redirecting to home');
             navigate('/', { replace: true });
-          }
-        } else {
-          console.log('AuthProvider: No session detected');
-          if (location.pathname !== '/auth' && 
-              location.pathname !== '/password-reset' && 
-              !location.pathname.startsWith('/auth/callback')) {
-            console.log('AuthProvider: Not on auth page with no session, redirecting to auth');
-            navigate('/auth', { replace: true });
           }
         }
         
@@ -92,7 +83,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       console.log('AuthProvider: Cleaning up subscription');
       subscription.unsubscribe();
     };
-  }, [navigate, uiToast, location.pathname]);
+  }, [navigate, location.pathname]);
 
   if (loading) {
     return (
