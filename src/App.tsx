@@ -68,8 +68,12 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <Routes>
+            {/* Public routes - accessible without authentication */}
             <Route path="/auth" element={<AuthForm />} />
             <Route path="/password-reset" element={<PasswordReset />} />
+            <Route path="/auth/callback" element={<PasswordReset />} />
+            
+            {/* Protected routes - require authentication */}
             <Route path="*" element={
               <ProtectedRoute>
                 <div className="flex min-h-screen bg-gradient-to-br from-background to-secondary/50">

@@ -21,10 +21,37 @@ const PasswordReset = () => {
   const [email, setEmail] = useState("");
 
   useEffect(() => {
-    // Check if we have a token in the URL parameters
+    // Check if we have a token or code in the URL parameters
     const token = searchParams.get("token");
-    if (token) {
+    const code = searchParams.get("code");
+    
+    if (token || code) {
       setMode("reset");
+      
+      // If we have a code from Supabase but not a token, handle that scenario
+      if (code && !token) {
+        const handleSupabaseCode = async () => {
+          try {
+            // This verifies the recovery code and sets the session
+            const { error } = await supabase.auth.verifyOtp({
+              type: 'recovery',
+              token: code,
+            });
+            
+            if (error) {
+              console.error("Error al verificar el código:", error);
+              toast.error("El enlace de recuperación no es válido o ha expirado");
+              setError("El enlace de recuperación no es válido o ha expirado");
+            }
+          } catch (err) {
+            console.error("Error al verificar el código:", err);
+            toast.error("Ocurrió un error al procesar tu solicitud");
+            setError("Ocurrió un error al procesar tu solicitud");
+          }
+        };
+        
+        handleSupabaseCode();
+      }
     } else {
       setMode("request");
     }

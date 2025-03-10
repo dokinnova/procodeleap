@@ -41,6 +41,15 @@ const handler = async (req: Request): Promise<Response> => {
     console.log(`Enviando correo de restablecimiento de contraseña a ${email}`);
     
     try {
+      // Extract the token from the resetLink
+      const url = new URL(resetLink);
+      const token = url.searchParams.get('token');
+      
+      // Create a properly formatted reset link that points to the password-reset page
+      const formattedResetLink = `${url.origin}/password-reset?token=${token}`;
+      
+      console.log(`Reset link formatted: ${formattedResetLink}`);
+      
       const response = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: {
@@ -55,7 +64,7 @@ const handler = async (req: Request): Promise<Response> => {
             <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
               <h1 style="color: #8B5CF6; margin-bottom: 24px;">Restablecimiento de contraseña</h1>
               <p style="margin-bottom: 16px;">Hemos recibido una solicitud para restablecer tu contraseña. Haz clic en el siguiente enlace para crear una nueva contraseña:</p>
-              <a href="${resetLink}" style="display: inline-block; background-color: #8B5CF6; color: white; text-decoration: none; padding: 12px 24px; border-radius: 4px; margin-bottom: 16px;">Restablecer contraseña</a>
+              <a href="${formattedResetLink}" style="display: inline-block; background-color: #8B5CF6; color: white; text-decoration: none; padding: 12px 24px; border-radius: 4px; margin-bottom: 16px;">Restablecer contraseña</a>
               <p style="margin-bottom: 16px;">Si no solicitaste restablecer tu contraseña, puedes ignorar este correo electrónico.</p>
               <p style="color: #6B7280; font-size: 14px; margin-top: 32px;">Este enlace expirará en 24 horas.</p>
             </div>
