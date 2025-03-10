@@ -47,9 +47,18 @@ const PasswordReset = () => {
       isTokenValid,
       forceRequestMode,
       error,
-      success
+      success,
+      email,
+      params: {
+        code: searchParams.get("code"),
+        token: searchParams.get("token"),
+        type: searchParams.get("type"),
+        email: searchParams.get("email"),
+        error: searchParams.get("error"),
+        error_description: searchParams.get("error_description")
+      }
     });
-  }, [mode, tokenChecked, isTokenValid, forceRequestMode, error, success]);
+  }, [mode, tokenChecked, isTokenValid, forceRequestMode, error, success, email, searchParams]);
 
   // Show loading indicator while checking token validity
   if (!tokenChecked) {

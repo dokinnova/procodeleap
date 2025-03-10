@@ -25,7 +25,7 @@ export const useOtpVerification = () => {
       const { data, error: verifyError } = await supabase.auth.verifyOtp({
         email,
         token: code,
-        type: 'recovery',
+        type: 'recovery'
       });
       
       if (verifyError) {

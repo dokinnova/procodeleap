@@ -42,7 +42,7 @@ export const usePasswordUpdate = () => {
     if (emailParam) {
       setEmail(emailParam);
     }
-  }, [searchParams]);
+  }, [searchParams, setEmail]);
   
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,7 +88,10 @@ export const usePasswordUpdate = () => {
       
       // Approach 2: Verify OTP first, then update password
       if (code && email && !verificationInProgress) {
-        const { success: otpSuccess, error: otpError } = await verifyOtp(code);
+        console.log("Verificando OTP para email:", email, "con código:", code);
+        const { success: otpSuccess, error: otpError, session } = await verifyOtp(code);
+        
+        console.log("Resultado de verificación OTP:", { success: otpSuccess, error: otpError, session: session ? "Presente" : "Ausente" });
         
         if (!otpSuccess) {
           setError(otpError);
