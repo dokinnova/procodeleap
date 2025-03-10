@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 export const AuthFormWrapper = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const redirectTo = `${window.location.origin}/auth/callback`;
+  const redirectTo = `${window.location.origin}/reset-password`;
 
   // Detectar errores en la URL al cargar el componente
   useEffect(() => {

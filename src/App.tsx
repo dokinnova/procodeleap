@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -24,6 +23,7 @@ import SponsorshipsReport from "./pages/reports/SponsorshipsReport";
 import BusinessIntelligence from "./pages/BusinessIntelligence";
 import Tasks from "./pages/Tasks";
 import Map from "./pages/Map";
+import { ResetPassword } from "./components/auth/ResetPassword";
 
 const queryClient = new QueryClient();
 
@@ -65,39 +65,47 @@ const App = () => {
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <ProtectedRoute>
-            <div className="flex min-h-screen bg-gradient-to-br from-background to-secondary/50">
-              <Navigation 
-                isMobileMenuOpen={isMobileMenuOpen} 
-                setIsMobileMenuOpen={setIsMobileMenuOpen} 
-              />
-              <main 
-                className={`flex-1 transition-all duration-300 ease-in-out
-                  ${isMobileMenuOpen ? 'ml-0' : 'ml-0 md:ml-64'} 
-                  p-4 md:p-8 overflow-auto`}
-              >
-                <div className="max-w-7xl mx-auto space-y-8">
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/children" element={<Children />} />
-                    <Route path="/sponsors" element={<Sponsors />} />
-                    <Route path="/management" element={<Management />} />
-                    <Route path="/schools" element={<Schools />} />
-                    <Route path="/configuration" element={<Configuration />} />
-                    <Route path="/receipts" element={<Receipts />} />
-                    <Route path="/crm" element={<CRM />} />
-                    <Route path="/tasks" element={<Tasks />} />
-                    <Route path="/map" element={<Map />} />
-                    <Route path="/reports/children" element={<ChildrenReport />} />
-                    <Route path="/reports/sponsors" element={<SponsorsReport />} />
-                    <Route path="/reports/schools" element={<SchoolsReport />} />
-                    <Route path="/reports/sponsorships" element={<SponsorshipsReport />} />
-                    <Route path="/business-intelligence" element={<BusinessIntelligence />} />
-                  </Routes>
+          <Routes>
+            {/* Public route for password reset */}
+            <Route path="/reset-password" element={<ResetPassword />} />
+            
+            {/* Protected routes */}
+            <Route path="/" element={
+              <ProtectedRoute>
+                <div className="flex min-h-screen bg-gradient-to-br from-background to-secondary/50">
+                  <Navigation 
+                    isMobileMenuOpen={isMobileMenuOpen} 
+                    setIsMobileMenuOpen={setIsMobileMenuOpen} 
+                  />
+                  <main 
+                    className={`flex-1 transition-all duration-300 ease-in-out
+                      ${isMobileMenuOpen ? 'ml-0' : 'ml-0 md:ml-64'} 
+                      p-4 md:p-8 overflow-auto`}
+                  >
+                    <div className="max-w-7xl mx-auto space-y-8">
+                      <Routes>
+                        <Route path="/" element={<Index />} />
+                        <Route path="/children" element={<Children />} />
+                        <Route path="/sponsors" element={<Sponsors />} />
+                        <Route path="/management" element={<Management />} />
+                        <Route path="/schools" element={<Schools />} />
+                        <Route path="/configuration" element={<Configuration />} />
+                        <Route path="/receipts" element={<Receipts />} />
+                        <Route path="/crm" element={<CRM />} />
+                        <Route path="/tasks" element={<Tasks />} />
+                        <Route path="/map" element={<Map />} />
+                        <Route path="/reports/children" element={<ChildrenReport />} />
+                        <Route path="/reports/sponsors" element={<SponsorsReport />} />
+                        <Route path="/reports/schools" element={<SchoolsReport />} />
+                        <Route path="/reports/sponsorships" element={<SponsorshipsReport />} />
+                        <Route path="/business-intelligence" element={<BusinessIntelligence />} />
+                      </Routes>
+                    </div>
+                  </main>
                 </div>
-              </main>
-            </div>
-          </ProtectedRoute>
+              </ProtectedRoute>
+            } />
+          </Routes>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>

@@ -84,6 +84,11 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
 
   if (!session) {
+    // Esta ruta ya no necesita protección, se maneja directamente en App.tsx
+    if (location.pathname === '/reset-password') {
+      return <>{children}</>;
+    }
+    
     // Si estamos en la ruta de autenticación o sus subrutas, mostrar el formulario de autenticación
     if (location.pathname.startsWith('/auth')) {
       return (
