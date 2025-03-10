@@ -1,4 +1,3 @@
-
 import { usePasswordResetRequest } from "./password-reset/usePasswordResetRequest";
 import { usePasswordUpdate } from "./password-reset/usePasswordUpdate";
 import { usePasswordResetMode } from "./password-reset/usePasswordResetMode";
@@ -44,7 +43,6 @@ export const usePasswordReset = () => {
     navigate
   } = usePasswordUpdate();
 
-  // Synchronize email across modes when it changes
   useEffect(() => {
     if (mode === "request" && updateEmail) {
       setRequestEmail(updateEmail);
@@ -53,20 +51,17 @@ export const usePasswordReset = () => {
     }
   }, [mode, requestEmail, updateEmail]);
 
-  // Clear errors when switching modes
   useEffect(() => {
     setModeError(null);
     setModeSuccess(null);
   }, [mode]);
 
-  // If token is invalid and we're in reset mode, switch to request mode
   useEffect(() => {
     if (mode === "reset" && tokenChecked && !isTokenValid && !forceRequestMode) {
       navigate("/password-reset");
     }
   }, [mode, tokenChecked, isTokenValid, forceRequestMode]);
 
-  // Combine state
   const email = mode === "request" ? requestEmail : updateEmail;
   const setEmail = mode === "request" ? setRequestEmail : setUpdateEmail;
   const loading = mode === "request" ? requestLoading : updateLoading;
