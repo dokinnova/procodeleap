@@ -15,12 +15,35 @@ export const ResetPasswordContainer = () => {
   const navigate = useNavigate();
   const { recoveryToken } = useResetPasswordToken();
 
-  // Verificar si hay una sesión válida cuando se carga el componente
   useEffect(() => {
+    // Verificar si hay una sesión válida cuando se carga el componente
+    // y también forzar a Supabase a procesar cualquier token en la URL
     const checkSession = async () => {
       try {
+        console.log("Verificando sesión y procesando tokens en URL...");
+        
+        // Esto fuerza a Supabase a procesar cualquier token en la URL
+        const currentUrl = window.location.href;
+        if (currentUrl.includes('code=') || currentUrl.includes('token=') || 
+            currentUrl.includes('type=recovery') || currentUrl.includes('access_token=')) {
+          console.log("URL contiene parámetros de autenticación, procesando...");
+          
+          // Si la URL contiene un código, intentamos intercambiarlo explícitamente
+          if (currentUrl.includes('code=')) {
+            try {
+              const result = await supabase.auth.exchangeCodeForSession(window.location.search);
+              console.log("Intercambio de código resultado:", result.error ? "Error" : "Éxito");
+            } catch (exchangeError) {
+              console.error("Error al intercambiar código:", exchangeError);
+            }
+          }
+        }
+        
+        // Verificar la sesión después de procesar los tokens
         const { data } = await supabase.auth.getSession();
-        console.log("Estado de sesión al cargar ResetPasswordContainer:", data.session ? "Con sesión" : "Sin sesión");
+        console.log("Estado de sesión al cargar ResetPasswordContainer:", 
+                    data.session ? "Con sesión" : "Sin sesión");
+        
         setIsSessionReady(true);
       } catch (err) {
         console.error("Error al verificar sesión:", err);

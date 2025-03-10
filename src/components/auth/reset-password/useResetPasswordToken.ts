@@ -47,47 +47,55 @@ export const useResetPasswordToken = () => {
     };
 
     const processAuthSession = async () => {
-      // Verificar primero si hay parámetros en la URL
-      const token = extractTokenFromUrl();
-      
-      if (token) {
-        console.log("Token encontrado en URL:", token);
-        setRecoveryToken(token);
+      try {
+        // Primero recuperamos la sesión actual
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        console.log("Estado de sesión inicial:", sessionData.session ? "Con sesión" : "Sin sesión");
         
-        // Si tenemos un código de autenticación real (no el indicador "recovery-flow")
-        if (token !== 'recovery-flow') {
-          // Intentar procesar explícitamente el token o código con Supabase
-          try {
-            // Esto es necesario para que Supabase procese el código de autenticación
-            const { data, error: sessionError } = await supabase.auth.getSession();
+        // Verificar si hay un token en la URL
+        const token = extractTokenFromUrl();
+        
+        if (token) {
+          console.log("Token encontrado en URL:", token);
+          setRecoveryToken(token);
+          
+          // Si tenemos un código de autorización pero no una sesión, intentamos verificarlo explícitamente
+          if (token !== 'recovery-flow' && !sessionData.session) {
+            console.log("Intentando verificar token explícitamente con Supabase");
             
-            if (sessionError) {
-              console.error("Error al obtener sesión con token:", sessionError);
-              setError(sessionError.message);
-            } else {
-              console.log("Sesión obtenida después de procesar token:", data.session ? "Válida" : "No hay sesión");
+            // Solo verificamos explícitamente si es un token/código real
+            if (location.search.includes('code=')) {
+              // La magia ocurre aquí: forzamos a Supabase a procesar el código de la URL
+              const result = await supabase.auth.exchangeCodeForSession(location.search);
+              console.log("Resultado de intercambio de código:", result.error ? "Error" : "Éxito");
+              
+              if (result.error) {
+                console.error("Error al intercambiar código:", result.error);
+              } else {
+                console.log("Intercambio de código exitoso");
+              }
             }
-          } catch (err) {
-            console.error("Error al procesar token de autenticación:", err);
           }
-        }
-      } else {
-        console.log("No se encontró token en URL, verificando estado de sesión...");
-        
-        // Si estamos en la ruta de reset-password pero sin token, asumimos que es
-        // la página de solicitud de recuperación 
-        if (location.pathname.includes('reset-password')) {
-          setRecoveryToken('recovery-flow');
         } else {
-          const { data } = await supabase.auth.getSession();
-          if (data.session) {
-            console.log("Sesión activa encontrada, usuario ya autenticado");
-            setRecoveryToken('session-active');
+          console.log("No se encontró token en URL, verificando estado de sesión...");
+          
+          // Si estamos en la ruta de reset-password pero sin token, asumimos que es
+          // la página de solicitud de recuperación 
+          if (location.pathname.includes('reset-password')) {
+            setRecoveryToken('recovery-flow');
           } else {
-            console.log("No hay sesión activa y no se encontró token");
-            setRecoveryToken(null);
+            if (sessionData.session) {
+              console.log("Sesión activa encontrada, usuario ya autenticado");
+              setRecoveryToken('session-active');
+            } else {
+              console.log("No hay sesión activa y no se encontró token");
+              setRecoveryToken(null);
+            }
           }
         }
+      } catch (err) {
+        console.error("Error al procesar sesión/token:", err);
+        setError("Error al procesar la autenticación");
       }
     };
 

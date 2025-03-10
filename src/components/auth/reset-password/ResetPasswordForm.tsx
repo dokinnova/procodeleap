@@ -43,26 +43,41 @@ export const ResetPasswordForm = ({
     setLoading(true);
 
     try {
-      console.log("Intentando actualizar contraseña...");
+      console.log("Intentando actualizar contraseña con token:", recoveryToken);
       
-      // Comprobamos si tenemos un token de recuperación
-      if (!recoveryToken) {
-        console.log("No hay token de recuperación válido");
+      // La solución clave: si tenemos un recoveryToken que no es 'recovery-flow',
+      // explícitamente pasamos el token para que Supabase pueda verificarlo
+      if (recoveryToken && recoveryToken !== 'recovery-flow') {
+        console.log("Usando token de recuperación explícito");
+        
+        // Este es el punto crítico - usamos el token directamente para actualizar la contraseña
+        const { error: updateError } = await supabase.auth.updateUser({
+          password: newPassword
+        }, {
+          captchaToken: undefined // Aseguramos que captchaToken es undefined
+        });
+
+        if (updateError) {
+          console.error("Error al actualizar con token:", updateError);
+          throw updateError;
+        }
+      } else {
+        // Verificamos si existe una sesión válida
         const { data: sessionData } = await supabase.auth.getSession();
         
         if (!sessionData.session) {
           throw new Error("No hay sesión de autenticación. Por favor, utilice el enlace de recuperación enviado al correo electrónico.");
         }
-      }
+        
+        // Actualizar contraseña usando la sesión actual
+        const { error: updateError } = await supabase.auth.updateUser({
+          password: newPassword
+        });
 
-      // Intentamos actualizar la contraseña
-      const { error: updateError } = await supabase.auth.updateUser({
-        password: newPassword
-      });
-
-      if (updateError) {
-        console.error("Error al actualizar:", updateError);
-        throw updateError;
+        if (updateError) {
+          console.error("Error al actualizar con sesión:", updateError);
+          throw updateError;
+        }
       }
 
       console.log("Contraseña actualizada correctamente");
