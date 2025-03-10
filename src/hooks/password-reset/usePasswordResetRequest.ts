@@ -24,8 +24,14 @@ export const usePasswordResetRequest = () => {
     try {
       console.log("Solicitando restablecimiento para:", email);
       
-      // Obtener la URL de origen actual (sin importar si es vercel u otra)
-      const baseUrl = window.location.origin;
+      // Determinar si estamos en la URL de Vercel o en desarrollo
+      const isVercelProduction = window.location.origin.includes("vercel.app");
+      
+      // Usar la URL de Vercel en producción para garantizar que el enlace funcione
+      const baseUrl = isVercelProduction 
+        ? "https://procodeli-makipurays-projects.vercel.app" 
+        : window.location.origin;
+      
       const redirectUrl = `${baseUrl}/password-reset`;
       
       console.log("URL de origen detectada:", baseUrl);

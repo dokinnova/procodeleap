@@ -48,18 +48,31 @@ export const handlePasswordReset = async (
     const data = await response.json();
     console.log("Successfully requested reset token from Supabase");
 
-    // Garantizar que la URL base no tenga ningún parámetro
-    let baseUrl = resetLink.trim();
+    // Usar la URL predeterminada de Vercel en producción
+    // Esto garantiza que el enlace funcione en el entorno de producción Vercel
+    const vercelProductionUrl = "https://procodeli-makipurays-projects.vercel.app";
+    
+    // Si resetLink empieza con la URL de Vercel, la usamos, de lo contrario usamos la URL de desarrollo
+    let baseUrl = resetLink.includes(vercelProductionUrl) ? vercelProductionUrl : resetLink.trim();
+    
+    // Garantizar que no haya parámetros en la URL
     if (baseUrl.includes("?")) {
       baseUrl = baseUrl.split("?")[0];
     }
+    
     // Eliminar cualquier barra diagonal al final
     if (baseUrl.endsWith("/")) {
       baseUrl = baseUrl.slice(0, -1);
     }
     
+    // Asegurar que siempre tenga "/password-reset" al final
+    if (!baseUrl.endsWith("/password-reset")) {
+      baseUrl = `${baseUrl}/password-reset`;
+    }
+    
+    console.log("Base URL para reset:", baseUrl);
     const resetUrl = `${baseUrl}?token=${data.token}`;
-    console.log("Reset URL generated:", resetUrl);
+    console.log("Reset URL final generada:", resetUrl);
     
     const htmlContent = getResetEmailContent(resetUrl);
     
