@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Navigation from "./components/Navigation";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { useState, useEffect } from "react";
@@ -71,7 +71,8 @@ const App = () => {
             {/* Public routes - accessible without authentication */}
             <Route path="/auth" element={<AuthForm />} />
             <Route path="/password-reset" element={<PasswordReset />} />
-            <Route path="/auth/callback" element={<PasswordReset />} />
+            {/* Redirect the callback to password-reset page with all parameters preserved */}
+            <Route path="/auth/callback" element={<Navigate to="/password-reset" replace />} />
             
             {/* Protected routes - require authentication */}
             <Route path="*" element={
