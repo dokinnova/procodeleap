@@ -15,3 +15,10 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     storageKey: 'sb-upmokuswronpozhhopts-auth-token',
   },
 });
+
+// Establecer el gestor de eventos para cambios en la URL
+// Esto ayuda con los flujos de autenticación como restablecimiento de contraseña
+window.addEventListener('hashchange', () => {
+  supabase.auth.getSession();
+});
+

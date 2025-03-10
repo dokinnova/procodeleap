@@ -10,9 +10,10 @@ export const AuthFormWrapper = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   
-  // Always use the current domain from window.location
+  // Siempre usar el dominio actual desde window.location
   const currentUrl = window.location.origin;
-  const redirectTo = `${currentUrl}/reset-password`;
+  // Asegúrate de que la URL de redirección es absoluta
+  const redirectTo = `${currentUrl}/reset-password/token`;
   
   console.log("AuthFormWrapper: Using redirect URL:", redirectTo);
 

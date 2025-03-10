@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -68,7 +67,7 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <Routes>
-            {/* Public routes */}
+            {/* Public authentication routes */}
             <Route path="/auth/*" element={
               <div className="min-h-screen bg-gray-100 flex flex-col justify-center">
                 <div className="max-w-md mx-auto w-full px-4">
@@ -81,13 +80,19 @@ const App = () => {
               </div>
             } />
             
-            {/* MOVED: Password reset routes to the top level with explicit patterns */}
+            {/* Password reset routes - IMPORTANT: These need to be at the top level */}
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/reset-password/:token" element={<ResetPassword />} />
-            {/* Also handle reset password with query parameters */}
-            <Route path="/reset-password/code" element={<ResetPassword />} />
             <Route path="/reset-password/token" element={<ResetPassword />} />
-            <Route path="/reset-password/type" element={<ResetPassword />} />
+            <Route path="/reset-password/code" element={<ResetPassword />} />
+            
+            {/* Catch all auth routes with recovery or code parameters */}
+            <Route path="/" element={
+              (window.location.search.includes('type=recovery') || 
+               window.location.search.includes('code=')) ? 
+                <Navigate to={`/reset-password${window.location.search}`} replace /> : 
+                <Navigate to="/" replace />
+            } />
             
             {/* Root route with protected routes */}
             <Route path="/" element={

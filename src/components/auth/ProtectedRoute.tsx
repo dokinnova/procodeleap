@@ -70,14 +70,16 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       ];
       
       const isPublic = publicRoutes.some(route => 
-        location.pathname === route || location.pathname.startsWith(route + '/')
+        location.pathname === route || 
+        location.pathname.startsWith(route + '/') ||
+        (location.pathname === '/' && location.search.includes('type=recovery'))
       );
       
       return !isPublic;
     };
 
     // Special check for reset password routes
-    if (isResetPasswordRoute()) {
+    if (isResetPasswordRoute() || location.search.includes('type=recovery') || location.search.includes('code=')) {
       console.log('ProtectedRoute: Permitiendo acceso a ruta de restablecimiento de contraseña');
       setLoading(false);
       return;
@@ -120,7 +122,9 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
 
   // Always allow access to reset-password routes regardless of authentication state
-  if (location.pathname.startsWith('/reset-password')) {
+  if (location.pathname.startsWith('/reset-password') || 
+      location.search.includes('type=recovery') || 
+      location.search.includes('code=')) {
     return <>{children}</>;
   }
 
