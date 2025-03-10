@@ -19,6 +19,7 @@ const PasswordReset = () => {
   const [error, setError] = useState<string | null>(null);
   const [mode, setMode] = useState<"request" | "reset">("request");
   const [email, setEmail] = useState("");
+  const [session, setSession] = useState(null);
 
   useEffect(() => {
     // Check if we have a token or code in the URL parameters
@@ -32,19 +33,24 @@ const PasswordReset = () => {
       if (code && !token) {
         const handleSupabaseCode = async () => {
           try {
-            // This verifies the recovery code and sets the session
-            const { error } = await supabase.auth.verifyOtp({
-              type: 'recovery',
-              token: code,
-            });
+            // Check if we already have a session (user is already authenticated)
+            const { data: { session: currentSession } } = await supabase.auth.getSession();
             
-            if (error) {
-              console.error("Error al verificar el código:", error);
-              toast.error("El enlace de recuperación no es válido o ha expirado");
-              setError("El enlace de recuperación no es válido o ha expirado");
+            if (currentSession) {
+              // User is already authenticated, we can proceed with password reset
+              setSession(currentSession);
+              return;
             }
+            
+            // If no valid email is provided with the code, we can't verify the OTP
+            // The user will need to enter their email to continue
+            toast.info("Por favor ingresa tu correo electrónico para verificar tu identidad");
+            
+            // Note: At this point, the user will need to provide their email in the form
+            // When they submit the form, we'll handle the OTP verification in handleUpdatePassword
+            
           } catch (err) {
-            console.error("Error al verificar el código:", err);
+            console.error("Error al verificar la sesión:", err);
             toast.error("Ocurrió un error al procesar tu solicitud");
             setError("Ocurrió un error al procesar tu solicitud");
           }
@@ -104,6 +110,23 @@ const PasswordReset = () => {
     setLoading(true);
     
     try {
+      // Check if we have a code from the URL
+      const code = searchParams.get("code");
+      
+      // If we have a code and email but no session, we need to verify the OTP first
+      if (code && email && !session) {
+        const { error: verifyError } = await supabase.auth.verifyOtp({
+          email,
+          token: code,
+          type: 'recovery',
+        });
+        
+        if (verifyError) {
+          throw verifyError;
+        }
+      }
+      
+      // Now update the password
       const { error } = await supabase.auth.updateUser({
         password: password
       });
@@ -168,6 +191,21 @@ const PasswordReset = () => {
             </form>
           ) : (
             <form onSubmit={handleUpdatePassword} className="space-y-4">
+              {/* If we have a code but no session and no token, show email field */}
+              {searchParams.get("code") && !session && !searchParams.get("token") && (
+                <div className="space-y-2">
+                  <Label htmlFor="reset-email">Correo electrónico</Label>
+                  <Input
+                    id="reset-email"
+                    type="email"
+                    placeholder="tu@correo.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    disabled={loading}
+                    required
+                  />
+                </div>
+              )}
               <div className="space-y-2">
                 <Label htmlFor="password">Nueva contraseña</Label>
                 <Input
