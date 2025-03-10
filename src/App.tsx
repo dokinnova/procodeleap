@@ -73,6 +73,12 @@ const App = () => {
             <Route path="/password-reset" element={<PasswordReset />} />
             {/* Redirect the callback to password-reset page with all parameters preserved */}
             <Route path="/auth/callback" element={<Navigate to="/password-reset" replace />} />
+            {/* Redirect root path with code parameter to password-reset page */}
+            <Route path="/" element={
+              window.location.search.includes('code=') ? 
+              <Navigate to={`/password-reset${window.location.search}`} replace /> : 
+              <Navigate to="/auth" replace />
+            } />
             
             {/* Protected routes - require authentication */}
             <Route path="*" element={

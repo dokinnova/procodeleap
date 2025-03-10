@@ -39,11 +39,19 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     console.log(`Enviando correo de restablecimiento de contraseña a ${email}`);
+    console.log(`Link original: ${resetLink}`);
     
     try {
       // Extract the code from the resetLink
       const url = new URL(resetLink);
       const code = url.searchParams.get('code');
+      
+      if (!code) {
+        console.error("No se encontró código en el enlace de restablecimiento");
+        throw new Error("Enlace de restablecimiento inválido - No se encontró código");
+      }
+      
+      console.log(`Código extraído: ${code}`);
       
       // Determine the origin from request headers or URL
       let origin = req.headers.get('origin');
@@ -64,9 +72,9 @@ const handler = async (req: Request): Promise<Response> => {
       console.log(`Origen determinado: ${origin}`);
       
       // Create the properly formatted reset link with the code
-      const formattedResetLink = `${origin}/password-reset?code=${code}`;
+      const formattedResetLink = `${origin}/password-reset?code=${code}&type=recovery`;
       
-      console.log(`Reset link formatted: ${formattedResetLink}`);
+      console.log(`Enlace formateado: ${formattedResetLink}`);
       
       const response = await fetch("https://api.resend.com/emails", {
         method: "POST",
