@@ -22,3 +22,12 @@ window.addEventListener('hashchange', () => {
   supabase.auth.getSession();
 });
 
+// También escuchar cambios en la URL para capturar tokens en formato query string
+window.addEventListener('popstate', () => {
+  supabase.auth.getSession();
+});
+
+// Escuchar cambios en la URL en el primer cargado
+document.addEventListener('DOMContentLoaded', () => {
+  supabase.auth.getSession();
+});

@@ -24,8 +24,9 @@ export const RecoveryRequestForm = ({
     setError(null);
     setLoading(true);
 
-    // Get the hostname for the redirect
+    // Get the current origin for the redirect
     const hostname = window.location.origin;
+    // Use a simple path that works on all domains
     const redirectTo = `${hostname}/reset-password`;
 
     try {
