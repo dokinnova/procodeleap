@@ -24,31 +24,44 @@ export const usePasswordResetRequest = () => {
     try {
       console.log("Solicitando restablecimiento para:", email);
       
-      // Determinar si estamos en la URL de Vercel o en desarrollo
-      const isVercelProduction = window.location.origin.includes("vercel.app");
+      // Determinar la URL de origen adecuada
+      // Priorizar la URL de Vercel en producción para garantizar que los enlaces funcionen
+      const isVercelProduction = window.location.origin.includes("vercel.app") || 
+                               window.location.origin.includes("makipura.com");
       
-      // Usar la URL de Vercel en producción para garantizar que el enlace funcione
+      // Usar preferentemente la URL de Vercel para garantizar consistencia
       const baseUrl = isVercelProduction 
         ? "https://procodeli-makipurays-projects.vercel.app" 
         : window.location.origin;
       
+      // Configurar la URL de redirección con la ruta de callback correcta
       const redirectUrl = `${baseUrl}/auth/callback`;
       
       console.log("URL de origen detectada:", baseUrl);
       console.log("URL de redirección configurada:", redirectUrl);
       
-      // Usar nuestra función personalizada para garantizar el envío correcto
-      const { data, error: functionError } = await supabase.functions.invoke("password-reset-notification", {
-        body: { 
-          email, 
-          resetLink: redirectUrl 
-        }
+      // Intentar el método nativo de Supabase primero
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: redirectUrl
       });
       
-      if (functionError) throw functionError;
-      
-      if (!data.success) {
-        throw new Error(data.error || "Error al enviar el correo de recuperación");
+      if (resetError) {
+        console.error("Error con método nativo:", resetError);
+        
+        // Si falla, intentar con nuestra función personalizada
+        console.log("Intentando con función personalizada");
+        const { data, error: functionError } = await supabase.functions.invoke("password-reset-notification", {
+          body: { 
+            email, 
+            resetLink: redirectUrl
+          }
+        });
+        
+        if (functionError) throw functionError;
+        
+        if (!data.success) {
+          throw new Error(data.error || "Error al enviar el correo de recuperación");
+        }
       }
       
       console.log("Solicitud enviada exitosamente");

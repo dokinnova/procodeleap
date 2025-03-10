@@ -23,13 +23,31 @@ export const useTokenValidation = () => {
   };
   
   const verifyCodeWithEmail = async (code: string, email: string) => {
-    console.log("Verificando código de recuperación para:", email);
+    console.log("Verificando código de recuperación:", code, "para email:", email);
     
     try {
       // Verificar que tenemos la sesión más reciente
       await verifySession();
       
-      // Try to verify the code with Supabase's built-in method
+      // Primero intentar intercambiar el código por una sesión directamente
+      try {
+        console.log("Intentando intercambiar código por sesión");
+        const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+        
+        if (error) {
+          console.error("Error al intercambiar código por sesión:", error);
+        } else if (data?.session) {
+          console.log("Código intercambiado exitosamente por sesión");
+          setSession(data.session);
+          setIsTokenValid(true);
+          return { success: true, session: data.session };
+        }
+      } catch (exchangeErr) {
+        console.error("Error al intercambiar código:", exchangeErr);
+      }
+      
+      // Si el intercambio directo falló, intentar verificar OTP
+      console.log("Intentando verificar como OTP");
       const { data, error: verifyError } = await supabase.auth.verifyOtp({
         email,
         token: code,
@@ -37,16 +55,16 @@ export const useTokenValidation = () => {
       });
       
       if (verifyError) {
-        console.error("Error al verificar código:", verifyError);
+        console.error("Error al verificar OTP:", verifyError);
         throw verifyError;
       }
       
       if (data?.session) {
+        console.log("Verificación OTP exitosa, sesión establecida");
         setSession(data.session);
         setIsTokenValid(true);
       }
       
-      console.log("Verificación exitosa:", data?.session ? "Sesión establecida" : "Sin sesión");
       return { success: true, session: data?.session };
     } catch (err) {
       console.error("Error en verificación:", err);
@@ -64,8 +82,8 @@ export const useTokenValidation = () => {
     accessToken?: string | null,
     refreshToken?: string | null
   ) => {
-    console.log("Validando token para reset de contraseña...");
-    console.log("Parámetros recibidos:", { token, code, type, emailParam, errorParam, accessToken: accessToken ? "Presente" : "Ausente" });
+    console.log("Validando token/código para reset de contraseña...");
+    console.log("Parámetros:", { token, code, type, emailParam, accessToken: accessToken ? "Presente" : "No presente" });
     
     try {
       // Mark as checked to stop showing loading state
@@ -80,9 +98,9 @@ export const useTokenValidation = () => {
         };
       }
       
-      // If we have a token or code, attempt to verify it
+      // If we have a token, code, or access token, attempt to verify
       if (token || code || accessToken || refreshToken) {
-        // Check if we already have a session
+        // First check if we already have an active session
         const { hasSession, session: currentSession } = await verifySession();
         
         if (hasSession && currentSession) {
@@ -92,17 +110,26 @@ export const useTokenValidation = () => {
           return { success: true };
         }
         
-        // For recovery code with email
-        if (code) {
-          console.log("Código de recuperación detectado:", code);
+        // Handle recovery code with email parameter
+        if (code && emailParam && type === 'recovery') {
+          console.log("Intentando verificar código con email proporcionado");
+          const { success, session: verifiedSession } = await verifyCodeWithEmail(code, emailParam);
           
-          // Intentar intercambiar el código por una sesión directamente
+          if (success && verifiedSession) {
+            setIsTokenValid(true);
+            setSession(verifiedSession);
+            return { success: true };
+          }
+        }
+        
+        // Handle just a code (from Supabase's auth.resetPasswordForEmail)
+        if (code) {
+          console.log("Código de recuperación sin email, intentando directamente");
           try {
-            console.log("Intentando intercambiar código por sesión");
             const { data, error } = await supabase.auth.exchangeCodeForSession(code);
             
             if (error) {
-              console.error("Error al intercambiar código por sesión:", error);
+              console.error("Error al intercambiar código:", error);
             } else if (data?.session) {
               console.log("Código intercambiado exitosamente, sesión establecida");
               setSession(data.session);
@@ -112,25 +139,31 @@ export const useTokenValidation = () => {
           } catch (exchangeErr) {
             console.error("Error al intercambiar código:", exchangeErr);
           }
-          
-          // If we have an email parameter, try to verify with it
-          if (emailParam) {
-            try {
-              console.log("Intentando verificar con email proporcionado:", emailParam);
-              const { success, session: verifiedSession } = await verifyCodeWithEmail(code, emailParam);
-              
-              if (success && verifiedSession) {
-                setIsTokenValid(true);
-                setSession(verifiedSession);
-                return { success: true };
-              }
-            } catch (err) {
-              console.error("Error al verificar código con email:", err);
+        }
+        
+        // Handle access token and refresh token
+        if (accessToken && refreshToken) {
+          console.log("Intentando usar tokens de acceso y refresco");
+          try {
+            const { data, error } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken
+            });
+            
+            if (error) {
+              console.error("Error al establecer sesión con tokens:", error);
+            } else if (data?.session) {
+              console.log("Sesión establecida con tokens");
+              setSession(data.session);
+              setIsTokenValid(true);
+              return { success: true };
             }
+          } catch (setSessionErr) {
+            console.error("Error al establecer sesión:", setSessionErr);
           }
         }
         
-        // Fallback to request mode if verification fails
+        // If all verification attempts failed
         console.log("No se pudo verificar el token/código");
         setForceRequestMode(true);
         return { 
@@ -139,7 +172,7 @@ export const useTokenValidation = () => {
         };
       }
       
-      // No token or code, default to request mode
+      // No token, code, or access token parameters
       console.log("No se encontró token o código en URL, modo solicitud");
       setForceRequestMode(true);
       return { setRequestMode: true };

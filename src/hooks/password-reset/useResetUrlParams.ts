@@ -37,9 +37,28 @@ export const useResetUrlParams = () => {
     };
   };
 
+  // This function specifically prepares the URL for password reset
   const constructResetUrl = (baseUrl: string) => {
+    // Ensure the baseUrl has the correct format
+    let finalBaseUrl = baseUrl;
+    
+    // Strip any trailing slash
+    if (finalBaseUrl.endsWith("/")) {
+      finalBaseUrl = finalBaseUrl.slice(0, -1);
+    }
+    
+    // Ensure baseUrl points to the password-reset page directly, not the callback
+    if (finalBaseUrl.includes("/auth/callback")) {
+      finalBaseUrl = finalBaseUrl.replace("/auth/callback", "/password-reset");
+    } else if (!finalBaseUrl.endsWith("/password-reset")) {
+      finalBaseUrl = `${finalBaseUrl}/password-reset`;
+    }
+    
+    console.log("Base URL optimizada para reset:", finalBaseUrl);
+    
+    // Copy all parameters from the current URL
     const allParams = new URLSearchParams(searchParams);
-    return `${baseUrl}?${allParams.toString()}`;
+    return `${finalBaseUrl}?${allParams.toString()}`;
   };
 
   return {
