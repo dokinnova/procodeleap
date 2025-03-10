@@ -2,7 +2,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { AuthForm } from "./AuthForm";
 import { useToast } from "@/hooks/use-toast";
 
 export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -58,9 +57,9 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      console.log('ProtectedRoute: Cambio de estado de auth:', _event);
-      if (_event === 'SIGNED_OUT') {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('ProtectedRoute: Cambio de estado de auth:', event);
+      if (event === 'SIGNED_OUT') {
         toast({
           title: "Sesión cerrada",
           description: "Has cerrado sesión correctamente.",
@@ -84,24 +83,14 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
 
   if (!session) {
-    // Esta ruta ya no necesita protección, se maneja directamente en App.tsx
-    if (location.pathname === '/reset-password') {
+    // Estas rutas no necesitan protección
+    if (location.pathname === '/reset-password' || location.pathname === '/auth') {
       return <>{children}</>;
     }
     
-    // Si estamos en la ruta de autenticación o sus subrutas, mostrar el formulario de autenticación
+    // Si estamos en la ruta de autenticación o sus subrutas, ya mostrará el formulario
     if (location.pathname.startsWith('/auth')) {
-      return (
-        <div className="min-h-screen bg-gray-100 flex flex-col justify-center">
-          <div className="max-w-md mx-auto w-full px-4">
-            <div className="mb-8 text-center">
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">COPRODELI</h1>
-              <p className="text-gray-600">Inicia sesión para continuar</p>
-            </div>
-            <AuthForm />
-          </div>
-        </div>
-      );
+      return <>{children}</>;
     }
     
     // Si no estamos en la ruta de autenticación y no hay sesión, redirigir a /auth

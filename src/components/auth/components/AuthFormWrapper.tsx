@@ -37,19 +37,24 @@ export const AuthFormWrapper = () => {
     }
   }, [toast, navigate]);
 
-  // Manejamos los eventos de autenticación, no los errores específicamente
+  // Manejamos los eventos de autenticación
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('AuthFormWrapper: Auth event:', event);
       
-      // Solo loggeamos los eventos, pero no tratamos de capturar errores específicos
-      // ya que eso se maneja a través de los parámetros de URL
+      if (event === 'SIGNED_IN') {
+        console.log('Usuario ha iniciado sesión');
+        navigate('/');
+      } else if (event === 'PASSWORD_RECOVERY') {
+        console.log('Redirección a página de recuperación de contraseña');
+        navigate('/reset-password');
+      }
     });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [navigate]);
 
   return (
     <Auth
@@ -81,7 +86,7 @@ export const AuthFormWrapper = () => {
             button_label: 'Iniciar sesión',
             loading_button_label: 'Iniciando sesión...',
             social_provider_text: 'Iniciar sesión con {{provider}}',
-            link_text: ''
+            link_text: '¿Ya tienes una cuenta? Inicia sesión'
           },
           forgotten_password: {
             email_label: 'Correo electrónico',
@@ -93,13 +98,14 @@ export const AuthFormWrapper = () => {
             confirmation_text: 'Revisa tu correo electrónico para obtener el enlace de recuperación'
           },
           sign_up: {
-            link_text: '',
-            email_label: '',
-            password_label: '',
-            button_label: '',
-            loading_button_label: '',
-            social_provider_text: '',
-            confirmation_text: ''
+            email_label: 'Correo electrónico',
+            password_label: 'Contraseña',
+            email_input_placeholder: 'Tu correo electrónico',
+            password_input_placeholder: 'Tu contraseña',
+            button_label: 'Registrarse',
+            loading_button_label: 'Registrando...',
+            link_text: '¿No tienes una cuenta? Regístrate',
+            confirmation_text: 'Revisa tu correo electrónico para confirmar tu registro'
           }
         }
       }}

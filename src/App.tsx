@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,6 +7,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Navigation from "./components/Navigation";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { useState, useEffect } from "react";
+import { AuthForm } from "./components/auth/AuthForm";
+import { ResetPassword } from "./components/auth/ResetPassword";
 
 // Import all page components
 import Index from "./pages/Index";
@@ -23,7 +26,6 @@ import SponsorshipsReport from "./pages/reports/SponsorshipsReport";
 import BusinessIntelligence from "./pages/BusinessIntelligence";
 import Tasks from "./pages/Tasks";
 import Map from "./pages/Map";
-import { ResetPassword } from "./components/auth/ResetPassword";
 
 const queryClient = new QueryClient();
 
@@ -66,6 +68,19 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <Routes>
+            {/* Public routes */}
+            <Route path="/auth" element={
+              <div className="min-h-screen bg-gray-100 flex flex-col justify-center">
+                <div className="max-w-md mx-auto w-full px-4">
+                  <div className="mb-8 text-center">
+                    <h1 className="text-2xl font-bold text-gray-900 mb-2">COPRODELI</h1>
+                    <p className="text-gray-600">Inicia sesión para continuar</p>
+                  </div>
+                  <AuthForm />
+                </div>
+              </div>
+            } />
+            
             {/* Public route for password reset */}
             <Route path="/reset-password" element={<ResetPassword />} />
             

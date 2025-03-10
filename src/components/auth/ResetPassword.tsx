@@ -27,10 +27,17 @@ export const ResetPassword = () => {
     const token = queryParams.get("token");
     
     if (type === "recovery" && token) {
-      console.log("Token de recuperación detectado");
+      console.log("Token de recuperación detectado:", token);
       setRecoveryToken(token);
     } else {
-      setError("Enlace de recuperación inválido.");
+      console.log("No se encontró token de recuperación válido");
+      console.log("Query params:", queryParams.toString());
+      console.log("Type:", type, "Token:", token);
+      
+      // No mostrar error inmediatamente, podría ser acceso directo a la página
+      if (location.search) {
+        setError("Enlace de recuperación inválido o expirado.");
+      }
     }
   }, [location]);
 
@@ -48,22 +55,20 @@ export const ResetPassword = () => {
       return;
     }
 
-    if (!recoveryToken) {
-      setError("Token de recuperación no válido");
-      return;
-    }
-
     setLoading(true);
 
     try {
+      console.log("Intentando actualizar contraseña...");
       const { error: updateError } = await supabase.auth.updateUser({
         password: newPassword
       });
 
       if (updateError) {
+        console.error("Error al actualizar:", updateError);
         throw updateError;
       }
 
+      console.log("Contraseña actualizada correctamente");
       toast({
         title: "¡Éxito!",
         description: "Tu contraseña ha sido actualizada correctamente",
@@ -96,7 +101,7 @@ export const ResetPassword = () => {
           </CardHeader>
           <CardContent>
             {error && (
-              <div className="bg-destructive/10 text-destructive text-sm p-2 rounded-md mb-4">
+              <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md mb-4">
                 {error}
               </div>
             )}
