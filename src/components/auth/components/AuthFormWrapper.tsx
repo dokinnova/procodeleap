@@ -3,9 +3,11 @@ import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 export const AuthFormWrapper = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const redirectTo = `${window.location.origin}/auth/callback`;
 
   return (
@@ -64,6 +66,14 @@ export const AuthFormWrapper = () => {
       redirectTo={redirectTo}
       view="sign_in"
       showLinks={true}
+      onViewChange={(view) => {
+        // When the user clicks on "Forgot password" link, redirect to our custom reset page
+        if (view === 'forgotten_password') {
+          navigate('/password-reset');
+          return false; // Prevent default behavior
+        }
+        return true; // Allow other view changes
+      }}
     />
   );
 };
