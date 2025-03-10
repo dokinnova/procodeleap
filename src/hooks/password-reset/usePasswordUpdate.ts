@@ -14,6 +14,7 @@ export const usePasswordUpdate = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [session, setSession] = useState(null);
+  const [verificationAttempted, setVerificationAttempted] = useState(false);
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,6 +31,11 @@ export const usePasswordUpdate = () => {
       return;
     }
 
+    if (!email && !session && searchParams.get("code")) {
+      setError("Por favor ingresa tu correo electrónico para verificar tu identidad");
+      return;
+    }
+
     setLoading(true);
     
     try {
@@ -39,11 +45,14 @@ export const usePasswordUpdate = () => {
       console.log("Código:", code);
       console.log("Email:", email);
       console.log("Sesión:", !!session);
+      console.log("Verificación intentada previamente:", verificationAttempted);
       
       // Si tenemos código pero no sesión, primero verificamos el OTP
-      if (code && email && !session) {
+      if (code && email && !session && !verificationAttempted) {
         console.log("Verificando OTP con email:", email);
-        const { error: verifyError } = await supabase.auth.verifyOtp({
+        setVerificationAttempted(true);
+        
+        const { error: verifyError, data } = await supabase.auth.verifyOtp({
           email,
           token: code,
           type: 'recovery',
@@ -51,8 +60,14 @@ export const usePasswordUpdate = () => {
         
         if (verifyError) {
           console.error("Error al verificar OTP:", verifyError);
-          throw verifyError;
+          if (verifyError.message.includes("Token has expired")) {
+            throw new Error("El enlace de recuperación ha expirado. Por favor solicita uno nuevo.");
+          } else {
+            throw verifyError;
+          }
         }
+        
+        console.log("OTP verificado exitosamente, datos recibidos:", data);
       }
       
       // Actualizamos la contraseña
@@ -75,8 +90,10 @@ export const usePasswordUpdate = () => {
       
       if (err.message && err.message.includes("Token has expired")) {
         setError("El enlace de recuperación ha expirado. Por favor solicita uno nuevo.");
+      } else if (err.message && err.message.includes("User not found")) {
+        setError("No se encontró ninguna cuenta con este correo electrónico. Por favor verifica e intenta de nuevo.");
       } else {
-        setError("Ocurrió un error al actualizar la contraseña");
+        setError("Ocurrió un error al actualizar la contraseña" + (err.message ? `: ${err.message}` : ""));
       }
     } finally {
       setLoading(false);
@@ -95,6 +112,8 @@ export const usePasswordUpdate = () => {
     loading,
     error,
     success,
+    verificationAttempted,
+    setVerificationAttempted,
     handleUpdatePassword,
     searchParams,
     navigate

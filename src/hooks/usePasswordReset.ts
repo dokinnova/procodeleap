@@ -11,7 +11,8 @@ export const usePasswordReset = () => {
     success: modeSuccess,
     setSuccess: setModeSuccess,
     session,
-    setSession
+    setSession,
+    isTokenValid
   } = usePasswordResetMode();
 
   const {
@@ -33,6 +34,8 @@ export const usePasswordReset = () => {
     loading: updateLoading,
     error: updateError,
     success: updateSuccess,
+    verificationAttempted,
+    setVerificationAttempted,
     handleUpdatePassword,
     searchParams,
     navigate
@@ -46,7 +49,9 @@ export const usePasswordReset = () => {
   const success = modeSuccess || (mode === "request" ? requestSuccess : updateSuccess);
 
   // Ensure session is properly synced between hooks
-  usePasswordUpdate["setSession"] && usePasswordUpdate["setSession"](session);
+  if (typeof usePasswordUpdate["setSession"] === 'function') {
+    usePasswordUpdate["setSession"](session);
+  }
 
   return {
     mode,
@@ -60,6 +65,9 @@ export const usePasswordReset = () => {
     error,
     success,
     session,
+    isTokenValid,
+    verificationAttempted,
+    setVerificationAttempted,
     handleRequestPasswordReset,
     handleUpdatePassword,
     searchParams,
