@@ -27,22 +27,44 @@ export const usePasswordResetRequest = () => {
       // It's important to use the full path for password-reset
       const redirectTo = `${origin}/password-reset`;
       
-      console.log("Requesting password reset for:", email);
-      console.log("Redirecting to:", redirectTo);
+      console.log("Solicitando restablecimiento de contraseña para:", email);
+      console.log("Redirigiendo a:", redirectTo);
       
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: redirectTo,
-      });
-      
-      if (error) {
-        throw error;
+      // Intentar enviar a través de la función personalizada
+      try {
+        const functionResponse = await supabase.functions.invoke("password-reset-notification", {
+          body: { email, resetLink: redirectTo }
+        });
+        
+        console.log("Respuesta de función de restablecimiento:", functionResponse);
+        
+        if (functionResponse.error) {
+          throw new Error(functionResponse.error);
+        }
+
+        if (!functionResponse.data.success) {
+          throw new Error(functionResponse.data.error || "Error al enviar el correo de recuperación");
+        }
+        
+        console.log("Correo enviado a través de la función personalizada");
+      } catch (funcError) {
+        console.warn("Error con la función personalizada, usando método estándar:", funcError);
+        
+        // Fallback al método estándar de Supabase
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: redirectTo,
+        });
+        
+        if (error) {
+          throw error;
+        }
       }
       
-      console.log("Password reset request sent successfully, check your email");
+      console.log("Solicitud de restablecimiento enviada con éxito, revisa tu correo");
       toast.success("Se ha enviado un enlace de recuperación a tu correo electrónico");
       setSuccess("Se ha enviado un enlace de recuperación a tu correo electrónico. Por favor revisa tu bandeja de entrada y spam.");
     } catch (err: any) {
-      console.error("Error requesting password reset:", err);
+      console.error("Error al solicitar restablecimiento de contraseña:", err);
       
       if (err.message && err.message.includes("User not found")) {
         setError("No se encontró ninguna cuenta con este correo electrónico. Por favor verifica e intenta de nuevo.");

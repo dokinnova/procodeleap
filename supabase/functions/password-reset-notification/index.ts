@@ -38,42 +38,51 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     console.log(`Processing password reset email to ${email}`);
-    console.log(`Original link: ${resetLink}`);
+    console.log(`Redirect base: ${resetLink}`);
     
     try {
-      // Extract the code from resetLink
+      // Primero, hacemos un request a Supabase Auth para generar un token de recuperación
+      const supabaseUrl = Deno.env.get("SUPABASE_URL");
+      const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
+      
+      if (!supabaseUrl || !supabaseAnonKey) {
+        throw new Error("Supabase configuration missing");
+      }
+      
+      console.log("Requesting password reset token from Supabase Auth");
+      
+      const response = await fetch(`${supabaseUrl}/auth/v1/recover`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": supabaseAnonKey,
+        },
+        body: JSON.stringify({
+          email,
+          gotrue_meta_security: {
+            captcha_token: ""
+          },
+        }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Supabase Auth error:", errorData);
+        throw new Error(`Supabase Auth error: ${errorData.message || errorData.error || "Unknown error"}`);
+      }
+      
+      console.log("Successfully requested reset token from Supabase");
+
+      // Determine origin from resetLink
       const url = new URL(resetLink);
-      const code = url.searchParams.get('code');
+      const origin = url.origin;
       
-      if (!code) {
-        console.error("No code found in reset link");
-        throw new Error("Invalid reset link - No code found");
-      }
+      console.log(`Using origin: ${origin}`);
       
-      console.log(`Extracted code: ${code}`);
+      // Create properly formatted reset link pointing to our app
+      const formattedResetLink = `${origin}/password-reset?type=recovery&email=${encodeURIComponent(email)}`;
       
-      // Determine origin from request headers or URL
-      let origin = req.headers.get('origin');
-      
-      // If origin header is missing, try using X-Forwarded-Host or Host
-      if (!origin) {
-        const host = req.headers.get('x-forwarded-host') || req.headers.get('host');
-        if (host) {
-          // Determine if connection is secure
-          const proto = req.headers.get('x-forwarded-proto') || 'https';
-          origin = `${proto}://${host}`;
-        } else {
-          // If all else fails, extract origin from resetLink
-          origin = url.origin;
-        }
-      }
-      
-      console.log(`Determined origin: ${origin}`);
-      
-      // Create properly formatted reset link with the code and all necessary parameters
-      const formattedResetLink = `${origin}/password-reset?code=${code}&type=recovery&email=${encodeURIComponent(email)}`;
-      
-      console.log(`Formatted link: ${formattedResetLink}`);
+      console.log(`Formatted reset link: ${formattedResetLink}`);
       
       const emailContent = `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
@@ -87,34 +96,34 @@ const handler = async (req: Request): Promise<Response> => {
       
       console.log("Attempting to send email through Resend API");
       console.log("Request data:", JSON.stringify({
-        from: "onboarding@resend.dev",
+        from: "noreply@tuaplicacion.com",
         to: [email],
         subject: "Restablecimiento de contraseña",
         html: emailContent
       }));
       
-      const response = await fetch("https://api.resend.com/emails", {
+      const emailResponse = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${RESEND_API_KEY}`,
         },
         body: JSON.stringify({
-          from: "onboarding@resend.dev",
+          from: "noreply@tuaplicacion.com",
           to: [email],
           subject: "Restablecimiento de contraseña",
           html: emailContent,
         }),
       });
 
-      const responseStatus = response.status;
+      const responseStatus = emailResponse.status;
       console.log(`Resend API response status: ${responseStatus}`);
       
-      const result = await response.json();
+      const result = await emailResponse.json();
       
       console.log(`Resend API response for ${email}:`, JSON.stringify(result));
       
-      if (!response.ok) {
+      if (!emailResponse.ok) {
         console.error(`Error sending to ${email}:`, result);
         return new Response(JSON.stringify({ success: false, error: result }), {
           status: 500,

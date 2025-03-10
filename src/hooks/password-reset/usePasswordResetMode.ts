@@ -31,6 +31,8 @@ export const usePasswordResetMode = () => {
       const emailParam = searchParams.get("email");
       const errorParam = searchParams.get("error");
       const errorDescription = searchParams.get("error_description");
+      const accessToken = searchParams.get("access_token");
+      const refreshToken = searchParams.get("refresh_token");
       
       console.log("Verificando parámetros de URL para reset:");
       console.log("Token:", token ? "Presente" : "No presente");
@@ -39,6 +41,8 @@ export const usePasswordResetMode = () => {
       console.log("Email:", emailParam);
       console.log("Error:", errorParam);
       console.log("Error Description:", errorDescription);
+      console.log("Access Token:", accessToken ? "Presente" : "No presente");
+      console.log("Refresh Token:", refreshToken ? "Presente" : "No presente");
       
       // Si hay errores explícitos en la URL, los mostramos
       if (errorParam || errorDescription) {
@@ -50,68 +54,87 @@ export const usePasswordResetMode = () => {
         return;
       }
       
-      // Si no hay token ni code, permanecemos en modo solicitud
-      if (!token && !code) {
-        console.log("No hay token ni código, estableciendo modo request");
+      // Si no hay token, code ni access_token, permanecemos en modo solicitud
+      if (!token && !code && !accessToken && !refreshToken) {
+        console.log("No hay token, código ni access_token, estableciendo modo request");
         setMode("request");
         setTokenChecked(true);
         return;
       }
       
-      // Si llegamos aquí es porque tenemos un token o un code, así que cambiamos al modo reset
+      // Si llegamos aquí es porque tenemos un token, code o access_token, así que cambiamos al modo reset
       setMode("reset");
       
       // Verificamos si ya tenemos una sesión activa
       const { data: sessionData } = await supabase.auth.getSession();
+      console.log("Sesión actual:", sessionData?.session ? "Presente" : "Ausente");
+      
       if (sessionData?.session) {
-        console.log("Sesión activa encontrada:", sessionData.session);
+        console.log("Sesión activa encontrada");
         setSession(sessionData.session);
         setIsTokenValid(true);
         setTokenChecked(true);
         return;
       }
       
-      // Manejamos el restablecimiento basado en token
-      if (token) {
+      // Intentamos establecer la sesión usando el código o token de la URL si existe
+      if (code && type === "recovery" && emailParam) {
         try {
-          console.log("Validando token de recuperación");
-          // Asumimos que el token es válido y permitimos que el usuario intente actualizar la contraseña
-          // La validación real será manejada por supabase.auth.updateUser
-          setIsTokenValid(true);
-          setTokenChecked(true);
-        } catch (err) {
-          console.error("Error al verificar token:", err);
-          setError("El enlace de recuperación ha expirado. Por favor solicita uno nuevo.");
-          setIsTokenValid(false);
-          setTokenChecked(true);
-        }
-        return;
-      }
-      
-      // Manejamos el restablecimiento basado en OTP/código
-      if (code) {
-        try {
-          console.log("Validando código OTP:", code);
+          console.log("Intentando verificar código de recuperación directamente");
+          // Verificar el OTP (código de un solo uso)
+          const { data, error: verifyError } = await supabase.auth.verifyOtp({
+            email: emailParam,
+            token: code,
+            type: 'recovery'
+          });
           
-          // Verificamos si el formato del código parece válido (sin verificarlo realmente todavía)
-          const codeFormat = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-          if (code && codeFormat.test(code)) {
-            console.log("Código parece válido por formato");
+          if (verifyError) {
+            console.error("Error al verificar OTP:", verifyError);
+            if (verifyError.message && (
+              verifyError.message.includes("expired") || 
+              verifyError.message.includes("invalid") ||
+              verifyError.message.includes("not found")
+            )) {
+              setError("El enlace de recuperación ha expirado. Por favor solicita uno nuevo.");
+            } else {
+              setError(verifyError.message);
+            }
+            setIsTokenValid(false);
+          } else if (data?.session) {
+            console.log("OTP verificado con éxito, sesión establecida");
+            setSession(data.session);
             setIsTokenValid(true);
           } else {
-            console.log("Formato de código inválido");
-            setError("El enlace de recuperación es inválido. Por favor solicita uno nuevo.");
-            setIsTokenValid(false);
+            console.log("OTP verificado pero no se obtuvo sesión");
+            setIsTokenValid(true); // Consideramos que es válido para mostrar el formulario
           }
-          
-          setTokenChecked(true);
         } catch (err) {
           console.error("Error al verificar código:", err);
           setError("Ocurrió un error al verificar el enlace de recuperación");
           setIsTokenValid(false);
-          setTokenChecked(true);
         }
+        setTokenChecked(true);
+        return;
       }
+      
+      // Para todos los demás casos (token, access_token, etc.)
+      if (token || accessToken || refreshToken || (code && type === "recovery")) {
+        try {
+          console.log("Asumiendo token válido para formulario de restablecimiento");
+          setIsTokenValid(true);
+        } catch (err) {
+          console.error("Error al validar token:", err);
+          setError("El enlace de recuperación es inválido o ha expirado. Por favor solicita uno nuevo.");
+          setIsTokenValid(false);
+        }
+        setTokenChecked(true);
+        return;
+      }
+      
+      console.log("No se encontró un método válido de recuperación en la URL");
+      setError("El enlace de recuperación es inválido. Por favor solicita uno nuevo.");
+      setIsTokenValid(false);
+      setTokenChecked(true);
     };
     
     checkTokenValidity();
