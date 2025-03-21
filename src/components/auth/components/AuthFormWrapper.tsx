@@ -133,16 +133,6 @@ export const AuthFormWrapper = () => {
               loading_button_label: 'Enviando instrucciones...',
               link_text: '¿Olvidaste tu contraseña?',
               confirmation_text: 'Revisa tu correo electrónico para obtener el enlace de recuperación'
-            },
-            sign_up: {
-              email_label: 'Correo electrónico',
-              password_label: 'Contraseña',
-              email_input_placeholder: 'Tu correo electrónico',
-              password_input_placeholder: 'Tu contraseña',
-              button_label: 'Registrarse',
-              loading_button_label: 'Registrando...',
-              link_text: '¿No tienes una cuenta? Regístrate',
-              confirmation_text: 'Revisa tu correo electrónico para confirmar tu registro'
             }
           }
         }}
@@ -151,6 +141,11 @@ export const AuthFormWrapper = () => {
         redirectTo={redirectTo}
         view="sign_in"
         showLinks={true}
+        // Ocultar las opciones que permiten registrarse
+        magicLink={false}
+        socialLayout="horizontal"
+        // Desactiva la creación de nuevas cuentas
+        disableSignUp={true}
       />
     </div>
   );
