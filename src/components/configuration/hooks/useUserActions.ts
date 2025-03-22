@@ -1,4 +1,3 @@
-
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -13,10 +12,6 @@ export const useUserActions = () => {
 
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: string) => {
-      if (userId === "00000000-0000-0000-0000-000000000000") {
-        throw new Error("Cannot delete a user who hasn't logged in yet");
-      }
-      
       const { error } = await supabase
         .from("app_users")
         .delete()
