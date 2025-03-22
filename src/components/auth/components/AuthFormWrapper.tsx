@@ -140,8 +140,7 @@ export const AuthFormWrapper = () => {
         providers={[]}
         redirectTo={redirectTo}
         view="sign_in"
-        showLinks={true}
-        // Ocultar las opciones que permiten registrarse
+        showLinks={false}
         magicLink={false}
         socialLayout="horizontal"
       />
