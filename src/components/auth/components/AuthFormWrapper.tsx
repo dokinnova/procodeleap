@@ -144,8 +144,6 @@ export const AuthFormWrapper = () => {
         // Ocultar las opciones que permiten registrarse
         magicLink={false}
         socialLayout="horizontal"
-        // Desactiva la creación de nuevas cuentas
-        disableSignUp={true}
       />
     </div>
   );
