@@ -1,4 +1,3 @@
-
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -24,22 +23,37 @@ export const useUserActions = () => {
         
         // Para usuarios que nunca se han conectado (con ID temporal), necesitamos eliminar por email
         if (userId === "00000000-0000-0000-0000-000000000000") {
-          // Obtenemos el email del usuario seleccionado (debe ser pasado desde la interfaz)
+          // Obtenemos el email del usuario seleccionado
           const { data: userData, error: userError } = await supabase
             .from("app_users")
             .select("email, id")
-            .eq("user_id", userId)
-            .single();
+            .eq("user_id", userId);
             
           if (userError) throw userError;
           
-          // Eliminamos el registro usando id de la tabla app_users
-          const { error } = await supabase
-            .from("app_users")
-            .delete()
-            .eq("id", userData.id);
-            
-          if (error) throw error;
+          if (!userData || userData.length === 0) {
+            throw new Error("No se encontró el usuario para eliminar");
+          }
+          
+          // Verificar si existe más de un usuario con el mismo ID temporal
+          if (userData.length > 1) {
+            // Si hay múltiples usuarios, eliminar solo el específico por su id de tabla
+            const selectedUserId = userData[0].id;
+            const { error } = await supabase
+              .from("app_users")
+              .delete()
+              .eq("id", selectedUserId);
+              
+            if (error) throw error;
+          } else {
+            // Eliminar el único usuario encontrado
+            const { error } = await supabase
+              .from("app_users")
+              .delete()
+              .eq("id", userData[0].id);
+              
+            if (error) throw error;
+          }
         } else {
           // Eliminación normal para usuarios con ID de usuario real
           const { error } = await supabase
