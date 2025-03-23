@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { AppUser } from "../utils/userSync";
+import { AppUser } from "../utils/user-sync";
 import { UserRole } from "@/hooks/useUserPermissions";
 
 export const useUserActions = () => {

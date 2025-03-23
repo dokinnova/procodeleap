@@ -4,7 +4,7 @@ import { UserStatusBadge } from "./UserStatusBadge";
 import { UserRoleEditor } from "./UserRoleEditor";
 import { UserActions } from "./UserActions";
 import { UserRole } from "@/hooks/useUserPermissions";
-import { AppUser, AuthUserInfo } from "../utils/userSync";
+import { AppUser, AuthUserInfo } from "../utils/user-sync";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
