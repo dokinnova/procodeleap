@@ -1,3 +1,4 @@
+
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -13,6 +14,7 @@ export const useUserActions = () => {
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: string) => {
       try {
+        // Primero liberar cualquier tarea asignada a este usuario
         const { error: tasksError } = await supabase
           .from("tasks")
           .update({ assigned_user_id: null })
@@ -20,14 +22,35 @@ export const useUserActions = () => {
           
         if (tasksError) throw tasksError;
         
-        const { error } = await supabase
-          .from("app_users")
-          .delete()
-          .eq("user_id", userId);
+        // Para usuarios que nunca se han conectado (con ID temporal), necesitamos eliminar por email
+        if (userId === "00000000-0000-0000-0000-000000000000") {
+          // Obtenemos el email del usuario seleccionado (debe ser pasado desde la interfaz)
+          const { data: userData, error: userError } = await supabase
+            .from("app_users")
+            .select("email, id")
+            .eq("user_id", userId)
+            .single();
+            
+          if (userError) throw userError;
           
-        if (error) throw error;
+          // Eliminamos el registro usando id de la tabla app_users
+          const { error } = await supabase
+            .from("app_users")
+            .delete()
+            .eq("id", userData.id);
+            
+          if (error) throw error;
+        } else {
+          // Eliminación normal para usuarios con ID de usuario real
+          const { error } = await supabase
+            .from("app_users")
+            .delete()
+            .eq("user_id", userId);
+            
+          if (error) throw error;
+        }
       } catch (error: any) {
-        console.error("Error during user deletion process:", error);
+        console.error("Error durante el proceso de eliminación del usuario:", error);
         throw error;
       }
     },
