@@ -12,18 +12,31 @@ export const useUserActions = () => {
 
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: string) => {
-      const { error } = await supabase
-        .from("app_users")
-        .delete()
-        .eq("user_id", userId);
-      if (error) throw error;
+      try {
+        const { error: tasksError } = await supabase
+          .from("tasks")
+          .update({ assigned_user_id: null })
+          .eq("assigned_user_id", userId);
+          
+        if (tasksError) throw tasksError;
+        
+        const { error } = await supabase
+          .from("app_users")
+          .delete()
+          .eq("user_id", userId);
+          
+        if (error) throw error;
+      } catch (error: any) {
+        console.error("Error during user deletion process:", error);
+        throw error;
+      }
     },
     onSuccess: () => {
-      toast.success("User deleted successfully");
+      toast.success("Usuario eliminado correctamente");
       queryClient.invalidateQueries({ queryKey: ["app-users"] });
     },
-    onError: (error) => {
-      toast.error("Error deleting user: " + error.message);
+    onError: (error: any) => {
+      toast.error("Error al eliminar usuario: " + error.message);
     },
   });
 
@@ -36,12 +49,12 @@ export const useUserActions = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("User role updated successfully");
+      toast.success("Usuario role actualizado correctamente");
       queryClient.invalidateQueries({ queryKey: ["app-users"] });
       setEditingUser(null);
     },
     onError: (error) => {
-      toast.error("Error updating user role: " + error.message);
+      toast.error("Error al actualizar usuario role: " + error.message);
     },
   });
 
