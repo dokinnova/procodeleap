@@ -4,7 +4,7 @@ import { Check } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { UserRole } from "@/hooks/useUserPermissions";
 import { useState } from "react";
-import { AppUser } from "../utils/userSync";
+import { AppUser } from "../utils/user-sync";
 
 interface UserRoleEditorProps {
   user: AppUser;

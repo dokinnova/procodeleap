@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
-import { AppUser } from "../utils/userSync";
+import { AppUser } from "../utils/user-sync";
 
 interface UserStatsProps {
   users: AppUser[] | undefined;

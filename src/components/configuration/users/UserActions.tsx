@@ -12,7 +12,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useState } from "react";
-import { AppUser } from "../utils/userSync";
+import { AppUser } from "../utils/user-sync";
 
 interface UserActionsProps {
   user: AppUser;
