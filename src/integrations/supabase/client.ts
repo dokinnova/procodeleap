@@ -16,18 +16,31 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   },
 });
 
-// Establecer el gestor de eventos para cambios en la URL
-// Esto ayuda con los flujos de autenticación como restablecimiento de contraseña
+// Add improved debugging for auth events
+supabase.auth.onAuthStateChange((event, session) => {
+  console.log(`Auth event: ${event}`, session ? "Session exists" : "No session");
+  
+  if (event === 'PASSWORD_RECOVERY') {
+    // Force reload the page when a PASSWORD_RECOVERY event is detected
+    // This ensures the recovery flow is properly initialized
+    if (window.location.pathname !== '/reset-password') {
+      window.location.href = '/reset-password';
+    }
+  }
+});
+
+// Establish event listeners for handling URL changes
 window.addEventListener('hashchange', () => {
+  console.log('Hash changed, processing auth session');
   supabase.auth.getSession();
 });
 
-// También escuchar cambios en la URL para capturar tokens en formato query string
 window.addEventListener('popstate', () => {
+  console.log('URL changed, processing auth session');
   supabase.auth.getSession();
 });
 
-// Escuchar cambios en la URL en el primer cargado
 document.addEventListener('DOMContentLoaded', () => {
+  console.log('DOM loaded, processing auth session');
   supabase.auth.getSession();
 });

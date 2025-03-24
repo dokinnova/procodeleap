@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Info } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface PasswordChangeDialogProps {
@@ -34,6 +34,7 @@ export const PasswordChangeDialog = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [passwordResetSent, setPasswordResetSent] = useState(false);
+  const [directChangeAttempted, setDirectChangeAttempted] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,26 +51,47 @@ export const PasswordChangeDialog = ({
     }
 
     setIsLoading(true);
+    setDirectChangeAttempted(true);
+    
     try {
-      // Try to use the password reset email method
+      // Try to update the password using admin API
+      console.log(`Attempting to update password for user ${userId} with admin API`);
+      
       const { error: updateError } = await supabase.auth.admin.updateUserById(
         userId,
         { password: newPassword }
       );
 
       if (updateError) {
-        // If the admin API fails, let's fall back to password reset email
-        await handleSendPasswordResetEmail();
-        return;
+        console.error("Admin password update failed:", updateError);
+        
+        // Check if it's a permission error
+        if (updateError.message.includes("Service role auth") || 
+            updateError.message.includes("not admin") ||
+            updateError.message.includes("roles")) {
+          throw new Error("No tienes permisos de administrador para cambiar la contraseña directamente. Utilizando método alternativo.");
+        }
+        
+        throw updateError;
       }
 
+      console.log("Password updated successfully via admin API");
       toast.success("Contraseña actualizada correctamente");
       setNewPassword("");
       setConfirmPassword("");
       onOpenChange(false);
     } catch (err: any) {
-      console.error("Error al cambiar la contraseña:", err);
-      setError(err.message || "Error al cambiar la contraseña");
+      console.error("Error changing password:", err);
+      
+      // If it's a permissions issue, automatically try the email reset method
+      if (err.message.includes("permisos") || 
+          err.message.includes("roles") || 
+          err.message.includes("admin")) {
+        console.log("Permission issue detected, trying password reset email");
+        await handleSendPasswordResetEmail();
+      } else {
+        setError(err.message || "Error al cambiar la contraseña");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -85,16 +107,22 @@ export const PasswordChangeDialog = ({
       // Create a specific reset password URL that we know will work
       const redirectTo = `${origin}/reset-password`;
       
+      console.log(`Sending password reset email to ${userEmail} with redirect to ${redirectTo}`);
+      
       const { error } = await supabase.auth.resetPasswordForEmail(userEmail, {
         redirectTo: redirectTo
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error sending password reset email:", error);
+        throw error;
+      }
       
+      console.log("Password reset email sent successfully");
       setPasswordResetSent(true);
       toast.success("Email de recuperación enviado correctamente");
     } catch (err: any) {
-      console.error("Error al enviar email de recuperación:", err);
+      console.error("Error sending password reset email:", err);
       setError(err.message || "Error al enviar email de recuperación");
     } finally {
       setIsLoading(false);
@@ -118,6 +146,16 @@ export const PasswordChangeDialog = ({
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+        
+        {directChangeAttempted && !passwordResetSent && !error && (
+          <Alert variant="info" className="bg-blue-50 text-blue-800 border-blue-200">
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              Si tiene problemas para cambiar la contraseña directamente, 
+              utilice la opción de enviar email de recuperación.
+            </AlertDescription>
           </Alert>
         )}
         

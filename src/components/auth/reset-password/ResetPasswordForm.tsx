@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface ResetPasswordFormProps {
   setError: (error: string | null) => void;
@@ -25,17 +26,24 @@ export const ResetPasswordForm = ({
   const [confirmPassword, setConfirmPassword] = useState("");
   const [hasCheckedSession, setHasCheckedSession] = useState(false);
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const { toast: toastUI } = useToast();
 
-  // Verificar si hay una sesión activa cuando se monta el componente
+  // Check for active session when component mounts
   useEffect(() => {
     const checkSession = async () => {
       try {
         const { data } = await supabase.auth.getSession();
-        console.log("ResetPasswordForm - Estado de sesión:", data.session ? "Con sesión" : "Sin sesión");
+        console.log("ResetPasswordForm - Session state:", data.session ? "With session" : "No session");
+        
+        // Log the access token for debugging if session exists
+        if (data.session) {
+          console.log("ResetPasswordForm - Session exists with access token (first 10 chars):", 
+                      data.session.access_token.substring(0, 10) + "...");
+        }
+        
         setHasCheckedSession(true);
       } catch (err) {
-        console.error("Error al verificar sesión:", err);
+        console.error("Error checking session:", err);
         setHasCheckedSession(true);
       }
     };
@@ -60,40 +68,51 @@ export const ResetPasswordForm = ({
     setLoading(true);
 
     try {
-      console.log("Intentando actualizar contraseña con token:", recoveryToken);
+      console.log("Attempting to update password with token:", recoveryToken ? "Token exists" : "No token");
       
-      // Verificamos primero si existe una sesión válida
+      // First check if we have a valid session
       const { data: sessionData } = await supabase.auth.getSession();
-      console.log("Estado de sesión al actualizar contraseña:", 
-                sessionData.session ? "Con sesión" : "Sin sesión");
+      console.log("Session state when updating password:", 
+                sessionData.session ? "With session" : "No session");
       
-      if (!sessionData.session) {
-        throw new Error("No hay sesión de autenticación. Por favor, utilice el enlace de recuperación enviado al correo electrónico o solicite uno nuevo.");
+      // If we have a session or recovery token, proceed with password update
+      if (sessionData.session || recoveryToken) {
+        // Update password using the session
+        const { error: updateError } = await supabase.auth.updateUser({
+          password: newPassword
+        });
+
+        if (updateError) {
+          console.error("Error updating password:", updateError);
+          throw updateError;
+        }
+
+        console.log("Password updated successfully");
+        toast({
+          title: "¡Éxito!",
+          description: "Tu contraseña ha sido actualizada correctamente",
+        });
+
+        // Redirect to login page
+        setTimeout(() => {
+          navigate("/auth", { replace: true });
+        }, 2000);
+      } else {
+        // No session and no token
+        setError("No hay sesión de autenticación. Por favor, utilice el enlace de recuperación enviado al correo electrónico o solicite uno nuevo.");
       }
-      
-      // Actualizar contraseña usando la sesión actual
-      const { error: updateError } = await supabase.auth.updateUser({
-        password: newPassword
-      });
-
-      if (updateError) {
-        console.error("Error al actualizar contraseña:", updateError);
-        throw updateError;
-      }
-
-      console.log("Contraseña actualizada correctamente");
-      toast({
-        title: "¡Éxito!",
-        description: "Tu contraseña ha sido actualizada correctamente",
-      });
-
-      // Redirigir al usuario a la página de inicio de sesión
-      setTimeout(() => {
-        navigate("/auth", { replace: true });
-      }, 2000);
     } catch (err: any) {
-      console.error("Error al actualizar la contraseña:", err);
-      setError(err.message || "Error al actualizar la contraseña");
+      console.error("Error updating password:", err);
+      
+      // Check if the error is about an expired token
+      if (err.message && (
+          err.message.includes("Token expired") || 
+          err.message.includes("token is invalid") ||
+          err.message.includes("JWT expired"))) {
+        setError("El enlace de recuperación ha expirado. Por favor, solicita uno nuevo desde la página de inicio de sesión.");
+      } else {
+        setError(err.message || "Error al actualizar la contraseña");
+      }
     } finally {
       setLoading(false);
     }

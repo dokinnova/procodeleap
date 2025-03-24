@@ -6,31 +6,33 @@ import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 export const AuthFormWrapper = () => {
-  const { toast } = useToast();
+  const { toast: toastUI } = useToast();
   const navigate = useNavigate();
   const [isLoadingInitial, setIsLoadingInitial] = useState(true);
   const [view, setView] = useState<"sign_in" | "forgotten_password">("sign_in");
+  const [loginAttempts, setLoginAttempts] = useState(0);
   
-  // Usar window.location.origin para obtener el dominio actual
+  // Using window.location.origin for getting the current domain
   const currentUrl = window.location.origin;
-  // URL de redirección simplificada que funciona en todos los dominios
+  // Simplified redirect URL that works on all domains
   const redirectTo = `${currentUrl}/reset-password`;
   
-  console.log("AuthFormWrapper: Usando URL de redirección:", redirectTo);
+  console.log("AuthFormWrapper: Using redirect URL:", redirectTo);
 
-  // Verificar si hay una sesión activa al cargar el componente
+  // Check for active session when component loads
   useEffect(() => {
     const checkSession = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
-          console.log("AuthFormWrapper: Sesión activa encontrada, redirigiendo a inicio");
+          console.log("AuthFormWrapper: Active session found, redirecting to home");
           navigate('/', { replace: true });
         }
       } catch (error) {
-        console.error("Error verificando sesión:", error);
+        console.error("Error checking session:", error);
       } finally {
         setIsLoadingInitial(false);
       }
@@ -39,7 +41,7 @@ export const AuthFormWrapper = () => {
     checkSession();
   }, [navigate]);
 
-  // Detectar errores en la URL cuando el componente se carga
+  // Detect errors in URL when component loads
   useEffect(() => {
     const url = new URL(window.location.href);
     const error = url.searchParams.get('error');
@@ -47,7 +49,7 @@ export const AuthFormWrapper = () => {
     const errorDescription = url.searchParams.get('error_description');
     
     if (error && errorDescription) {
-      console.log('AuthFormWrapper: Error detectado:', error, errorCode, errorDescription);
+      console.log('AuthFormWrapper: Error detected:', error, errorCode, errorDescription);
       
       let message = errorDescription.replace(/\+/g, ' ');
       if (errorCode === 'otp_expired') {
@@ -60,31 +62,53 @@ export const AuthFormWrapper = () => {
         variant: "destructive",
       });
       
-      // Limpiar los parámetros de error de la URL
+      // Clear error parameters from URL
       navigate('/auth', { replace: true });
     }
   }, [toast, navigate]);
 
-  // Manejar eventos de autenticación
+  // Handle auth events
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('AuthFormWrapper: Evento de autenticación:', event);
+      console.log('AuthFormWrapper: Auth event:', event);
       
       if (event === 'SIGNED_IN') {
-        console.log('Usuario ha iniciado sesión');
-        // No mostrar este mensaje, lo dejamos al AuthProvider
+        console.log('User has signed in');
         navigate('/', { replace: true });
       } else if (event === 'PASSWORD_RECOVERY') {
-        console.log('Redirigiendo a página de recuperación de contraseña');
-        // Usar siempre la ruta central de restablecimiento de contraseña
+        console.log('Redirecting to password recovery page');
         navigate('/reset-password', { replace: true });
+      } else if (event === 'USER_UPDATED') {
+        console.log('User has been updated');
+        toastUI({
+          title: "Perfil actualizado",
+          description: "Tu información ha sido actualizada correctamente",
+        });
+      }
+      
+      // Handle login errors by counting attempts
+      if (event === 'SIGNED_OUT') {
+        setLoginAttempts(prev => {
+          const newAttempts = prev + 1;
+          console.log(`Login attempt ${newAttempts}`);
+          
+          // After 3 failed attempts, suggest password reset
+          if (newAttempts >= 3) {
+            toast({
+              title: "Múltiples intentos fallidos",
+              description: "¿Olvidaste tu contraseña? Utiliza la opción 'Olvidé mi contraseña' para recuperar tu cuenta.",
+              duration: 6000,
+            });
+          }
+          return newAttempts;
+        });
       }
     });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, [navigate, toast]);
+  }, [navigate, toastUI]);
 
   if (isLoadingInitial) {
     return (
@@ -96,6 +120,15 @@ export const AuthFormWrapper = () => {
 
   const toggleView = () => {
     setView(view === "sign_in" ? "forgotten_password" : "sign_in");
+  };
+
+  // Callback for auth events from Supabase Auth UI
+  const handleAuthEvent = (event: any) => {
+    if (event === 'SIGNED_IN') {
+      navigate('/', { replace: true });
+    } else if (event === 'PASSWORD_RECOVERY') {
+      navigate('/reset-password', { replace: true });
+    }
   };
 
   return (
@@ -149,6 +182,7 @@ export const AuthFormWrapper = () => {
         showLinks={false}
         magicLink={false}
         socialLayout="horizontal"
+        onAuthEvent={handleAuthEvent}
       />
 
       <div className="mt-4 text-center">
