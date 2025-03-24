@@ -9,10 +9,12 @@ export const useUserDeletion = () => {
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: string) => {
       try {
+        console.log("Iniciando proceso de eliminación para usuario:", userId);
+        
         // Primero, verificar todas las tareas asignadas a este usuario
         const { data: tasksData, error: tasksQueryError } = await supabase
           .from("tasks")
-          .select("id")
+          .select("id, assigned_user_id")
           .eq("assigned_user_id", userId);
           
         if (tasksQueryError) {
@@ -35,54 +37,66 @@ export const useUserDeletion = () => {
           }
         }
         
-        // Ahora procedemos directamente con la eliminación del usuario
-        try {
-          // Eliminación del usuario según el ID
-          if (userId === "00000000-0000-0000-0000-000000000000") {
-            // Para usuarios temporales, obtenemos el email
-            const { data: userData, error: userError } = await supabase
-              .from("app_users")
-              .select("email, id")
-              .eq("user_id", userId);
-              
-            if (userError) throw userError;
+        // Ahora procedemos con la eliminación del usuario
+        console.log("Procediendo con la eliminación del usuario:", userId);
+        
+        // Para usuarios temporales, usamos un enfoque diferente
+        if (userId === "00000000-0000-0000-0000-000000000000") {
+          // Obtener los registros de app_users para el usuario temporal
+          const { data: userData, error: userError } = await supabase
+            .from("app_users")
+            .select("email, id")
+            .eq("user_id", userId);
             
-            if (!userData || userData.length === 0) {
-              throw new Error("No se encontró el usuario para eliminar");
-            }
-            
-            // Verificar si existe más de un usuario con el mismo ID temporal
-            if (userData.length > 1) {
-              // Si hay múltiples usuarios, eliminar solo el específico por su id de tabla
-              const selectedUserId = userData[0].id;
-              const { error } = await supabase
-                .from("app_users")
-                .delete()
-                .eq("id", selectedUserId);
-                
-              if (error) throw error;
-            } else {
-              // Eliminar el único usuario encontrado
-              const { error } = await supabase
-                .from("app_users")
-                .delete()
-                .eq("id", userData[0].id);
-                
-              if (error) throw error;
-            }
-          } else {
-            // Eliminación normal para usuarios con ID real
+          if (userError) {
+            console.error("Error obteniendo datos del usuario temporal:", userError);
+            throw userError;
+          }
+          
+          if (!userData || userData.length === 0) {
+            throw new Error("No se encontró el usuario para eliminar");
+          }
+          
+          // Verificar si existe más de un usuario con el mismo ID temporal
+          if (userData.length > 1) {
+            // Si hay múltiples usuarios, eliminar solo el específico por su id de tabla
+            const selectedUserId = userData[0].id;
             const { error } = await supabase
               .from("app_users")
               .delete()
-              .eq("user_id", userId);
+              .eq("id", selectedUserId);
               
-            if (error) throw error;
+            if (error) {
+              console.error("Error eliminando usuario temporal específico:", error);
+              throw error;
+            }
+          } else {
+            // Eliminar el único usuario encontrado
+            const { error } = await supabase
+              .from("app_users")
+              .delete()
+              .eq("id", userData[0].id);
+              
+            if (error) {
+              console.error("Error eliminando usuario temporal:", error);
+              throw error;
+            }
           }
-        } catch (error: any) {
-          console.error("Error durante el proceso de eliminación del usuario:", error);
-          throw error;
+        } else {
+          // Eliminación normal para usuarios con ID real
+          const { error } = await supabase
+            .from("app_users")
+            .delete()
+            .eq("user_id", userId);
+            
+          if (error) {
+            console.error("Error eliminando usuario regular:", error);
+            throw error;
+          }
         }
+        
+        console.log("Usuario eliminado exitosamente:", userId);
+        return userId;
       } catch (error: any) {
         console.error("Error durante el proceso de eliminación del usuario:", error);
         throw error;
