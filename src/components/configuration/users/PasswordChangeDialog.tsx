@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import {
   Dialog,
@@ -150,11 +149,11 @@ export const PasswordChangeDialog = ({
         )}
         
         {directChangeAttempted && !passwordResetSent && !error && (
-          <Alert>
+          <Alert variant="default" className="bg-blue-50 text-blue-800 border-blue-200">
             <Info className="h-4 w-4" />
             <AlertDescription>
               Si tiene problemas para cambiar la contraseña directamente, 
-              utilice la opción de enviar email de recuperación.
+              use la opción de solicitar un enlace de restablecimiento por correo electrónico.
             </AlertDescription>
           </Alert>
         )}

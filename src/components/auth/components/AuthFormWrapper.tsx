@@ -56,8 +56,8 @@ export const AuthFormWrapper = () => {
         message = "El enlace de recuperación ha expirado. Por favor, solicita uno nuevo.";
       }
       
-      toast({
-        description: message,
+      // Use sonner toast instead of useToast
+      toast(message, {
         variant: "destructive",
       });
       
@@ -79,9 +79,8 @@ export const AuthFormWrapper = () => {
         navigate('/reset-password', { replace: true });
       } else if (event === 'USER_UPDATED') {
         console.log('User has been updated');
-        toast({
-          description: "Tu información ha sido actualizada correctamente",
-        });
+        // Use sonner toast instead of useToast
+        toast("Tu información ha sido actualizada correctamente");
       }
       
       // Handle login errors by counting attempts
@@ -92,8 +91,8 @@ export const AuthFormWrapper = () => {
           
           // After 3 failed attempts, suggest password reset
           if (newAttempts >= 3) {
-            toast({
-              description: "¿Olvidaste tu contraseña? Utiliza la opción 'Olvidé mi contraseña' para recuperar tu cuenta.",
+            // Use sonner toast
+            toast("¿Olvidaste tu contraseña? Utiliza la opción 'Olvidé mi contraseña' para recuperar tu cuenta.", {
               duration: 6000,
             });
           }
@@ -117,15 +116,6 @@ export const AuthFormWrapper = () => {
 
   const toggleView = () => {
     setView(view === "sign_in" ? "forgotten_password" : "sign_in");
-  };
-
-  // Handle auth state changes
-  const handleAuthStateChange = (event: any, session: any) => {
-    if (event === 'SIGNED_IN') {
-      navigate('/', { replace: true });
-    } else if (event === 'PASSWORD_RECOVERY') {
-      navigate('/reset-password', { replace: true });
-    }
   };
 
   return (
@@ -179,7 +169,6 @@ export const AuthFormWrapper = () => {
         showLinks={false}
         magicLink={false}
         socialLayout="horizontal"
-        onAuthStateChange={handleAuthStateChange}
       />
 
       <div className="mt-4 text-center">
