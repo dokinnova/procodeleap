@@ -14,6 +14,7 @@ export const AuthFormWrapper = () => {
   const [isLoadingInitial, setIsLoadingInitial] = useState(true);
   const [view, setView] = useState<"sign_in" | "forgotten_password">("sign_in");
   const [loginAttempts, setLoginAttempts] = useState(0);
+  const [loginError, setLoginError] = useState<string | null>(null);
   
   // Using window.location.origin for getting the current domain
   const currentUrl = window.location.origin;
@@ -56,7 +57,7 @@ export const AuthFormWrapper = () => {
         message = "El enlace de recuperación ha expirado. Por favor, solicita uno nuevo.";
       }
       
-      // Fix: Use sonner toast with correct props
+      // Fix: Use sonner toast with correct method
       toast.error(message);
       
       // Clear error parameters from URL
@@ -68,6 +69,9 @@ export const AuthFormWrapper = () => {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('AuthFormWrapper: Auth event:', event);
+      
+      // Clear login error on any auth event
+      setLoginError(null);
       
       if (event === 'SIGNED_IN') {
         console.log('User has signed in');
@@ -89,7 +93,6 @@ export const AuthFormWrapper = () => {
           
           // After 3 failed attempts, suggest password reset
           if (newAttempts >= 3) {
-            // Fix: Use sonner toast with correct props
             toast.info("¿Olvidaste tu contraseña? Utiliza la opción 'Olvidé mi contraseña' para recuperar tu cuenta.", {
               duration: 6000,
             });
@@ -104,6 +107,36 @@ export const AuthFormWrapper = () => {
     };
   }, [navigate]);
 
+  // Add a sign in with email and password function for debugging
+  const handleManualLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    
+    // Get form data
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+    
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+      
+      if (error) {
+        console.error("Manual login error:", error);
+        setLoginError(error.message);
+        toast.error(`Error de inicio de sesión: ${error.message}`);
+      } else {
+        console.log("Manual login successful:", data);
+        toast.success("Inicio de sesión exitoso");
+      }
+    } catch (err: any) {
+      console.error("Unexpected error during login:", err);
+      setLoginError(err.message);
+      toast.error(`Error inesperado: ${err.message}`);
+    }
+  };
+
   if (isLoadingInitial) {
     return (
       <div className="flex justify-center items-center min-h-32">
@@ -114,10 +147,17 @@ export const AuthFormWrapper = () => {
 
   const toggleView = () => {
     setView(view === "sign_in" ? "forgotten_password" : "sign_in");
+    setLoginError(null);
   };
 
   return (
     <div className="auth-form-container">
+      {loginError && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm">
+          {loginError}
+        </div>
+      )}
+      
       <Auth
         supabaseClient={supabase}
         appearance={{
