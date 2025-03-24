@@ -48,7 +48,6 @@ export const UserActions = ({
         variant="outline"
         size="icon"
         onClick={() => onChangePasswordClick(user.user_id, user.email)}
-        disabled={user.user_id === "00000000-0000-0000-0000-000000000000"}
         title="Cambiar contraseña"
       >
         <KeyRound className="h-4 w-4" />

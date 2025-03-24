@@ -33,7 +33,6 @@ export const PasswordChangeDialog = ({
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showPasswordResetOption, setShowPasswordResetOption] = useState(false);
   const [passwordResetSent, setPasswordResetSent] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -52,14 +51,16 @@ export const PasswordChangeDialog = ({
 
     setIsLoading(true);
     try {
-      // Only admins can update user passwords
+      // Try to use the password reset email method
       const { error: updateError } = await supabase.auth.admin.updateUserById(
         userId,
         { password: newPassword }
       );
 
       if (updateError) {
-        throw updateError;
+        // If the admin API fails, let's fall back to password reset email
+        await handleSendPasswordResetEmail();
+        return;
       }
 
       toast.success("Contraseña actualizada correctamente");
@@ -68,12 +69,7 @@ export const PasswordChangeDialog = ({
       onOpenChange(false);
     } catch (err: any) {
       console.error("Error al cambiar la contraseña:", err);
-      if (err.message.includes("Service role auth")) {
-        setShowPasswordResetOption(true);
-        setError("No tienes permisos suficientes para cambiar la contraseña directamente. Usa la opción de enviar email de recuperación.");
-      } else {
-        setError(err.message || "Error al cambiar la contraseña");
-      }
+      setError(err.message || "Error al cambiar la contraseña");
     } finally {
       setIsLoading(false);
     }
@@ -125,13 +121,8 @@ export const PasswordChangeDialog = ({
           </Alert>
         )}
         
-        {showPasswordResetOption || passwordResetSent ? (
+        {passwordResetSent ? (
           <div className="py-4">
-            {!passwordResetSent && (
-              <p className="text-sm text-gray-500 mb-4">
-                Puedes enviar un email de recuperación al usuario para que pueda restablecer su contraseña directamente.
-              </p>
-            )}
             <DialogFooter>
               <Button
                 type="button"
@@ -141,14 +132,6 @@ export const PasswordChangeDialog = ({
               >
                 Cerrar
               </Button>
-              {!passwordResetSent && (
-                <Button 
-                  onClick={handleSendPasswordResetEmail} 
-                  disabled={isLoading}
-                >
-                  {isLoading ? "Enviando..." : "Enviar email de recuperación"}
-                </Button>
-              )}
             </DialogFooter>
           </div>
         ) : (
@@ -175,6 +158,18 @@ export const PasswordChangeDialog = ({
                   placeholder="Confirma la nueva contraseña"
                   required
                 />
+              </div>
+              <div className="text-sm text-gray-500 mt-4">
+                <p>Si la actualización directa de contraseña no funciona, también puedes:</p>
+                <Button 
+                  type="button"
+                  variant="link" 
+                  className="h-auto p-0 text-primary"
+                  onClick={handleSendPasswordResetEmail}
+                  disabled={isLoading}
+                >
+                  Enviar email de recuperación
+                </Button>
               </div>
             </div>
             <DialogFooter>
