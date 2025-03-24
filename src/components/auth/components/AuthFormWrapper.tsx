@@ -7,6 +7,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export const AuthFormWrapper = () => {
   const { toast: toastUI } = useToast();
@@ -15,6 +17,8 @@ export const AuthFormWrapper = () => {
   const [view, setView] = useState<"sign_in" | "forgotten_password">("sign_in");
   const [loginAttempts, setLoginAttempts] = useState(0);
   const [loginError, setLoginError] = useState<string | null>(null);
+  const [isRecovering, setIsRecovering] = useState(false);
+  const [recoveryEmail, setRecoveryEmail] = useState("");
   
   // Using window.location.origin for getting the current domain
   const currentUrl = window.location.origin;
@@ -57,7 +61,6 @@ export const AuthFormWrapper = () => {
         message = "El enlace de recuperación ha expirado. Por favor, solicita uno nuevo.";
       }
       
-      // Fix: Use sonner toast with correct method
       toast.error(message);
       
       // Clear error parameters from URL
@@ -81,7 +84,6 @@ export const AuthFormWrapper = () => {
         navigate('/reset-password', { replace: true });
       } else if (event === 'USER_UPDATED') {
         console.log('User has been updated');
-        // Fix: Use sonner toast correctly
         toast.success("Tu información ha sido actualizada correctamente");
       }
       
@@ -107,14 +109,20 @@ export const AuthFormWrapper = () => {
     };
   }, [navigate]);
 
-  // Add a sign in with email and password function for debugging
+  // Manual login function
   const handleManualLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setLoginError(null);
     
     // Get form data
     const formData = new FormData(e.currentTarget);
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
+    
+    if (!email || !password) {
+      setLoginError("Por favor ingresa tu correo electrónico y contraseña");
+      return;
+    }
     
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -124,8 +132,13 @@ export const AuthFormWrapper = () => {
       
       if (error) {
         console.error("Manual login error:", error);
-        setLoginError(error.message);
-        toast.error(`Error de inicio de sesión: ${error.message}`);
+        if (error.message.includes("Invalid login credentials")) {
+          setLoginError("Credenciales de inicio de sesión inválidas. Verifica tu correo y contraseña o usa la opción 'Olvidé mi contraseña'.");
+          toast.error("Credenciales de inicio de sesión inválidas");
+        } else {
+          setLoginError(error.message);
+          toast.error(`Error de inicio de sesión: ${error.message}`);
+        }
       } else {
         console.log("Manual login successful:", data);
         toast.success("Inicio de sesión exitoso");
@@ -134,6 +147,38 @@ export const AuthFormWrapper = () => {
       console.error("Unexpected error during login:", err);
       setLoginError(err.message);
       toast.error(`Error inesperado: ${err.message}`);
+    }
+  };
+
+  // Password recovery function
+  const handlePasswordRecovery = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!recoveryEmail) {
+      setLoginError("Por favor ingresa tu correo electrónico para la recuperación");
+      return;
+    }
+    
+    setIsRecovering(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(recoveryEmail, {
+        redirectTo: redirectTo
+      });
+      
+      if (error) {
+        console.error("Error sending recovery email:", error);
+        setLoginError(`Error al enviar el email de recuperación: ${error.message}`);
+        toast.error(`Error: ${error.message}`);
+      } else {
+        toast.success("Email de recuperación enviado. Por favor, revisa tu bandeja de entrada.");
+        setView("sign_in");
+        setLoginError(null);
+      }
+    } catch (err: any) {
+      console.error("Unexpected error during recovery:", err);
+      setLoginError(err.message);
+    } finally {
+      setIsRecovering(false);
     }
   };
 
@@ -153,61 +198,71 @@ export const AuthFormWrapper = () => {
   return (
     <div className="auth-form-container">
       {loginError && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm">
-          {loginError}
-        </div>
+        <Alert variant="destructive" className="mb-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{loginError}</AlertDescription>
+        </Alert>
       )}
       
-      <Auth
-        supabaseClient={supabase}
-        appearance={{
-          theme: ThemeSupa,
-          variables: {
-            default: {
-              colors: {
-                brand: '#0f172a',
-                brandAccent: '#1e293b',
-              }
-            }
-          },
-          className: {
-            container: 'w-full',
-            button: 'w-full',
-            input: 'rounded-md',
-            message: 'text-sm text-red-600 mb-4'
-          }
-        }}
-        localization={{
-          variables: {
-            sign_in: {
-              email_label: 'Correo electrónico',
-              password_label: 'Contraseña',
-              email_input_placeholder: 'Tu correo electrónico',
-              password_input_placeholder: 'Tu contraseña',
-              button_label: 'Iniciar sesión',
-              loading_button_label: 'Iniciando sesión...',
-              social_provider_text: 'Iniciar sesión con {{provider}}',
-              link_text: '¿Ya tienes una cuenta? Inicia sesión'
-            },
-            forgotten_password: {
-              email_label: 'Correo electrónico',
-              password_label: 'Contraseña',
-              email_input_placeholder: 'Tu correo electrónico',
-              button_label: 'Enviar instrucciones',
-              loading_button_label: 'Enviando instrucciones...',
-              link_text: '¿Olvidaste tu contraseña?',
-              confirmation_text: 'Revisa tu correo electrónico para obtener el enlace de recuperación'
-            }
-          }
-        }}
-        theme="light"
-        providers={[]}
-        redirectTo={redirectTo}
-        view={view}
-        showLinks={false}
-        magicLink={false}
-        socialLayout="horizontal"
-      />
+      {view === "sign_in" ? (
+        <>
+          {/* Manual login form */}
+          <form onSubmit={handleManualLogin} className="space-y-4 mb-4">
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                Correo electrónico
+              </label>
+              <input
+                id="email"
+                name="email" 
+                type="email"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
+                placeholder="Tu correo electrónico"
+                required
+              />
+            </div>
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                Contraseña
+              </label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
+                placeholder="Tu contraseña"
+                required
+              />
+            </div>
+            <Button type="submit" className="w-full">
+              Iniciar sesión
+            </Button>
+          </form>
+        </>
+      ) : (
+        <>
+          {/* Password recovery form */}
+          <form onSubmit={handlePasswordRecovery} className="space-y-4 mb-4">
+            <div>
+              <label htmlFor="recovery-email" className="block text-sm font-medium text-gray-700">
+                Correo electrónico para recuperación
+              </label>
+              <input
+                id="recovery-email"
+                type="email"
+                value={recoveryEmail}
+                onChange={(e) => setRecoveryEmail(e.target.value)}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
+                placeholder="Tu correo electrónico"
+                required
+              />
+            </div>
+            <Button type="submit" className="w-full" disabled={isRecovering}>
+              {isRecovering ? "Enviando..." : "Enviar instrucciones de recuperación"}
+            </Button>
+          </form>
+        </>
+      )}
 
       <div className="mt-4 text-center">
         {view === "sign_in" ? (
