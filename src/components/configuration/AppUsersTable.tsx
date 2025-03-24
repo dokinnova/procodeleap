@@ -11,6 +11,9 @@ import { UsersTableHeader } from "./users/UsersTableHeader";
 import { useUsersData } from "./hooks/useUsersData";
 import { useUserActions } from "./hooks/useUserActions";
 import { PasswordChangeDialog } from "./users/PasswordChangeDialog";
+import { Button } from "@/components/ui/button";
+import { useEffect } from "react";
+import { toast } from "sonner";
 
 export const AppUsersTable = () => {
   const { 
@@ -33,8 +36,30 @@ export const AppUsersTable = () => {
     handleSendPasswordResetEmail,
     isPasswordResetLoading,
     passwordResetError,
-    passwordResetSuccess
+    passwordResetSuccess,
+    setUserAsAdmin
   } = useUserActions();
+
+  // Set jose.newcar@gmail.com as admin when the component mounts
+  useEffect(() => {
+    const targetEmail = "jose.newcar@gmail.com";
+    
+    if (appUsers && Array.isArray(appUsers)) {
+      const joseUser = appUsers.find(user => user.email === targetEmail);
+      
+      if (joseUser) {
+        // Only update if the user doesn't already have admin role
+        if (joseUser.role !== 'admin') {
+          setUserAsAdmin(targetEmail);
+          toast.success(`Asignando permisos de administrador a ${targetEmail}`);
+        } else {
+          console.log(`${targetEmail} ya tiene permisos de administrador`);
+        }
+      } else {
+        console.log(`Usuario ${targetEmail} no encontrado en la lista de usuarios`);
+      }
+    }
+  }, [appUsers, setUserAsAdmin]);
 
   if (isLoading || isSyncing) {
     return <div>Cargando usuarios...</div>;
@@ -58,6 +83,12 @@ export const AppUsersTable = () => {
         isSyncing={isSyncing}
         onSyncClick={handleManualSync}
       />
+
+      <div className="bg-amber-50 p-4 rounded-md mb-4">
+        <p className="text-amber-800">
+          Asignando permisos de administrador a jose.newcar@gmail.com
+        </p>
+      </div>
       
       <Table>
         <UsersTableHeader />

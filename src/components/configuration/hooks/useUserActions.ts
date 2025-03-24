@@ -95,6 +95,39 @@ export const useUserActions = () => {
     },
   });
 
+  const setUserAsAdminMutation = useMutation({
+    mutationFn: async (email: string) => {
+      // First find the user by email
+      const { data: userData, error: userError } = await supabase
+        .from("app_users")
+        .select("*")
+        .eq("email", email)
+        .single();
+        
+      if (userError) {
+        console.error("Error finding user:", userError);
+        throw new Error(`Usuario con email ${email} no encontrado`);
+      }
+      
+      // Then update the user's role to admin
+      const { error } = await supabase
+        .from("app_users")
+        .update({ role: 'admin' })
+        .eq("id", userData.id);
+        
+      if (error) throw error;
+      
+      return userData;
+    },
+    onSuccess: (user) => {
+      toast.success(`Usuario ${user.email} ahora tiene permisos de administrador`);
+      queryClient.invalidateQueries({ queryKey: ["app-users"] });
+    },
+    onError: (error: any) => {
+      toast.error("Error al actualizar permisos: " + error.message);
+    },
+  });
+
   const sendPasswordResetMutation = useMutation({
     mutationFn: async (email: string) => {
       console.log(`Intentando enviar email de recuperación a: ${email}`);
@@ -146,6 +179,10 @@ export const useUserActions = () => {
     sendPasswordResetMutation.mutate(email);
   };
 
+  const setUserAsAdmin = (email: string) => {
+    setUserAsAdminMutation.mutate(email);
+  };
+
   return {
     editingUser,
     passwordChangeUser,
@@ -158,5 +195,6 @@ export const useUserActions = () => {
     isPasswordResetLoading: sendPasswordResetMutation.isPending,
     passwordResetError: sendPasswordResetMutation.error?.message || null,
     passwordResetSuccess: sendPasswordResetMutation.isSuccess,
+    setUserAsAdmin,
   };
 };
