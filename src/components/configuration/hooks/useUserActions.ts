@@ -128,6 +128,35 @@ export const useUserActions = () => {
     },
   });
 
+  const changePasswordMutation = useMutation({
+    mutationFn: async ({ email, newPassword }: { email: string; newPassword: string }) => {
+      // Use the admin API endpoint (requires service role key)
+      const { error } = await supabase.auth.admin.updateUserById(
+        passwordChangeUser?.id || '',
+        { password: newPassword }
+      );
+      
+      if (error) {
+        console.error("Error cambiando contraseña directamente:", error);
+        throw error;
+      }
+      
+      return email;
+    },
+    onSuccess: (email) => {
+      toast.success(`Contraseña cambiada exitosamente para ${email}`);
+      setPasswordChangeUser(null);
+    },
+    onError: (error: any) => {
+      console.error("Error en el cambio de contraseña:", error);
+      if (error.message.includes("not allowed") || error.message.includes("not admin")) {
+        toast.error("No tienes permisos para cambiar contraseñas directamente. Contacta al administrador del sistema.");
+      } else {
+        toast.error(`Error al cambiar contraseña: ${error.message}`);
+      }
+    }
+  });
+
   const sendPasswordResetMutation = useMutation({
     mutationFn: async (email: string) => {
       console.log(`Intentando enviar email de recuperación a: ${email}`);
@@ -179,6 +208,11 @@ export const useUserActions = () => {
     sendPasswordResetMutation.mutate(email);
   };
 
+  const handleDirectPasswordChange = (email: string, newPassword: string) => {
+    console.log("Cambiando contraseña directamente para:", email);
+    changePasswordMutation.mutate({ email, newPassword });
+  };
+
   const setUserAsAdmin = (email: string) => {
     setUserAsAdminMutation.mutate(email);
   };
@@ -196,5 +230,9 @@ export const useUserActions = () => {
     passwordResetError: sendPasswordResetMutation.error?.message || null,
     passwordResetSuccess: sendPasswordResetMutation.isSuccess,
     setUserAsAdmin,
+    handleDirectPasswordChange,
+    isPasswordChangeLoading: changePasswordMutation.isPending,
+    passwordChangeError: changePasswordMutation.error?.message || null,
+    passwordChangeSuccess: changePasswordMutation.isSuccess,
   };
 };

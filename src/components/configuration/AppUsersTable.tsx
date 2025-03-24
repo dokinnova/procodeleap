@@ -37,7 +37,12 @@ export const AppUsersTable = () => {
     isPasswordResetLoading,
     passwordResetError,
     passwordResetSuccess,
-    setUserAsAdmin
+    setUserAsAdmin,
+    // New direct password change actions
+    handleDirectPasswordChange,
+    isPasswordChangeLoading,
+    passwordChangeError,
+    passwordChangeSuccess
   } = useUserActions();
 
   // Set jose.newcar@gmail.com as admin when the component mounts
@@ -126,9 +131,13 @@ export const AppUsersTable = () => {
           userId={passwordChangeUser.id}
           userEmail={passwordChangeUser.email}
           onSendResetEmail={handleSendPasswordResetEmail}
+          onDirectPasswordChange={handleDirectPasswordChange}
           isLoading={isPasswordResetLoading}
+          isDirectChangeLoading={isPasswordChangeLoading}
           error={passwordResetError}
+          directChangeError={passwordChangeError}
           success={passwordResetSuccess}
+          directChangeSuccess={passwordChangeSuccess}
         />
       )}
     </div>
