@@ -39,13 +39,13 @@ export const usePasswordManagement = () => {
       console.error("Error en el cambio de contraseña:", error);
       
       // More specific error messages based on the error type
-      if (error.message.includes("not allowed") || 
-          error.message.includes("not admin") || 
-          error.message.includes("not_admin") ||
+      if (error.message?.includes("not allowed") || 
+          error.message?.includes("not admin") || 
+          error.message?.includes("not_admin") ||
           error.status === 403) {
         toast.error("No tienes permisos para cambiar contraseñas directamente. Esta funcionalidad requiere un rol de servicio especial en Supabase que no está disponible en el frontend.");
       } else {
-        toast.error(`Error al cambiar contraseña: ${error.message}`);
+        toast.error(`Error al cambiar contraseña: ${error.message || "Error desconocido"}`);
       }
     }
   });
@@ -73,7 +73,7 @@ export const usePasswordManagement = () => {
     },
     onError: (error: any) => {
       console.error("Error en el proceso de recuperación de contraseña:", error);
-      toast.error(`Error al enviar email de recuperación: ${error.message}`);
+      toast.error(`Error al enviar email de recuperación: ${error.message || "Error desconocido"}`);
     }
   });
 

@@ -63,9 +63,17 @@ export const PasswordChangeContent = ({
         
       <Tabs defaultValue="email" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="direct">Cambio directo</TabsTrigger>
           <TabsTrigger value="email">Enviar email</TabsTrigger>
+          <TabsTrigger value="direct">Cambio directo</TabsTrigger>
         </TabsList>
+        
+        <TabsContent value="email" className="space-y-4">
+          <EmailResetTab 
+            userEmail={userEmail}
+            onSendResetEmail={onSendResetEmail}
+            isLoading={isLoading}
+          />
+        </TabsContent>
         
         <TabsContent value="direct" className="space-y-4">
           <DirectPasswordChangeTab 
@@ -74,14 +82,6 @@ export const PasswordChangeContent = ({
             isLoading={isDirectChangeLoading}
             passwordError={passwordError}
             setPasswordError={setPasswordError}
-          />
-        </TabsContent>
-        
-        <TabsContent value="email" className="space-y-4">
-          <EmailResetTab 
-            userEmail={userEmail}
-            onSendResetEmail={onSendResetEmail}
-            isLoading={isLoading}
           />
         </TabsContent>
       </Tabs>
