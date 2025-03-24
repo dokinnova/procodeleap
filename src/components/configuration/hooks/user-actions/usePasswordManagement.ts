@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export const usePasswordManagement = () => {
+  // Mantenemos la mutación para compatibilidad, pero no se puede usar en frontend
   const changePasswordMutation = useMutation({
     mutationFn: async ({ 
       email, 
@@ -14,46 +15,19 @@ export const usePasswordManagement = () => {
       newPassword: string; 
       userId: string 
     }) => {
-      try {
-        // Este endpoint de la API requiere permisos especiales de service_role o supabase_admin
-        // Esta función mostrará un error de permisos en el frontend ya que no es posible usar el token service_role
-        const { error } = await supabase.auth.admin.updateUserById(
-          userId,
-          { password: newPassword }
-        );
-        
-        if (error) {
-          console.error("Error cambiando contraseña directamente:", error);
-          throw error;
-        }
-        
-        return email;
-      } catch (error: any) {
-        console.error("Error en el cambio de contraseña:", error);
-        throw error;
-      }
-    },
-    onSuccess: (email) => {
-      toast.success(`Contraseña cambiada exitosamente para ${email}`);
+      // Esta función no se puede usar desde el frontend por limitaciones de seguridad de Supabase
+      toast.error("Por razones de seguridad, no se puede cambiar la contraseña directamente. Se enviará un email de recuperación en su lugar.");
+      throw new Error("Cambio directo de contraseña no disponible en frontend por seguridad");
     },
     onError: (error: any) => {
       console.error("Error en el cambio de contraseña:", error);
-      
-      // Mensajes de error más específicos basados en el tipo de error
-      if (error.message?.includes("not allowed") || 
-          error.message?.includes("not admin") || 
-          error.message?.includes("not_admin") ||
-          error.status === 403) {
-        toast.error("No tienes permisos para cambiar contraseñas directamente. Esta funcionalidad requiere un rol de servicio especial en Supabase que no está disponible en el frontend por razones de seguridad.");
-      } else {
-        toast.error(`Error al cambiar contraseña: ${error.message || "Error desconocido"}`);
-      }
+      toast.error("Por razones de seguridad de Supabase, el cambio directo de contraseñas solo está disponible usando el método de email de recuperación.");
     }
   });
 
   const sendPasswordResetMutation = useMutation({
     mutationFn: async (email: string) => {
-      console.log(`Intentando enviar email de recuperación a: ${email}`);
+      console.log(`Enviando email de recuperación a: ${email}`);
       const origin = window.location.origin;
       const redirectTo = `${origin}/reset-password`;
       
@@ -84,9 +58,8 @@ export const usePasswordManagement = () => {
   };
 
   const handleDirectPasswordChange = (email: string, newPassword: string, userId: string) => {
-    console.log("Cambiando contraseña directamente para:", email);
-    toast.warning("Esta función no está disponible por razones de seguridad. Utilizando la opción de enviar email en su lugar.");
-    // En lugar de intentar el cambio directo, enviamos un email
+    console.log("Usando método de email en lugar de cambio directo para:", email);
+    toast.info("Por seguridad, se enviará un email de recuperación en lugar de cambiar la contraseña directamente.");
     handleSendPasswordResetEmail(email);
   };
 

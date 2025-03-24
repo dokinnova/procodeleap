@@ -23,9 +23,9 @@ export const EmailResetTab = ({
       <Alert>
         <Info className="h-4 w-4" />
         <AlertDescription>
-          <p className="font-medium mb-1">Este es el método recomendado y seguro para cambiar contraseñas</p>
-          Para cambiar la contraseña, se enviará un correo electrónico con un enlace para establecer una nueva contraseña.
-          El usuario recibirá un correo electrónico y podrá hacer clic en el enlace para restablecer su contraseña de forma segura.
+          <p className="font-medium mb-1">Este es el método estándar y seguro para cambiar contraseñas</p>
+          Al hacer clic en el botón, se enviará un correo electrónico al usuario con un enlace para establecer una nueva contraseña.
+          El usuario recibirá el correo electrónico y podrá crear su nueva contraseña de forma segura.
         </AlertDescription>
       </Alert>
       

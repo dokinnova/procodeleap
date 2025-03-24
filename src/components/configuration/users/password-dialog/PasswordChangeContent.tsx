@@ -55,14 +55,13 @@ export const PasswordChangeContent = ({
         <AlertDescription className="text-sm">
           <p className="font-medium mb-1">Aviso importante</p>
           El método recomendado para cambiar contraseñas es el envío de un email de recuperación.
-          Por razones de seguridad, el cambio directo de contraseñas no está disponible en esta aplicación web.
+          Por razones de seguridad de Supabase, el cambio directo de contraseñas no está disponible en aplicaciones web.
         </AlertDescription>
       </Alert>
         
       <Tabs defaultValue="email" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="email" className="bg-primary text-primary-foreground">Enviar email</TabsTrigger>
-          <TabsTrigger value="direct" disabled>Cambio directo</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-1">
+          <TabsTrigger value="email" className="bg-primary text-primary-foreground">Enviar email de recuperación</TabsTrigger>
         </TabsList>
         
         <TabsContent value="email" className="space-y-4">
@@ -70,16 +69,6 @@ export const PasswordChangeContent = ({
             userEmail={userEmail}
             onSendResetEmail={onSendResetEmail}
             isLoading={isLoading}
-          />
-        </TabsContent>
-        
-        <TabsContent value="direct" className="space-y-4">
-          <DirectPasswordChangeTab 
-            onDirectPasswordChange={onDirectPasswordChange || (() => {})}
-            userEmail={userEmail}
-            isLoading={isDirectChangeLoading}
-            passwordError={passwordError}
-            setPasswordError={setPasswordError}
           />
         </TabsContent>
       </Tabs>
