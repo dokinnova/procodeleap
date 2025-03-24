@@ -9,18 +9,18 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { AlertCircle, Info } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle, Info, Loader2 } from "lucide-react";
 
 interface PasswordChangeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   userId: string;
   userEmail: string;
+  onSendResetEmail: (email: string) => void;
+  isLoading: boolean;
+  error: string | null;
+  success: boolean;
 }
 
 export const PasswordChangeDialog = ({
@@ -28,42 +28,15 @@ export const PasswordChangeDialog = ({
   onOpenChange,
   userId,
   userEmail,
+  onSendResetEmail,
+  isLoading,
+  error,
+  success,
 }: PasswordChangeDialogProps) => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [passwordResetSent, setPasswordResetSent] = useState(false);
   
-  const handleSendPasswordResetEmail = async () => {
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      // Get the current origin for the redirect
-      const origin = window.location.origin;
-      // Create a specific reset password URL that we know will work
-      const redirectTo = `${origin}/reset-password`;
-      
-      console.log(`Sending password reset email to ${userEmail} with redirect to ${redirectTo}`);
-      
-      const { error } = await supabase.auth.resetPasswordForEmail(userEmail, {
-        redirectTo: redirectTo
-      });
-      
-      if (error) {
-        console.error("Error sending password reset email:", error);
-        throw error;
-      }
-      
-      console.log("Password reset email sent successfully");
-      setPasswordResetSent(true);
-      toast.success("Email de recuperación enviado correctamente");
-    } catch (err: any) {
-      console.error("Error sending password reset email:", err);
-      setError(err.message || "Error al enviar email de recuperación");
-      toast.error(err.message || "Error al enviar email de recuperación");
-    } finally {
-      setIsLoading(false);
-    }
+  const handleSendPasswordResetEmail = () => {
+    console.log(`Solicitando envío de email de recuperación a ${userEmail}`);
+    onSendResetEmail(userEmail);
   };
 
   return (
@@ -72,7 +45,7 @@ export const PasswordChangeDialog = ({
         <DialogHeader>
           <DialogTitle>Cambiar contraseña</DialogTitle>
           <DialogDescription>
-            {passwordResetSent 
+            {success 
               ? `Se ha enviado un email de recuperación a ${userEmail}`
               : `Para cambiar la contraseña de ${userEmail}, se enviará un email de recuperación`
             }
@@ -86,7 +59,7 @@ export const PasswordChangeDialog = ({
           </Alert>
         )}
         
-        {!passwordResetSent && (
+        {!success && (
           <Alert>
             <Info className="h-4 w-4" />
             <AlertDescription>
@@ -97,7 +70,7 @@ export const PasswordChangeDialog = ({
         )}
         
         <div className="space-y-4 py-4">
-          {passwordResetSent ? (
+          {success ? (
             <p className="text-center text-sm text-gray-600">
               Por favor, indique al usuario que revise su bandeja de entrada y siga las instrucciones en el correo electrónico para establecer una nueva contraseña.
             </p>
@@ -108,7 +81,12 @@ export const PasswordChangeDialog = ({
                 disabled={isLoading}
                 className="w-full"
               >
-                {isLoading ? "Enviando..." : "Enviar email de recuperación"}
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Enviando...
+                  </>
+                ) : "Enviar email de recuperación"}
               </Button>
             </div>
           )}

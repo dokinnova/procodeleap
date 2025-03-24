@@ -29,7 +29,11 @@ export const AppUsersTable = () => {
     handleSaveRole,
     handleDeleteUser,
     handleChangePasswordClick,
-    setPasswordChangeUser
+    setPasswordChangeUser,
+    handleSendPasswordResetEmail,
+    isPasswordResetLoading,
+    passwordResetError,
+    passwordResetSuccess
   } = useUserActions();
 
   if (isLoading || isSyncing) {
@@ -90,6 +94,10 @@ export const AppUsersTable = () => {
           }}
           userId={passwordChangeUser.id}
           userEmail={passwordChangeUser.email}
+          onSendResetEmail={handleSendPasswordResetEmail}
+          isLoading={isPasswordResetLoading}
+          error={passwordResetError}
+          success={passwordResetSuccess}
         />
       )}
     </div>

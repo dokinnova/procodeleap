@@ -1,3 +1,4 @@
+
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -95,6 +96,34 @@ export const useUserActions = () => {
     },
   });
 
+  const sendPasswordResetMutation = useMutation({
+    mutationFn: async (email: string) => {
+      console.log(`Intentando enviar email de recuperación a: ${email}`);
+      const origin = window.location.origin;
+      const redirectTo = `${origin}/reset-password`;
+      
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo
+      });
+      
+      if (error) {
+        console.error("Error al enviar email de recuperación:", error);
+        throw error;
+      }
+      
+      return email;
+    },
+    onSuccess: (email) => {
+      console.log(`Email de recuperación enviado con éxito a: ${email}`);
+      toast.success(`Email de recuperación enviado a ${email}`);
+      setPasswordChangeUser(null);
+    },
+    onError: (error: any) => {
+      console.error("Error en el proceso de recuperación de contraseña:", error);
+      toast.error(`Error al enviar email de recuperación: ${error.message}`);
+    }
+  });
+
   const handleEditClick = (user: AppUser) => {
     setEditingUser(user);
   };
@@ -114,6 +143,11 @@ export const useUserActions = () => {
     }
   };
 
+  const handleSendPasswordResetEmail = (email: string) => {
+    console.log("Iniciando envío de email de recuperación para:", email);
+    sendPasswordResetMutation.mutate(email);
+  };
+
   return {
     editingUser,
     passwordChangeUser,
@@ -122,5 +156,9 @@ export const useUserActions = () => {
     handleDeleteUser,
     handleChangePasswordClick,
     setPasswordChangeUser,
+    handleSendPasswordResetEmail,
+    isPasswordResetLoading: sendPasswordResetMutation.isPending,
+    passwordResetError: sendPasswordResetMutation.error?.message || null,
+    passwordResetSuccess: sendPasswordResetMutation.isSuccess,
   };
 };
