@@ -9,17 +9,35 @@ export const useUserDeletion = () => {
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: string) => {
       try {
-        // Primero liberar cualquier tarea asignada a este usuario
-        const { error: tasksError } = await supabase
+        // First, check if there are tasks assigned to this user
+        const { data: tasksData, error: tasksQueryError } = await supabase
           .from("tasks")
-          .update({ assigned_user_id: null })
+          .select("id")
           .eq("assigned_user_id", userId);
           
-        if (tasksError) throw tasksError;
+        if (tasksQueryError) {
+          console.error("Error checking user tasks:", tasksQueryError);
+          throw new Error("Error verificando tareas del usuario: " + tasksQueryError.message);
+        }
         
-        // Para usuarios que nunca se han conectado (con ID temporal), necesitamos eliminar por email
+        // If there are assigned tasks, update them to unassigned
+        if (tasksData && tasksData.length > 0) {
+          console.log(`Unassigning ${tasksData.length} tasks from user before deletion`);
+          
+          const { error: tasksError } = await supabase
+            .from("tasks")
+            .update({ assigned_user_id: null })
+            .eq("assigned_user_id", userId);
+            
+          if (tasksError) {
+            console.error("Error unassigning tasks:", tasksError);
+            throw new Error("Error al liberar tareas asignadas: " + tasksError.message);
+          }
+        }
+        
+        // For users who never connected (with temporary ID), we need to delete by email
         if (userId === "00000000-0000-0000-0000-000000000000") {
-          // Obtenemos el email del usuario seleccionado
+          // Get the email of the selected user
           const { data: userData, error: userError } = await supabase
             .from("app_users")
             .select("email, id")
@@ -31,9 +49,9 @@ export const useUserDeletion = () => {
             throw new Error("No se encontró el usuario para eliminar");
           }
           
-          // Verificar si existe más de un usuario con el mismo ID temporal
+          // Check if there's more than one user with the same temporary ID
           if (userData.length > 1) {
-            // Si hay múltiples usuarios, eliminar solo el específico por su id de tabla
+            // If there are multiple users, delete only the specific one by table id
             const selectedUserId = userData[0].id;
             const { error } = await supabase
               .from("app_users")
@@ -42,7 +60,7 @@ export const useUserDeletion = () => {
               
             if (error) throw error;
           } else {
-            // Eliminar el único usuario encontrado
+            // Delete the only user found
             const { error } = await supabase
               .from("app_users")
               .delete()
@@ -51,7 +69,7 @@ export const useUserDeletion = () => {
             if (error) throw error;
           }
         } else {
-          // Eliminación normal para usuarios con ID de usuario real
+          // Normal deletion for users with real user ID
           const { error } = await supabase
             .from("app_users")
             .delete()
