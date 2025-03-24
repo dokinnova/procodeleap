@@ -88,8 +88,8 @@ export const ResetPasswordForm = ({
         }
 
         console.log("Password updated successfully");
-        // Use sonner toast
-        toast("Tu contraseña ha sido actualizada correctamente");
+        // Use sonner toast correctly
+        toast.success("Tu contraseña ha sido actualizada correctamente");
 
         // Redirect to login page
         setTimeout(() => {

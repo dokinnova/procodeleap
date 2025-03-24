@@ -56,10 +56,8 @@ export const AuthFormWrapper = () => {
         message = "El enlace de recuperación ha expirado. Por favor, solicita uno nuevo.";
       }
       
-      // Use sonner toast instead of useToast
-      toast(message, {
-        variant: "destructive",
-      });
+      // Fix: Use sonner toast with correct props
+      toast.error(message);
       
       // Clear error parameters from URL
       navigate('/auth', { replace: true });
@@ -79,8 +77,8 @@ export const AuthFormWrapper = () => {
         navigate('/reset-password', { replace: true });
       } else if (event === 'USER_UPDATED') {
         console.log('User has been updated');
-        // Use sonner toast instead of useToast
-        toast("Tu información ha sido actualizada correctamente");
+        // Fix: Use sonner toast correctly
+        toast.success("Tu información ha sido actualizada correctamente");
       }
       
       // Handle login errors by counting attempts
@@ -91,8 +89,8 @@ export const AuthFormWrapper = () => {
           
           // After 3 failed attempts, suggest password reset
           if (newAttempts >= 3) {
-            // Use sonner toast
-            toast("¿Olvidaste tu contraseña? Utiliza la opción 'Olvidé mi contraseña' para recuperar tu cuenta.", {
+            // Fix: Use sonner toast with correct props
+            toast.info("¿Olvidaste tu contraseña? Utiliza la opción 'Olvidé mi contraseña' para recuperar tu cuenta.", {
               duration: 6000,
             });
           }
