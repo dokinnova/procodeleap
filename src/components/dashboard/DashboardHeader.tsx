@@ -1,5 +1,5 @@
 
-import { LogOut } from "lucide-react";
+import { LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +10,7 @@ export const DashboardHeader = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [hasSession, setHasSession] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
 
   // Verificar si hay una sesión antes de mostrar el botón de cerrar sesión
   useEffect(() => {
@@ -20,6 +21,7 @@ export const DashboardHeader = () => {
         const { data } = await supabase.auth.getSession();
         if (isMounted) {
           setHasSession(!!data.session);
+          setUserEmail(data.session?.user?.email || null);
         }
       } catch (error) {
         console.error("Error al verificar sesión:", error);
@@ -28,8 +30,10 @@ export const DashboardHeader = () => {
     
     checkSession();
     
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (isMounted) {
+        setHasSession(!!session);
+        setUserEmail(session?.user?.email || null);
         checkSession();
       }
     });
@@ -77,15 +81,23 @@ export const DashboardHeader = () => {
       </div>
       
       {hasSession && (
-        <Button 
-          variant="outline" 
-          onClick={handleLogout}
-          size="sm"
-          className="flex items-center gap-2 border-violet-200 hover:bg-violet-50"
-        >
-          <LogOut className="h-4 w-4 text-violet-600" />
-          Cerrar sesión
-        </Button>
+        <div className="flex items-center gap-3">
+          {userEmail && (
+            <div className="flex items-center text-sm text-gray-700">
+              <User className="h-4 w-4 mr-1 text-violet-500" />
+              <span>{userEmail}</span>
+            </div>
+          )}
+          <Button 
+            variant="outline" 
+            onClick={handleLogout}
+            size="sm"
+            className="flex items-center gap-2 border-violet-200 hover:bg-violet-50"
+          >
+            <LogOut className="h-4 w-4 text-violet-600" />
+            Cerrar sesión
+          </Button>
+        </div>
       )}
     </div>
   );
