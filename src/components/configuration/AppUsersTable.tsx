@@ -91,15 +91,6 @@ export const AppUsersTable = () => {
         </p>
       </div>
       
-      <div className="bg-blue-50 p-4 rounded-md mb-4">
-        <p className="text-blue-800 font-medium">Información importante sobre cambio de contraseñas</p>
-        <p className="text-blue-700 text-sm mt-1">
-          Por razones de seguridad, la única manera de cambiar las contraseñas de los usuarios 
-          es mediante el envío de un email de recuperación. Esta es la práctica recomendada 
-          y evita tener que exponer claves de servicio en el frontend.
-        </p>
-      </div>
-      
       <Table>
         <UsersTableHeader />
         <TableBody>
