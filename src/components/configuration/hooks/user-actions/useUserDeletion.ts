@@ -35,65 +35,49 @@ export const useUserDeletion = () => {
           }
         }
         
-        // Ahora verificamos si hay alguna otra referencia en la tabla de tareas
+        // Ahora procedemos directamente con la eliminación del usuario
         try {
-          const { error: checkConstraintError } = await supabase.rpc(
-            'check_and_clear_user_references',
-            { user_id_param: userId }
-          );
-          
-          if (checkConstraintError) {
-            console.error("Error al verificar otras referencias del usuario:", checkConstraintError);
-            
-            // Si no existe el procedimiento RPC, intentamos con el método directo
-            if (checkConstraintError.message.includes('does not exist')) {
-              console.log("Procedimiento RPC no encontrado, usando método alternativo");
+          // Eliminación del usuario según el ID
+          if (userId === "00000000-0000-0000-0000-000000000000") {
+            // Para usuarios temporales, obtenemos el email
+            const { data: userData, error: userError } = await supabase
+              .from("app_users")
+              .select("email, id")
+              .eq("user_id", userId);
               
-              // Eliminación directa, confiando en que las tareas ya fueron actualizadas
-              if (userId === "00000000-0000-0000-0000-000000000000") {
-                // Para usuarios temporales, obtenemos el email
-                const { data: userData, error: userError } = await supabase
-                  .from("app_users")
-                  .select("email, id")
-                  .eq("user_id", userId);
-                  
-                if (userError) throw userError;
-                
-                if (!userData || userData.length === 0) {
-                  throw new Error("No se encontró el usuario para eliminar");
-                }
-                
-                // Verificar si existe más de un usuario con el mismo ID temporal
-                if (userData.length > 1) {
-                  // Si hay múltiples usuarios, eliminar solo el específico por su id de tabla
-                  const selectedUserId = userData[0].id;
-                  const { error } = await supabase
-                    .from("app_users")
-                    .delete()
-                    .eq("id", selectedUserId);
-                    
-                  if (error) throw error;
-                } else {
-                  // Eliminar el único usuario encontrado
-                  const { error } = await supabase
-                    .from("app_users")
-                    .delete()
-                    .eq("id", userData[0].id);
-                    
-                  if (error) throw error;
-                }
-              } else {
-                // Eliminación normal para usuarios con ID real
-                const { error } = await supabase
-                  .from("app_users")
-                  .delete()
-                  .eq("user_id", userId);
-                  
-                if (error) throw error;
-              }
-            } else {
-              throw checkConstraintError;
+            if (userError) throw userError;
+            
+            if (!userData || userData.length === 0) {
+              throw new Error("No se encontró el usuario para eliminar");
             }
+            
+            // Verificar si existe más de un usuario con el mismo ID temporal
+            if (userData.length > 1) {
+              // Si hay múltiples usuarios, eliminar solo el específico por su id de tabla
+              const selectedUserId = userData[0].id;
+              const { error } = await supabase
+                .from("app_users")
+                .delete()
+                .eq("id", selectedUserId);
+                
+              if (error) throw error;
+            } else {
+              // Eliminar el único usuario encontrado
+              const { error } = await supabase
+                .from("app_users")
+                .delete()
+                .eq("id", userData[0].id);
+                
+              if (error) throw error;
+            }
+          } else {
+            // Eliminación normal para usuarios con ID real
+            const { error } = await supabase
+              .from("app_users")
+              .delete()
+              .eq("user_id", userId);
+              
+            if (error) throw error;
           }
         } catch (error: any) {
           console.error("Error durante el proceso de eliminación del usuario:", error);
