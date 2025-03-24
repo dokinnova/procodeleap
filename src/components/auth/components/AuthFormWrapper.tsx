@@ -5,11 +5,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 export const AuthFormWrapper = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [isLoadingInitial, setIsLoadingInitial] = useState(true);
+  const [view, setView] = useState<"sign_in" | "forgotten_password">("sign_in");
   
   // Usar window.location.origin para obtener el dominio actual
   const currentUrl = window.location.origin;
@@ -92,6 +94,10 @@ export const AuthFormWrapper = () => {
     );
   }
 
+  const toggleView = () => {
+    setView(view === "sign_in" ? "forgotten_password" : "sign_in");
+  };
+
   return (
     <div className="auth-form-container">
       <Auth
@@ -139,11 +145,31 @@ export const AuthFormWrapper = () => {
         theme="light"
         providers={[]}
         redirectTo={redirectTo}
-        view="sign_in"
+        view={view}
         showLinks={false}
         magicLink={false}
         socialLayout="horizontal"
       />
+
+      <div className="mt-4 text-center">
+        {view === "sign_in" ? (
+          <Button 
+            variant="link" 
+            className="text-primary"
+            onClick={toggleView}
+          >
+            ¿Olvidaste tu contraseña?
+          </Button>
+        ) : (
+          <Button 
+            variant="link" 
+            className="text-primary"
+            onClick={toggleView}
+          >
+            Volver a inicio de sesión
+          </Button>
+        )}
+      </div>
     </div>
   );
 };
