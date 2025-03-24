@@ -1,4 +1,3 @@
-
 import {
   Table,
   TableBody,
@@ -11,7 +10,6 @@ import { UsersTableHeader } from "./users/UsersTableHeader";
 import { useUsersData } from "./hooks/useUsersData";
 import { useUserActions } from "./hooks/useUserActions";
 import { PasswordChangeDialog } from "./users/PasswordChangeDialog";
-import { Button } from "@/components/ui/button";
 import { useEffect } from "react";
 import { toast } from "sonner";
 
@@ -45,7 +43,6 @@ export const AppUsersTable = () => {
     passwordChangeSuccess
   } = useUserActions();
 
-  // Set jose.newcar@gmail.com as admin when the component mounts
   useEffect(() => {
     const targetEmail = "jose.newcar@gmail.com";
     
@@ -72,10 +69,8 @@ export const AppUsersTable = () => {
 
   console.log("Renderizando usuarios:", appUsers);
   
-  // Asegurarse de que appUsers es un array antes de intentar renderizarlo
   const usersToRender = Array.isArray(appUsers) ? appUsers : [];
   
-  // Verificar si hay usuarios pendientes
   const pendingUsers = usersToRender.filter(user => 
     user.user_id === "00000000-0000-0000-0000-000000000000"
   );
