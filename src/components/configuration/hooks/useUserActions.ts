@@ -108,6 +108,7 @@ export const useUserActions = () => {
   };
 
   const handleChangePasswordClick = (userId: string, email: string) => {
+    console.log("Abriendo diálogo de cambio de contraseña para:", email);
     if (userId && email) {
       setPasswordChangeUser({ id: userId, email });
     }
