@@ -1,3 +1,4 @@
+
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -130,18 +131,23 @@ export const useUserActions = () => {
 
   const changePasswordMutation = useMutation({
     mutationFn: async ({ email, newPassword }: { email: string; newPassword: string }) => {
-      // Use the admin API endpoint (requires service role key)
-      const { error } = await supabase.auth.admin.updateUserById(
-        passwordChangeUser?.id || '',
-        { password: newPassword }
-      );
-      
-      if (error) {
-        console.error("Error cambiando contraseña directamente:", error);
+      try {
+        // This API requires service_role or supabase_admin permissions
+        const { error } = await supabase.auth.admin.updateUserById(
+          passwordChangeUser?.id || '',
+          { password: newPassword }
+        );
+        
+        if (error) {
+          console.error("Error cambiando contraseña directamente:", error);
+          throw error;
+        }
+        
+        return email;
+      } catch (error: any) {
+        console.error("Error en el cambio de contraseña:", error);
         throw error;
       }
-      
-      return email;
     },
     onSuccess: (email) => {
       toast.success(`Contraseña cambiada exitosamente para ${email}`);
@@ -149,8 +155,13 @@ export const useUserActions = () => {
     },
     onError: (error: any) => {
       console.error("Error en el cambio de contraseña:", error);
-      if (error.message.includes("not allowed") || error.message.includes("not admin")) {
-        toast.error("No tienes permisos para cambiar contraseñas directamente. Contacta al administrador del sistema.");
+      
+      // More specific error messages based on the error type
+      if (error.message.includes("not allowed") || 
+          error.message.includes("not admin") || 
+          error.message.includes("not_admin") ||
+          error.status === 403) {
+        toast.error("No tienes permisos para cambiar contraseñas directamente. Esta funcionalidad requiere un rol de servicio especial en Supabase que no está disponible en el frontend.");
       } else {
         toast.error(`Error al cambiar contraseña: ${error.message}`);
       }

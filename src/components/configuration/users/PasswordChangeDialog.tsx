@@ -107,14 +107,33 @@ export const PasswordChangeDialog = ({
           </Alert>
         )}
         
+        {directChangeError && directChangeError.includes("permisos") && (
+          <Alert className="mb-4">
+            <Info className="h-4 w-4" />
+            <AlertDescription className="text-sm">
+              El cambio directo de contraseñas requiere permisos especiales de Supabase que no están 
+              disponibles en la aplicación web. Por favor, usa la opción de "Enviar email" para 
+              restablecer la contraseña del usuario.
+            </AlertDescription>
+          </Alert>
+        )}
+        
         {!success && !directChangeSuccess && (
-          <Tabs defaultValue="direct" className="w-full">
+          <Tabs defaultValue="email" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="direct">Cambio directo</TabsTrigger>
               <TabsTrigger value="email">Enviar email</TabsTrigger>
             </TabsList>
             
             <TabsContent value="direct" className="space-y-4 py-4">
+              <Alert>
+                <Info className="h-4 w-4" />
+                <AlertDescription className="text-sm">
+                  El cambio directo de contraseñas requiere permisos especiales de Supabase. 
+                  Si esta opción no funciona, utiliza la opción de "Enviar email".
+                </AlertDescription>
+              </Alert>
+              
               <div className="space-y-3">
                 <div className="space-y-2">
                   <Label htmlFor="new-password">Nueva contraseña</Label>

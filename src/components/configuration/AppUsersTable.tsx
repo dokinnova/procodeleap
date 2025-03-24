@@ -38,7 +38,7 @@ export const AppUsersTable = () => {
     passwordResetError,
     passwordResetSuccess,
     setUserAsAdmin,
-    // New direct password change actions
+    // Direct password change actions
     handleDirectPasswordChange,
     isPasswordChangeLoading,
     passwordChangeError,
@@ -92,6 +92,15 @@ export const AppUsersTable = () => {
       <div className="bg-amber-50 p-4 rounded-md mb-4">
         <p className="text-amber-800">
           Asignando permisos de administrador a jose.newcar@gmail.com
+        </p>
+      </div>
+      
+      <div className="bg-blue-50 p-4 rounded-md mb-4">
+        <p className="text-blue-800 font-medium">Información importante</p>
+        <p className="text-blue-700 text-sm mt-1">
+          El cambio directo de contraseñas requiere permisos especiales de Supabase (service_role) 
+          que no están disponibles en la aplicación web. Por favor, usa la opción de "Enviar email" 
+          para restablecer la contraseña de los usuarios.
         </p>
       </div>
       
