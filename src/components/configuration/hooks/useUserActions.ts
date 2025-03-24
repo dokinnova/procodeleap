@@ -1,4 +1,3 @@
-
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -116,7 +115,6 @@ export const useUserActions = () => {
     onSuccess: (email) => {
       console.log(`Email de recuperación enviado con éxito a: ${email}`);
       toast.success(`Email de recuperación enviado a ${email}`);
-      setPasswordChangeUser(null);
     },
     onError: (error: any) => {
       console.error("Error en el proceso de recuperación de contraseña:", error);
