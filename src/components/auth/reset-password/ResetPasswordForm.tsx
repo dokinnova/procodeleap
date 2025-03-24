@@ -89,7 +89,6 @@ export const ResetPasswordForm = ({
 
         console.log("Password updated successfully");
         toast({
-          title: "¡Éxito!",
           description: "Tu contraseña ha sido actualizada correctamente",
         });
 

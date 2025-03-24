@@ -150,7 +150,7 @@ export const PasswordChangeDialog = ({
         )}
         
         {directChangeAttempted && !passwordResetSent && !error && (
-          <Alert variant="info" className="bg-blue-50 text-blue-800 border-blue-200">
+          <Alert>
             <Info className="h-4 w-4" />
             <AlertDescription>
               Si tiene problemas para cambiar la contraseña directamente, 

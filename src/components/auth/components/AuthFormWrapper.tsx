@@ -57,7 +57,6 @@ export const AuthFormWrapper = () => {
       }
       
       toast({
-        title: "Error de autenticación",
         description: message,
         variant: "destructive",
       });
@@ -65,7 +64,7 @@ export const AuthFormWrapper = () => {
       // Clear error parameters from URL
       navigate('/auth', { replace: true });
     }
-  }, [toast, navigate]);
+  }, [navigate]);
 
   // Handle auth events
   useEffect(() => {
@@ -80,8 +79,7 @@ export const AuthFormWrapper = () => {
         navigate('/reset-password', { replace: true });
       } else if (event === 'USER_UPDATED') {
         console.log('User has been updated');
-        toastUI({
-          title: "Perfil actualizado",
+        toast({
           description: "Tu información ha sido actualizada correctamente",
         });
       }
@@ -95,7 +93,6 @@ export const AuthFormWrapper = () => {
           // After 3 failed attempts, suggest password reset
           if (newAttempts >= 3) {
             toast({
-              title: "Múltiples intentos fallidos",
               description: "¿Olvidaste tu contraseña? Utiliza la opción 'Olvidé mi contraseña' para recuperar tu cuenta.",
               duration: 6000,
             });
@@ -108,7 +105,7 @@ export const AuthFormWrapper = () => {
     return () => {
       subscription.unsubscribe();
     };
-  }, [navigate, toastUI]);
+  }, [navigate]);
 
   if (isLoadingInitial) {
     return (
@@ -122,8 +119,8 @@ export const AuthFormWrapper = () => {
     setView(view === "sign_in" ? "forgotten_password" : "sign_in");
   };
 
-  // Callback for auth events from Supabase Auth UI
-  const handleAuthEvent = (event: any) => {
+  // Handle auth state changes
+  const handleAuthStateChange = (event: any, session: any) => {
     if (event === 'SIGNED_IN') {
       navigate('/', { replace: true });
     } else if (event === 'PASSWORD_RECOVERY') {
@@ -182,7 +179,7 @@ export const AuthFormWrapper = () => {
         showLinks={false}
         magicLink={false}
         socialLayout="horizontal"
-        onAuthEvent={handleAuthEvent}
+        onAuthStateChange={handleAuthStateChange}
       />
 
       <div className="mt-4 text-center">
