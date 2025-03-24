@@ -15,7 +15,8 @@ export const usePasswordManagement = () => {
       userId: string 
     }) => {
       try {
-        // This API requires service_role or supabase_admin permissions
+        // Este endpoint de la API requiere permisos especiales de service_role o supabase_admin
+        // Esta función mostrará un error de permisos en el frontend ya que no es posible usar el token service_role
         const { error } = await supabase.auth.admin.updateUserById(
           userId,
           { password: newPassword }
@@ -38,12 +39,12 @@ export const usePasswordManagement = () => {
     onError: (error: any) => {
       console.error("Error en el cambio de contraseña:", error);
       
-      // More specific error messages based on the error type
+      // Mensajes de error más específicos basados en el tipo de error
       if (error.message?.includes("not allowed") || 
           error.message?.includes("not admin") || 
           error.message?.includes("not_admin") ||
           error.status === 403) {
-        toast.error("No tienes permisos para cambiar contraseñas directamente. Esta funcionalidad requiere un rol de servicio especial en Supabase que no está disponible en el frontend.");
+        toast.error("No tienes permisos para cambiar contraseñas directamente. Esta funcionalidad requiere un rol de servicio especial en Supabase que no está disponible en el frontend por razones de seguridad.");
       } else {
         toast.error(`Error al cambiar contraseña: ${error.message || "Error desconocido"}`);
       }
@@ -84,7 +85,9 @@ export const usePasswordManagement = () => {
 
   const handleDirectPasswordChange = (email: string, newPassword: string, userId: string) => {
     console.log("Cambiando contraseña directamente para:", email);
-    changePasswordMutation.mutate({ email, newPassword, userId });
+    toast.warning("Esta función no está disponible por razones de seguridad. Utilizando la opción de enviar email en su lugar.");
+    // En lugar de intentar el cambio directo, enviamos un email
+    handleSendPasswordResetEmail(email);
   };
 
   return {

@@ -1,3 +1,4 @@
+
 import {
   Table,
   TableBody,
@@ -91,11 +92,11 @@ export const AppUsersTable = () => {
       </div>
       
       <div className="bg-blue-50 p-4 rounded-md mb-4">
-        <p className="text-blue-800 font-medium">Información importante</p>
+        <p className="text-blue-800 font-medium">Información importante sobre cambio de contraseñas</p>
         <p className="text-blue-700 text-sm mt-1">
-          El cambio directo de contraseñas requiere permisos especiales de Supabase (service_role) 
-          que no están disponibles en la aplicación web. Por favor, usa la opción de "Enviar email" 
-          para restablecer la contraseña de los usuarios.
+          Por razones de seguridad, la única manera de cambiar las contraseñas de los usuarios 
+          es mediante el envío de un email de recuperación. Esta es la práctica recomendada 
+          y evita tener que exponer claves de servicio en el frontend.
         </p>
       </div>
       

@@ -50,21 +50,19 @@ export const PasswordChangeContent = ({
         </Alert>
       )}
       
-      {directChangeError && directChangeError.includes("permisos") && (
-        <Alert className="mb-4">
-          <Info className="h-4 w-4" />
-          <AlertDescription className="text-sm">
-            El cambio directo de contraseñas requiere permisos especiales de Supabase que no están 
-            disponibles en la aplicación web. Por favor, usa la opción de "Enviar email" para 
-            restablecer la contraseña del usuario.
-          </AlertDescription>
-        </Alert>
-      )}
+      <Alert className="mb-4">
+        <Info className="h-4 w-4" />
+        <AlertDescription className="text-sm">
+          <p className="font-medium mb-1">Aviso importante</p>
+          El método recomendado para cambiar contraseñas es el envío de un email de recuperación.
+          Por razones de seguridad, el cambio directo de contraseñas no está disponible en esta aplicación web.
+        </AlertDescription>
+      </Alert>
         
       <Tabs defaultValue="email" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="email">Enviar email</TabsTrigger>
-          <TabsTrigger value="direct">Cambio directo</TabsTrigger>
+          <TabsTrigger value="email" className="bg-primary text-primary-foreground">Enviar email</TabsTrigger>
+          <TabsTrigger value="direct" disabled>Cambio directo</TabsTrigger>
         </TabsList>
         
         <TabsContent value="email" className="space-y-4">

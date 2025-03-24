@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Info, Loader2 } from "lucide-react";
+import { AlertCircle, Info, Loader2 } from "lucide-react";
 
 interface DirectPasswordChangeTabProps {
   onDirectPasswordChange: (email: string, newPassword: string) => void;
@@ -46,11 +46,13 @@ export const DirectPasswordChangeTab = ({
 
   return (
     <div className="space-y-4 py-4">
-      <Alert>
-        <Info className="h-4 w-4" />
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
         <AlertDescription className="text-sm">
-          El cambio directo de contraseñas requiere permisos especiales de Supabase. 
-          Si esta opción no funciona, utiliza la opción de "Enviar email".
+          <p className="font-medium mb-1">Esta opción no está disponible en este momento</p>
+          El cambio directo de contraseñas requiere permisos especiales de Supabase (service_role) 
+          que no están disponibles en la aplicación web por razones de seguridad. 
+          Por favor, utilice la opción de "Enviar email".
         </AlertDescription>
       </Alert>
       
@@ -63,6 +65,7 @@ export const DirectPasswordChangeTab = ({
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             placeholder="Ingrese la nueva contraseña" 
+            disabled={true}
           />
         </div>
         
@@ -74,21 +77,26 @@ export const DirectPasswordChangeTab = ({
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             placeholder="Confirme la nueva contraseña" 
+            disabled={true}
           />
         </div>
         
         <Button
           onClick={handleDirectPasswordChange}
-          disabled={isLoading}
+          disabled={true}
           className="w-full"
         >
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Actualizando...
-            </>
-          ) : "Cambiar contraseña"}
+          Cambiar contraseña
         </Button>
+        
+        <Alert>
+          <Info className="h-4 w-4" />
+          <AlertDescription className="text-sm">
+            Para implementar esta funcionalidad se requeriría exponer claves de servicio privadas 
+            de Supabase en el frontend, lo cual es un riesgo de seguridad. Le recomendamos utilizar 
+            la opción de "Enviar email" que es segura y funcional.
+          </AlertDescription>
+        </Alert>
       </div>
     </div>
   );
