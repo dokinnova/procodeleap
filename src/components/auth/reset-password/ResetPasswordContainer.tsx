@@ -7,6 +7,8 @@ import { ResetPasswordForm } from "./ResetPasswordForm";
 import { RecoveryRequestForm } from "./RecoveryRequestForm";
 import { useResetPasswordToken } from "./useResetPasswordToken";
 import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 export const ResetPasswordContainer = () => {
   const [error, setError] = useState<string | null>(null);
@@ -22,26 +24,78 @@ export const ResetPasswordContainer = () => {
   }, [tokenError]);
 
   useEffect(() => {
-    // Verificar si hay una sesión válida cuando se carga el componente
-    // y también forzar a Supabase a procesar cualquier token en la URL
+    // Check for a valid session when the component loads
+    // and also force Supabase to process any tokens in the URL
     const checkSession = async () => {
       try {
-        console.log("Verificando sesión y procesando tokens en URL...");
+        console.log("Checking session and processing tokens in URL...");
         
-        // Verificar la sesión después de procesar los tokens
+        // If there's a code in the URL, try to exchange it immediately
+        const url = new URL(window.location.href);
+        const code = url.searchParams.get('code');
+        
+        if (code) {
+          console.log("Found code in URL, attempting to exchange for session");
+          try {
+            const { data, error } = await supabase.auth.exchangeCodeForSession(window.location.search);
+            if (error) {
+              console.error("Error exchanging code for session:", error);
+              setError(`Error al procesar el código de recuperación: ${error.message}`);
+            } else {
+              console.log("Successfully exchanged code for session:", data);
+              toast.success("Código de recuperación procesado correctamente");
+            }
+          } catch (err) {
+            console.error("Exception during code exchange:", err);
+          }
+        }
+        
+        // Check session after processing tokens
         const { data } = await supabase.auth.getSession();
-        console.log("Estado de sesión al cargar ResetPasswordContainer:", 
-                    data.session ? "Con sesión" : "Sin sesión");
+        console.log("Session state when loading ResetPasswordContainer:", 
+                    data.session ? "With session" : "No session");
         
         setIsSessionReady(true);
       } catch (err) {
-        console.error("Error al verificar sesión:", err);
+        console.error("Error checking session:", err);
         setIsSessionReady(true);
       }
     };
     
     checkSession();
   }, []);
+
+  // Handle retry of code exchange if needed
+  const handleRetryCodeExchange = async () => {
+    setLoading(true);
+    try {
+      // Get the current URL's search parameters
+      const url = new URL(window.location.href);
+      const code = url.searchParams.get('code');
+      
+      if (!code) {
+        setError("No se encontró un código de recuperación en la URL");
+        return;
+      }
+      
+      console.log("Retrying code exchange for:", code);
+      const { data, error } = await supabase.auth.exchangeCodeForSession(window.location.search);
+      
+      if (error) {
+        console.error("Error during retry of code exchange:", error);
+        setError(`Error al procesar el código: ${error.message}`);
+      } else {
+        console.log("Code exchange retry successful:", data);
+        toast.success("Sesión establecida correctamente");
+        setError(null);
+      }
+    } catch (err: any) {
+      console.error("Exception during retry:", err);
+      setError(`Error: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Determine which form to show based on recovery token
   const showPasswordResetForm = recoveryToken && 
@@ -76,7 +130,16 @@ export const ResetPasswordContainer = () => {
           <CardContent>
             {error && (
               <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md mb-4">
-                {error}
+                <p>{error}</p>
+                {error.includes("Auth session missing") && (
+                  <Button 
+                    onClick={handleRetryCodeExchange}
+                    className="mt-2 w-full"
+                    disabled={loading}
+                  >
+                    Intentar procesar el código nuevamente
+                  </Button>
+                )}
               </div>
             )}
             

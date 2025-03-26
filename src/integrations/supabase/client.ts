@@ -20,6 +20,12 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
 supabase.auth.onAuthStateChange((event, session) => {
   console.log(`Auth event: ${event}`, session ? "Session exists" : "No session");
   
+  // Log detailed session info for debugging
+  if (session) {
+    console.log("Session user:", session.user.email);
+    console.log("Token expiry:", new Date(session.expires_at! * 1000).toLocaleString());
+  }
+  
   if (event === 'PASSWORD_RECOVERY') {
     // Force reload the page when a PASSWORD_RECOVERY event is detected
     // This ensures the recovery flow is properly initialized
@@ -29,7 +35,7 @@ supabase.auth.onAuthStateChange((event, session) => {
   }
 });
 
-// Establish event listeners for handling URL changes
+// Handle URL changes to ensure auth session is processed
 window.addEventListener('hashchange', () => {
   console.log('Hash changed, processing auth session');
   supabase.auth.getSession();
@@ -42,5 +48,19 @@ window.addEventListener('popstate', () => {
 
 document.addEventListener('DOMContentLoaded', () => {
   console.log('DOM loaded, processing auth session');
-  supabase.auth.getSession();
+  
+  // If there's a code parameter in the URL, force processing it
+  if (window.location.search.includes('code=')) {
+    console.log('Auth code detected in URL, processing session exchange');
+    supabase.auth.exchangeCodeForSession(window.location.search)
+      .then(({ data, error }) => {
+        if (error) {
+          console.error('Error exchanging code for session:', error);
+        } else {
+          console.log('Successfully exchanged code for session', data);
+        }
+      });
+  } else {
+    supabase.auth.getSession();
+  }
 });

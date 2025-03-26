@@ -75,20 +75,49 @@ export const ResetPasswordForm = ({
       console.log("Session state when updating password:", 
                 sessionData.session ? "With session" : "No session");
       
-      // If we have a session or recovery token, proceed with password update
-      if (sessionData.session || recoveryToken) {
-        // Update password using the session
+      if (!sessionData.session && recoveryToken && recoveryToken !== 'recovery-flow' && recoveryToken !== 'session-active') {
+        console.log("No session but recovery token exists. Attempting to use token directly:", recoveryToken);
+        
+        try {
+          // Try to use the recovery token to update the password
+          const { error: updateError } = await supabase.auth.updateUser({
+            password: newPassword
+          });
+
+          if (updateError) {
+            console.error("Error updating password with token:", updateError);
+            
+            // If this fails, it could be because the token is in a different format
+            if (updateError.message.includes("JWT") || updateError.message.includes("token")) {
+              setError("El enlace de recuperación ha expirado o no es válido. Por favor, solicita uno nuevo desde la página de inicio de sesión.");
+            } else {
+              throw updateError;
+            }
+          } else {
+            console.log("Password updated successfully using token");
+            toast.success("Tu contraseña ha sido actualizada correctamente");
+            
+            // Redirect to login page after successful password update
+            setTimeout(() => {
+              navigate("/auth", { replace: true });
+            }, 2000);
+          }
+        } catch (tokenError) {
+          console.error("Token update attempt failed:", tokenError);
+          throw tokenError;
+        }
+      } else if (sessionData.session) {
+        // We have a session, use it to update the password
         const { error: updateError } = await supabase.auth.updateUser({
           password: newPassword
         });
 
         if (updateError) {
-          console.error("Error updating password:", updateError);
+          console.error("Error updating password with session:", updateError);
           throw updateError;
         }
 
-        console.log("Password updated successfully");
-        // Use sonner toast correctly
+        console.log("Password updated successfully using session");
         toast.success("Tu contraseña ha sido actualizada correctamente");
 
         // Redirect to login page
@@ -96,8 +125,8 @@ export const ResetPasswordForm = ({
           navigate("/auth", { replace: true });
         }, 2000);
       } else {
-        // No session and no token
-        setError("No hay sesión de autenticación. Por favor, utilice el enlace de recuperación enviado al correo electrónico o solicite uno nuevo.");
+        // No session and no valid token
+        setError("No hay sesión de autenticación o el token no es válido. Por favor, utiliza el enlace de recuperación enviado al correo electrónico o solicita uno nuevo.");
       }
     } catch (err: any) {
       console.error("Error updating password:", err);
@@ -108,6 +137,8 @@ export const ResetPasswordForm = ({
           err.message.includes("token is invalid") ||
           err.message.includes("JWT expired"))) {
         setError("El enlace de recuperación ha expirado. Por favor, solicita uno nuevo desde la página de inicio de sesión.");
+      } else if (err.message && err.message.includes("Auth session missing")) {
+        setError("La sesión de autenticación no se encuentra. Por favor, asegúrate de usar el enlace completo enviado al correo electrónico o solicita uno nuevo.");
       } else {
         setError(err.message || "Error al actualizar la contraseña");
       }
