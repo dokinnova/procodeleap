@@ -11,60 +11,16 @@ export const useUserDeletion = () => {
       try {
         console.log("Iniciando proceso de eliminación para usuario:", userId);
         
-        // First, we need to handle tasks assigned to this user
-        const { data: appUserData, error: appUserError } = await supabase
-          .from("app_users")
-          .select("id")
-          .eq("user_id", userId)
-          .single();
-          
-        if (appUserError) {
-          console.error("Error obteniendo el app_user_id:", appUserError);
-          throw new Error("Error identificando el usuario: " + appUserError.message);
-        }
-        
-        const appUserId = appUserData.id;
-        console.log("ID de app_user a eliminar:", appUserId);
-        
-        // Check for tasks assigned to this user
-        const { data: tasksData, error: tasksQueryError } = await supabase
-          .from("tasks")
-          .select("id")
-          .eq("assigned_user_id", appUserId);
-          
-        if (tasksQueryError) {
-          console.error("Error verificando tareas del usuario:", tasksQueryError);
-          throw new Error("Error verificando tareas del usuario: " + tasksQueryError.message);
-        }
-        
-        // If there are tasks assigned, update them to remove the assignment
-        if (tasksData && tasksData.length > 0) {
-          console.log(`Desasignando ${tasksData.length} tareas del usuario antes de eliminarlo`);
-          
-          const { error: tasksUpdateError } = await supabase
-            .from("tasks")
-            .update({ assigned_user_id: null })
-            .eq("assigned_user_id", appUserId);
-            
-          if (tasksUpdateError) {
-            console.error("Error al desasignar tareas:", tasksUpdateError);
-            throw new Error("Error al liberar tareas asignadas: " + tasksUpdateError.message);
-          }
-          
-          console.log("Tareas desasignadas exitosamente");
-        } else {
-          console.log("No hay tareas asignadas a este usuario");
-        }
-        
-        // Now proceed with user deletion
-        console.log("Procediendo con la eliminación del usuario con app_user_id:", appUserId);
-        
-        // For users with the temporary ID, use a different approach
+        // Handle deletion differently based on whether it's a temporary user or real user
         if (userId === "00000000-0000-0000-0000-000000000000") {
+          // For temporary users, we need to handle multiple potential matches
+          console.log("Procesando eliminación de usuario temporal");
+          
+          // For users with the temporary ID, use a different approach
           // Get the app_users records for the temporary user
           const { data: userData, error: userError } = await supabase
             .from("app_users")
-            .select("email, id")
+            .select("id, email")
             .eq("user_id", userId);
             
           if (userError) {
@@ -76,34 +32,108 @@ export const useUserDeletion = () => {
             throw new Error("No se encontró el usuario para eliminar");
           }
           
-          // Check if there are multiple users with the same temporary ID
-          if (userData.length > 1) {
-            // Delete only the specific user by table id
-            const selectedUserId = userData[0].id;
-            const { error } = await supabase
+          console.log("Usuarios temporales encontrados:", userData.length);
+          
+          // Process each temporary user one by one
+          for (const user of userData) {
+            const appUserId = user.id;
+            console.log("Procesando usuario temporal con ID:", appUserId, "y email:", user.email);
+            
+            // Check for tasks assigned to this user
+            const { data: tasksData, error: tasksQueryError } = await supabase
+              .from("tasks")
+              .select("id")
+              .eq("assigned_user_id", appUserId);
+              
+            if (tasksQueryError) {
+              console.error("Error verificando tareas del usuario:", tasksQueryError);
+              throw new Error("Error verificando tareas del usuario: " + tasksQueryError.message);
+            }
+            
+            // If there are tasks assigned, update them to remove the assignment
+            if (tasksData && tasksData.length > 0) {
+              console.log(`Desasignando ${tasksData.length} tareas del usuario antes de eliminarlo`);
+              
+              const { error: tasksUpdateError } = await supabase
+                .from("tasks")
+                .update({ assigned_user_id: null })
+                .eq("assigned_user_id", appUserId);
+                
+              if (tasksUpdateError) {
+                console.error("Error al desasignar tareas:", tasksUpdateError);
+                throw new Error("Error al liberar tareas asignadas: " + tasksUpdateError.message);
+              }
+              
+              console.log("Tareas desasignadas exitosamente");
+            } else {
+              console.log("No hay tareas asignadas a este usuario");
+            }
+            
+            // Now delete the specific user
+            const { error: deleteError } = await supabase
               .from("app_users")
               .delete()
-              .eq("id", selectedUserId);
+              .eq("id", appUserId);
               
-            if (error) {
-              console.error("Error eliminando usuario temporal específico:", error);
-              throw error;
+            if (deleteError) {
+              console.error("Error eliminando usuario temporal:", deleteError);
+              throw deleteError;
             }
-          } else {
-            // Delete the only user found
-            const { error } = await supabase
-              .from("app_users")
-              .delete()
-              .eq("id", userData[0].id);
-              
-            if (error) {
-              console.error("Error eliminando usuario temporal:", error);
-              throw error;
-            }
+            
+            console.log("Usuario temporal eliminado exitosamente:", appUserId);
           }
+          
+          return userId;
         } else {
-          // Normal deletion for users with real ID
-          // First get the app_user ID from the auth user ID
+          // For regular users with a real ID
+          console.log("Procesando eliminación de usuario regular");
+          
+          // Get the app_user ID from the auth user ID
+          const { data: appUserData, error: appUserError } = await supabase
+            .from("app_users")
+            .select("id")
+            .eq("user_id", userId)
+            .single();
+            
+          if (appUserError) {
+            console.error("Error obteniendo el app_user_id:", appUserError);
+            throw new Error("Error identificando el usuario: " + appUserError.message);
+          }
+          
+          const appUserId = appUserData.id;
+          console.log("ID de app_user a eliminar:", appUserId);
+          
+          // Check for tasks assigned to this user
+          const { data: tasksData, error: tasksQueryError } = await supabase
+            .from("tasks")
+            .select("id")
+            .eq("assigned_user_id", appUserId);
+            
+          if (tasksQueryError) {
+            console.error("Error verificando tareas del usuario:", tasksQueryError);
+            throw new Error("Error verificando tareas del usuario: " + tasksQueryError.message);
+          }
+          
+          // If there are tasks assigned, update them to remove the assignment
+          if (tasksData && tasksData.length > 0) {
+            console.log(`Desasignando ${tasksData.length} tareas del usuario antes de eliminarlo`);
+            
+            const { error: tasksUpdateError } = await supabase
+              .from("tasks")
+              .update({ assigned_user_id: null })
+              .eq("assigned_user_id", appUserId);
+              
+            if (tasksUpdateError) {
+              console.error("Error al desasignar tareas:", tasksUpdateError);
+              throw new Error("Error al liberar tareas asignadas: " + tasksUpdateError.message);
+            }
+            
+            console.log("Tareas desasignadas exitosamente");
+          } else {
+            console.log("No hay tareas asignadas a este usuario");
+          }
+          
+          // Now proceed with user deletion
           const { error } = await supabase
             .from("app_users")
             .delete()
@@ -113,10 +143,10 @@ export const useUserDeletion = () => {
             console.error("Error eliminando usuario regular:", error);
             throw error;
           }
+          
+          console.log("Usuario eliminado exitosamente:", userId);
+          return userId;
         }
-        
-        console.log("Usuario eliminado exitosamente:", userId);
-        return userId;
       } catch (error: any) {
         console.error("Error durante el proceso de eliminación del usuario:", error);
         throw error;
