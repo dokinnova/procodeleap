@@ -35,17 +35,7 @@ supabase.auth.onAuthStateChange((event, session) => {
   }
 });
 
-// Handle URL changes to ensure auth session is processed
-window.addEventListener('hashchange', () => {
-  console.log('Hash changed, processing auth session');
-  supabase.auth.getSession();
-});
-
-window.addEventListener('popstate', () => {
-  console.log('URL changed, processing auth session');
-  supabase.auth.getSession();
-});
-
+// Improved handling for URL parameters with auth codes
 document.addEventListener('DOMContentLoaded', () => {
   console.log('DOM loaded, processing auth session');
   
@@ -63,4 +53,15 @@ document.addEventListener('DOMContentLoaded', () => {
   } else {
     supabase.auth.getSession();
   }
+});
+
+// Handle URL changes to ensure auth session is processed
+window.addEventListener('hashchange', () => {
+  console.log('Hash changed, processing auth session');
+  supabase.auth.getSession();
+});
+
+window.addEventListener('popstate', () => {
+  console.log('URL changed, processing auth session');
+  supabase.auth.getSession();
 });

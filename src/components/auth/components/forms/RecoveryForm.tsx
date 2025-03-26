@@ -16,8 +16,11 @@ export const RecoveryForm = ({ onToggleView, setLoginError, loginError }: Recove
   const [recoveryEmail, setRecoveryEmail] = useState("");
   const [isRecovering, setIsRecovering] = useState(false);
   
-  // Get current URL for redirect
+  // Get current URL for redirect - ensure we use the actual origin that will handle the reset
   const currentUrl = window.location.origin;
+  
+  // Use the exact format that Supabase expects for the reset URL
+  // This is critical - we need to make sure we're using the /reset-password route directly
   const redirectTo = `${currentUrl}/reset-password`;
 
   const handlePasswordRecovery = async (e: React.FormEvent) => {
@@ -30,6 +33,7 @@ export const RecoveryForm = ({ onToggleView, setLoginError, loginError }: Recove
     
     setIsRecovering(true);
     try {
+      // Make sure we set redirectTo correctly to prevent the "invalid flow state" error
       const { error } = await supabase.auth.resetPasswordForEmail(recoveryEmail, {
         redirectTo: redirectTo
       });
