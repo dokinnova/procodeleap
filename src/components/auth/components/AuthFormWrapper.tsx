@@ -19,6 +19,7 @@ export const AuthFormWrapper = () => {
   const [loginError, setLoginError] = useState<string | null>(null);
   const [isRecovering, setIsRecovering] = useState(false);
   const [recoveryEmail, setRecoveryEmail] = useState("");
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
   
   // Using window.location.origin for getting the current domain
   const currentUrl = window.location.origin;
@@ -77,13 +78,13 @@ export const AuthFormWrapper = () => {
       setLoginError(null);
       
       if (event === 'SIGNED_IN') {
-        console.log('User has signed in');
+        console.log('Usuario ha iniciado sesión');
         navigate('/', { replace: true });
       } else if (event === 'PASSWORD_RECOVERY') {
-        console.log('Redirecting to password recovery page');
+        console.log('Redirigiendo a la página de recuperación de contraseña');
         navigate('/reset-password', { replace: true });
       } else if (event === 'USER_UPDATED') {
-        console.log('User has been updated');
+        console.log('La información del usuario ha sido actualizada');
         toast.success("Tu información ha sido actualizada correctamente");
       }
       
@@ -91,7 +92,7 @@ export const AuthFormWrapper = () => {
       if (event === 'SIGNED_OUT') {
         setLoginAttempts(prev => {
           const newAttempts = prev + 1;
-          console.log(`Login attempt ${newAttempts}`);
+          console.log(`Intento de inicio de sesión ${newAttempts}`);
           
           // After 3 failed attempts, suggest password reset
           if (newAttempts >= 3) {
@@ -113,6 +114,7 @@ export const AuthFormWrapper = () => {
   const handleManualLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoginError(null);
+    setIsLoggingIn(true);
     
     // Get form data
     const formData = new FormData(e.currentTarget);
@@ -121,6 +123,7 @@ export const AuthFormWrapper = () => {
     
     if (!email || !password) {
       setLoginError("Por favor ingresa tu correo electrónico y contraseña");
+      setIsLoggingIn(false);
       return;
     }
     
@@ -131,7 +134,7 @@ export const AuthFormWrapper = () => {
       });
       
       if (error) {
-        console.error("Manual login error:", error);
+        console.error("Error de inicio de sesión manual:", error);
         if (error.message.includes("Invalid login credentials")) {
           setLoginError("Credenciales de inicio de sesión inválidas. Verifica tu correo y contraseña o usa la opción 'Olvidé mi contraseña'.");
           toast.error("Credenciales de inicio de sesión inválidas");
@@ -140,13 +143,16 @@ export const AuthFormWrapper = () => {
           toast.error(`Error de inicio de sesión: ${error.message}`);
         }
       } else {
-        console.log("Manual login successful:", data);
+        console.log("Inicio de sesión manual exitoso:", data);
         toast.success("Inicio de sesión exitoso");
+        navigate('/', { replace: true });
       }
     } catch (err: any) {
-      console.error("Unexpected error during login:", err);
+      console.error("Error inesperado durante el inicio de sesión:", err);
       setLoginError(err.message);
       toast.error(`Error inesperado: ${err.message}`);
+    } finally {
+      setIsLoggingIn(false);
     }
   };
 
@@ -166,7 +172,7 @@ export const AuthFormWrapper = () => {
       });
       
       if (error) {
-        console.error("Error sending recovery email:", error);
+        console.error("Error al enviar email de recuperación:", error);
         setLoginError(`Error al enviar el email de recuperación: ${error.message}`);
         toast.error(`Error: ${error.message}`);
       } else {
@@ -175,7 +181,7 @@ export const AuthFormWrapper = () => {
         setLoginError(null);
       }
     } catch (err: any) {
-      console.error("Unexpected error during recovery:", err);
+      console.error("Error inesperado durante la recuperación:", err);
       setLoginError(err.message);
     } finally {
       setIsRecovering(false);
@@ -234,8 +240,8 @@ export const AuthFormWrapper = () => {
                 required
               />
             </div>
-            <Button type="submit" className="w-full">
-              Iniciar sesión
+            <Button type="submit" className="w-full" disabled={isLoggingIn}>
+              {isLoggingIn ? "Iniciando sesión..." : "Iniciar sesión"}
             </Button>
           </form>
         </>
