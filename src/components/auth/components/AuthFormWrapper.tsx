@@ -20,6 +20,7 @@ export const AuthFormWrapper = () => {
   const [isRecovering, setIsRecovering] = useState(false);
   const [recoveryEmail, setRecoveryEmail] = useState("");
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [isRecoveringManuel, setIsRecoveringManuel] = useState(false);
   
   // Using window.location.origin for getting the current domain
   const currentUrl = window.location.origin;
@@ -188,6 +189,32 @@ export const AuthFormWrapper = () => {
     }
   };
 
+  // Función especial para recuperar directamente la cuenta de Manuel
+  const handleManuelRecovery = async () => {
+    const manuelEmail = "manuelalegrec@gmail.com";
+    setIsRecoveringManuel(true);
+    setLoginError(null);
+    
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(manuelEmail, {
+        redirectTo: redirectTo
+      });
+      
+      if (error) {
+        console.error("Error al enviar email de recuperación para Manuel:", error);
+        setLoginError(`Error al enviar el email de recuperación: ${error.message}`);
+        toast.error(`Error: ${error.message}`);
+      } else {
+        toast.success("Email de recuperación enviado a manuelalegrec@gmail.com. Por favor, revisa la bandeja de entrada.");
+      }
+    } catch (err: any) {
+      console.error("Error inesperado durante la recuperación:", err);
+      setLoginError(err.message);
+    } finally {
+      setIsRecoveringManuel(false);
+    }
+  };
+
   if (isLoadingInitial) {
     return (
       <div className="flex justify-center items-center min-h-32">
@@ -244,6 +271,23 @@ export const AuthFormWrapper = () => {
               {isLoggingIn ? "Iniciando sesión..." : "Iniciar sesión"}
             </Button>
           </form>
+
+          {/* Botón para recuperación directa de la cuenta de Manuel */}
+          <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-md">
+            <h3 className="text-sm font-semibold text-amber-800">Recuperación para manuelalegrec@gmail.com</h3>
+            <p className="text-xs text-amber-700 mb-2">
+              Si eres Manuel y tienes problemas para iniciar sesión, puedes enviar un correo de recuperación directamente.
+            </p>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={handleManuelRecovery}
+              disabled={isRecoveringManuel}
+              className="w-full text-amber-800 border-amber-300 hover:bg-amber-100"
+            >
+              {isRecoveringManuel ? "Enviando..." : "Enviar correo de recuperación"}
+            </Button>
+          </div>
         </>
       ) : (
         <>
