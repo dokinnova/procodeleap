@@ -1,4 +1,3 @@
-
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,14 +21,11 @@ export const AuthFormWrapper = () => {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isRecoveringManuel, setIsRecoveringManuel] = useState(false);
   
-  // Using window.location.origin for getting the current domain
   const currentUrl = window.location.origin;
-  // Simplified redirect URL that works on all domains
   const redirectTo = `${currentUrl}/reset-password`;
   
   console.log("AuthFormWrapper: Using redirect URL:", redirectTo);
 
-  // Check for active session when component loads
   useEffect(() => {
     const checkSession = async () => {
       try {
@@ -48,7 +44,6 @@ export const AuthFormWrapper = () => {
     checkSession();
   }, [navigate]);
 
-  // Detect errors in URL when component loads
   useEffect(() => {
     const url = new URL(window.location.href);
     const error = url.searchParams.get('error');
@@ -65,17 +60,14 @@ export const AuthFormWrapper = () => {
       
       toast.error(message);
       
-      // Clear error parameters from URL
       navigate('/auth', { replace: true });
     }
   }, [navigate]);
 
-  // Handle auth events
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('AuthFormWrapper: Auth event:', event);
       
-      // Clear login error on any auth event
       setLoginError(null);
       
       if (event === 'SIGNED_IN') {
@@ -89,13 +81,11 @@ export const AuthFormWrapper = () => {
         toast.success("Tu información ha sido actualizada correctamente");
       }
       
-      // Handle login errors by counting attempts
       if (event === 'SIGNED_OUT') {
         setLoginAttempts(prev => {
           const newAttempts = prev + 1;
           console.log(`Intento de inicio de sesión ${newAttempts}`);
           
-          // After 3 failed attempts, suggest password reset
           if (newAttempts >= 3) {
             toast.info("¿Olvidaste tu contraseña? Utiliza la opción 'Olvidé mi contraseña' para recuperar tu cuenta.", {
               duration: 6000,
@@ -111,13 +101,11 @@ export const AuthFormWrapper = () => {
     };
   }, [navigate]);
 
-  // Manual login function
   const handleManualLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoginError(null);
     setIsLoggingIn(true);
     
-    // Get form data
     const formData = new FormData(e.currentTarget);
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
@@ -157,7 +145,6 @@ export const AuthFormWrapper = () => {
     }
   };
 
-  // Password recovery function
   const handlePasswordRecovery = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -189,32 +176,6 @@ export const AuthFormWrapper = () => {
     }
   };
 
-  // Función especial para recuperar directamente la cuenta de Manuel
-  const handleManuelRecovery = async () => {
-    const manuelEmail = "manuelalegrec@gmail.com";
-    setIsRecoveringManuel(true);
-    setLoginError(null);
-    
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(manuelEmail, {
-        redirectTo: redirectTo
-      });
-      
-      if (error) {
-        console.error("Error al enviar email de recuperación para Manuel:", error);
-        setLoginError(`Error al enviar el email de recuperación: ${error.message}`);
-        toast.error(`Error: ${error.message}`);
-      } else {
-        toast.success("Email de recuperación enviado a manuelalegrec@gmail.com. Por favor, revisa la bandeja de entrada.");
-      }
-    } catch (err: any) {
-      console.error("Error inesperado durante la recuperación:", err);
-      setLoginError(err.message);
-    } finally {
-      setIsRecoveringManuel(false);
-    }
-  };
-
   if (isLoadingInitial) {
     return (
       <div className="flex justify-center items-center min-h-32">
@@ -239,7 +200,6 @@ export const AuthFormWrapper = () => {
       
       {view === "sign_in" ? (
         <>
-          {/* Manual login form */}
           <form onSubmit={handleManualLogin} className="space-y-4 mb-4">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
@@ -271,27 +231,9 @@ export const AuthFormWrapper = () => {
               {isLoggingIn ? "Iniciando sesión..." : "Iniciar sesión"}
             </Button>
           </form>
-
-          {/* Botón para recuperación directa de la cuenta de Manuel */}
-          <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-md">
-            <h3 className="text-sm font-semibold text-amber-800">Recuperación para manuelalegrec@gmail.com</h3>
-            <p className="text-xs text-amber-700 mb-2">
-              Si eres Manuel y tienes problemas para iniciar sesión, puedes enviar un correo de recuperación directamente.
-            </p>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={handleManuelRecovery}
-              disabled={isRecoveringManuel}
-              className="w-full text-amber-800 border-amber-300 hover:bg-amber-100"
-            >
-              {isRecoveringManuel ? "Enviando..." : "Enviar correo de recuperación"}
-            </Button>
-          </div>
         </>
       ) : (
         <>
-          {/* Password recovery form */}
           <form onSubmit={handlePasswordRecovery} className="space-y-4 mb-4">
             <div>
               <label htmlFor="recovery-email" className="block text-sm font-medium text-gray-700">
