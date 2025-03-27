@@ -21,6 +21,7 @@ export const createAuthUser = async ({ email, password, userRole }: CreateAuthUs
   
   console.log("Creating auth user with email:", email);
   console.log("Password length:", password?.length || 0);
+  console.log("Password first character (for debugging):", password?.[0] || 'none');
   
   // Attempt to register the user
   const { data, error } = await supabase.auth.signUp({

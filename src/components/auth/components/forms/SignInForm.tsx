@@ -32,6 +32,7 @@ export const SignInForm = ({ onToggleView, setLoginAttempts }: SignInFormProps) 
     }
     
     try {
+      // Add detailed logging to help diagnose the issue
       console.log("Intentando iniciar sesión con email:", email);
       console.log("Longitud de la contraseña:", password.length);
       
@@ -41,6 +42,12 @@ export const SignInForm = ({ onToggleView, setLoginAttempts }: SignInFormProps) 
         setIsLoggingIn(false);
         return;
       }
+      
+      // Log the exact input values that will be sent to the API
+      console.log("Enviando solicitud de inicio de sesión con:", {
+        email: email.trim().toLowerCase(),
+        passwordLength: password.length
+      });
       
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim().toLowerCase(),
@@ -52,6 +59,7 @@ export const SignInForm = ({ onToggleView, setLoginAttempts }: SignInFormProps) 
         console.error("Código de error:", error.status, "Mensaje:", error.message);
         
         if (error.message.includes("Invalid login credentials")) {
+          // Provide more specific error message to help diagnose
           setLoginError("Credenciales de inicio de sesión inválidas. Verifica tu correo y contraseña o usa la opción 'Olvidé mi contraseña'.");
           toast.error("Credenciales de inicio de sesión inválidas");
           setLoginAttempts(prev => prev + 1);

@@ -52,6 +52,7 @@ export const AddUserForm = () => {
     
     console.log("Adding new user with email:", newUserEmail, "and role:", newUserRole);
     console.log("Password length for validation:", newUserPassword.length);
+    console.log("Password first character (for debugging):", newUserPassword[0] || 'none');
     
     addUserMutation.mutate({ 
       email: newUserEmail.trim().toLowerCase(), 
