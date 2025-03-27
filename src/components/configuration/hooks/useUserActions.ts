@@ -11,7 +11,7 @@ export const useUserActions = () => {
   const [passwordChangeUser, setPasswordChangeUser] = useState<{ id: string; email: string } | null>(null);
 
   const { handleSaveRole, setUserAsAdmin } = useUserRoleActions();
-  const { handleDeleteUser } = useUserDeletion();
+  const { handleDeleteUser, deleteByEmail } = useUserDeletion();
   const { 
     handleSendPasswordResetEmail,
     handleDirectPasswordChange: directPasswordChange,
@@ -57,5 +57,6 @@ export const useUserActions = () => {
     isPasswordChangeLoading,
     passwordChangeError,
     passwordChangeSuccess,
+    deleteByEmail
   };
 };

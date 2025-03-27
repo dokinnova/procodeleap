@@ -11,10 +11,14 @@ import { UsersTableHeader } from "./users/UsersTableHeader";
 import { useUsersData } from "./hooks/useUsersData";
 import { useUserActions } from "./hooks/useUserActions";
 import { PasswordChangeDialog } from "./users/PasswordChangeDialog";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { AlertTriangle } from "lucide-react";
 
 export const AppUsersTable = () => {
+  const [emailToDelete, setEmailToDelete] = useState<string>("");
+  
   const { 
     appUsers, 
     isLoading, 
@@ -41,7 +45,8 @@ export const AppUsersTable = () => {
     handleDirectPasswordChange,
     isPasswordChangeLoading,
     passwordChangeError,
-    passwordChangeSuccess
+    passwordChangeSuccess,
+    deleteByEmail
   } = useUserActions();
 
   useEffect(() => {
@@ -63,6 +68,15 @@ export const AppUsersTable = () => {
       }
     }
   }, [appUsers, setUserAsAdmin]);
+
+  const handleDeleteByEmail = () => {
+    if (emailToDelete) {
+      deleteByEmail(emailToDelete);
+      setEmailToDelete("");
+    } else {
+      toast.error("Por favor, ingresa un email para eliminar");
+    }
+  };
 
   if (isLoading || isSyncing) {
     return <div>Cargando usuarios...</div>;
@@ -88,6 +102,31 @@ export const AppUsersTable = () => {
       <div className="bg-amber-50 p-4 rounded-md mb-4">
         <p className="text-amber-800">
           Asignando permisos de administrador a jose.newcar@gmail.com
+        </p>
+      </div>
+      
+      <div className="bg-gray-100 p-4 rounded-md mb-4">
+        <h3 className="text-lg font-semibold mb-2 flex items-center">
+          <AlertTriangle className="mr-2 h-5 w-5 text-amber-500" />
+          Eliminar usuario por email
+        </h3>
+        <div className="flex gap-2">
+          <input
+            type="email"
+            placeholder="Email del usuario a eliminar"
+            value={emailToDelete}
+            onChange={(e) => setEmailToDelete(e.target.value)}
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-md"
+          />
+          <Button 
+            variant="destructive"
+            onClick={handleDeleteByEmail}
+          >
+            Eliminar
+          </Button>
+        </div>
+        <p className="text-sm text-gray-500 mt-2">
+          Esta acción eliminará completamente al usuario de todas las tablas del sistema.
         </p>
       </div>
       
