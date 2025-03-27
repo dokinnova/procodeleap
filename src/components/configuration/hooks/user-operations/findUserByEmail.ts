@@ -14,7 +14,7 @@ export const findUserByEmail = async (email: string): Promise<string | null> => 
         .from("app_users")
         .select("user_id")
         .eq("email", email.toLowerCase())
-        .not("user_id", "00000000-0000-0000-0000-000000000000")
+        .not("user_id", "00000000-0000-0000-0000-000000000000", undefined)
         .maybeSingle();
         
       if (!userError && userData && userData.user_id) {
