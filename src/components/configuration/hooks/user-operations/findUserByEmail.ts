@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 /**
@@ -7,23 +6,37 @@ import { supabase } from "@/integrations/supabase/client";
 export const findUserByEmail = async (email: string): Promise<string | null> => {
   try {
     console.log("Trying to find user by email:", email);
+    const normalizedEmail = email.trim().toLowerCase();
     
-    // First try: Direct lookup by email (most efficient)
+    // First try: Direct lookup by email via sign-in attempt
     try {
-      const { data: userData, error: userError } = await supabase
-        .from("app_users")
-        .select("user_id")
-        .eq("email", email.toLowerCase())
-        .not("user_id", "00000000-0000-0000-0000-000000000000", undefined)
-        .maybeSingle();
+      // We use a sign in attempt with incorrect password to check if user exists
+      const { error } = await supabase.auth.signInWithPassword({
+        email: normalizedEmail,
+        password: "ThisIsAFakePasswordForCheckingOnly123!@#"
+      });
+      
+      // If we get "Invalid login credentials", the user exists
+      if (error && error.message && error.message.includes("Invalid login credentials")) {
+        console.log("User exists in auth system based on sign-in attempt");
         
-      if (!userError && userData && userData.user_id) {
-        console.log("Found user ID in app_users:", userData.user_id);
-        return userData.user_id;
+        // Now try to get the user ID from app_users
+        const { data: userData, error: userError } = await supabase
+          .from("app_users")
+          .select("user_id")
+          .eq("email", normalizedEmail)
+          .not("user_id", "00000000-0000-0000-0000-000000000000")
+          .maybeSingle();
+        
+        if (!userError && userData && userData.user_id) {
+          console.log("Found user ID in app_users:", userData.user_id);
+          return userData.user_id;
+        }
+      } else {
+        console.log("User does not exist in auth system or other error occurred:", error?.message);
       }
     } catch (directError) {
       console.log("Error in direct lookup:", directError);
-      // Continue to next method
     }
     
     // Second try: Use admin API to list users (requires admin privileges)
@@ -48,7 +61,6 @@ export const findUserByEmail = async (email: string): Promise<string | null> => 
       }
     } catch (adminError) {
       console.log("Error in admin lookup:", adminError);
-      // Continue to next method
     }
     
     // Third try: Attempt to get the session if this user is the current user

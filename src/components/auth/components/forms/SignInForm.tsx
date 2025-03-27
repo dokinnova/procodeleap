@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,95 +33,51 @@ export const SignInForm = ({ onToggleView, setLoginAttempts }: SignInFormProps) 
     }
     
     try {
-      // Add detailed logging to help diagnose the issue
-      console.log("Intentando iniciar sesión con email:", email);
-      console.log("Longitud de la contraseña:", password.length);
-      
-      // Comprobación adicional de la contraseña antes de enviar
-      if (password.length < 6) {
-        setLoginError("La contraseña debe tener al menos 6 caracteres");
-        setIsLoggingIn(false);
-        return;
-      }
-      
-      // Normalizar el email
       const normalizedEmail = email.trim().toLowerCase();
       
-      // Log the exact input values that will be sent to the API
-      console.log("Enviando solicitud de inicio de sesión con:", {
-        email: normalizedEmail,
-        passwordLength: password.length
-      });
+      console.log("Intentando iniciar sesión con email:", normalizedEmail);
+      console.log("Longitud de la contraseña:", password.length);
       
-      // Verificar si el usuario existe en app_users pero no tiene un user_id válido
       try {
-        const { data: appUser } = await supabase
+        const { data: appUser, error: queryError } = await supabase
           .from("app_users")
           .select("*")
           .eq("email", normalizedEmail)
-          .eq("user_id", "00000000-0000-0000-0000-000000000000")
           .maybeSingle();
         
-        if (appUser) {
-          console.log("Usuario encontrado en app_users pero con ID temporal:", appUser);
-          setLoginError("Este usuario está pendiente de confirmación en el sistema. Por favor, contacta con el administrador.");
+        if (queryError) {
+          console.error("Error verificando usuario en app_users:", queryError);
+        } else if (!appUser) {
+          setLoginError("No se encontró ninguna cuenta con este correo electrónico. Por favor, verifica o contacta al administrador.");
           setIsLoggingIn(false);
           return;
         }
       } catch (checkError) {
         console.log("Error al verificar usuario en app_users:", checkError);
-        // Continuar con el intento de inicio de sesión normal
       }
       
-      // Verificar primero si el usuario existe en auth.users
-      try {
-        // Verificar con un intento de inicio de sesión con contraseña incorrecta
-        const { error: checkError } = await supabase.auth.signInWithPassword({
-          email: normalizedEmail,
-          password: "TemporaryCheckPassword123!@#"
-        });
-        
-        const userExistsInAuth = checkError && checkError.message && 
-                               checkError.message.includes("Invalid login credentials");
-        
-        if (!userExistsInAuth) {
-          console.log("El usuario no existe en el sistema de autenticación");
-          setLoginError("El usuario no existe en el sistema. Por favor, regístrate o contacta al administrador.");
-          setIsLoggingIn(false);
-          return;
-        }
-      } catch (checkError) {
-        console.log("Error al verificar existencia del usuario:", checkError);
-        // Continuar con el intento normal de inicio de sesión
-      }
-      
-      // Ahora intentar el inicio de sesión real
       const { data, error } = await supabase.auth.signInWithPassword({
         email: normalizedEmail,
         password
       });
       
       if (error) {
-        console.error("Error de inicio de sesión manual:", error);
-        console.error("Código de error:", error.status, "Mensaje:", error.message);
-        
-        // Guardar detalles completos del error para diagnóstico
+        console.error("Error de inicio de sesión:", error);
         setDetailedError(JSON.stringify(error, null, 2));
         
         if (error.message.includes("Invalid login credentials")) {
-          // Provide more specific error message to help diagnose
-          setLoginError("Credenciales de inicio de sesión inválidas. Verifica tu correo y contraseña o usa la opción 'Olvidé mi contraseña'.");
+          setLoginError("Credenciales inválidas. El usuario existe pero la contraseña es incorrecta.");
           toast.error("Credenciales de inicio de sesión inválidas");
           setLoginAttempts(prev => prev + 1);
         } else if (error.message.includes("Email not confirmed")) {
-          setLoginError("El correo electrónico aún no ha sido confirmado. Por favor, revisa tu bandeja de entrada y confirma tu correo.");
+          setLoginError("El correo electrónico aún no ha sido confirmado. Por favor, revisa tu bandeja de entrada.");
           toast.error("Email no confirmado");
         } else {
           setLoginError(error.message);
           toast.error(`Error de inicio de sesión: ${error.message}`);
         }
       } else {
-        console.log("Inicio de sesión manual exitoso:", data);
+        console.log("Inicio de sesión exitoso:", data);
         toast.success("Inicio de sesión exitoso");
         navigate('/', { replace: true });
       }
