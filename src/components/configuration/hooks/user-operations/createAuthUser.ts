@@ -19,15 +19,17 @@ export const createAuthUser = async ({ email, password, userRole }: CreateAuthUs
     throw new Error("La contraseña debe tener al menos 6 caracteres");
   }
   
-  console.log("Creating auth user with email:", email);
+  const normalizedEmail = email.trim().toLowerCase();
+  
+  console.log("Creating auth user with email:", normalizedEmail);
   console.log("Password length:", password?.length || 0);
   console.log("Password first character (for debugging):", password?.[0] || 'none');
   
   // First, check if the user already exists in auth.users
   try {
     // Try to sign in to check if user exists (we don't actually sign in)
-    const { data: checkData, error: checkError } = await supabase.auth.signInWithPassword({
-      email: email.trim().toLowerCase(),
+    const { error: checkError } = await supabase.auth.signInWithPassword({
+      email: normalizedEmail,
       password: "This-Is-A-Fake-Password-1234567890"  // Use a fake password that will definitely fail
     });
     
@@ -38,26 +40,26 @@ export const createAuthUser = async ({ email, password, userRole }: CreateAuthUs
       checkError.message.includes("Invalid login credentials");
     
     if (userExistsInAuth) {
-      console.log("User exists in auth system. Attempting to get user ID...");
+      console.log("User exists in auth system. Attempting admin password reset...");
       
-      // Try to update user password if needed
+      // Since the user exists in auth but we can't directly update the password with admin API,
+      // we'll try to use the password reset flow to allow them to set a new password
       try {
-        // Attempt to update the user password using admin functions
-        // This will only work if you have admin privileges
-        const { data: adminData, error: adminError } = await supabase.auth.admin.updateUserById(
-          email, // We don't know the ID yet, but try with email
-          { password: password }
+        const { error: resetError } = await supabase.auth.resetPasswordForEmail(
+          normalizedEmail,
+          {
+            redirectTo: `${window.location.origin}/reset-password`,
+          }
         );
         
-        if (adminError) {
-          console.log("Could not update password via admin API:", adminError.message);
-          // Continue anyway - we'll create the app_user entry
+        if (resetError) {
+          console.log("Could not send password reset email:", resetError.message);
         } else {
-          console.log("Password updated successfully for existing user");
+          console.log("Password reset email sent successfully");
+          toast.success(`Se ha enviado un email de restablecimiento de contraseña a ${normalizedEmail}`);
         }
-      } catch (updateError) {
-        console.log("Error updating password:", updateError);
-        // Continue anyway - we'll create the app_user entry
+      } catch (resetError) {
+        console.log("Error sending password reset:", resetError);
       }
       
       // Return null for userId to indicate we need to find it
@@ -69,7 +71,7 @@ export const createAuthUser = async ({ email, password, userRole }: CreateAuthUs
     
     // Attempt to register the user
     const { data, error } = await supabase.auth.signUp({
-      email,
+      email: normalizedEmail,
       password,
       options: {
         emailRedirectTo: window.location.origin,

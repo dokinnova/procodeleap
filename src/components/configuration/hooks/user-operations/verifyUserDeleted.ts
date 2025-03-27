@@ -45,24 +45,49 @@ export const verifyUserDeleted = async (email: string) => {
     
     results.tasks = tasksData && tasksData.length === 0;
     
-    // Try to check auth users (admin only)
+    // Verificar si el usuario existe en auth.users intentando iniciar sesión
     try {
-      const { data: authUsersData, error: authError } = await supabase.auth.admin.listUsers();
+      // Intento de autenticación con una contraseña falsa para verificar si el usuario existe
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.toLowerCase(),
+        password: "DummyPassword12345!@#$%"
+      });
       
-      if (authError) {
-        console.log("No se pudo verificar auth.users por falta de permisos admin");
-        results.authUsers = true; // Assume success if we can't verify
-      } else if (authUsersData && authUsersData.users) {
-        const foundUser = authUsersData.users.find((user: any) => 
-          user && typeof user.email === 'string' && 
-          user.email.toLowerCase() === email.toLowerCase()
-        );
-        
-        results.authUsers = !foundUser;
+      // Si el error contiene "Invalid login credentials", significa que el usuario existe
+      // Si contiene otro tipo de error o no hay error, el usuario no existe
+      if (signInError) {
+        const userExists = signInError.message && signInError.message.includes("Invalid login credentials");
+        results.authUsers = !userExists;
+        console.log("Verificación de auth.users basada en intento de inicio de sesión:", 
+                   userExists ? "Usuario existe" : "Usuario no existe", 
+                   "Mensaje:", signInError.message);
+      } else {
+        // Si no hay error (esto no debería ocurrir con una contraseña falsa)
+        results.authUsers = false;
+        console.log("Inesperado: No hubo error al intentar iniciar sesión con contraseña falsa");
       }
     } catch (authError) {
-      console.log("Error verificando auth.users:", authError);
-      results.authUsers = true; // Assume success if we can't verify
+      console.log("Error verificando auth.users mediante login:", authError);
+      
+      // Como fallback, intentar listar usuarios si tiene permisos admin
+      try {
+        const { data: authUsersData, error: authError } = await supabase.auth.admin.listUsers();
+        
+        if (authError) {
+          console.log("No se pudo verificar auth.users por falta de permisos admin");
+          results.authUsers = true; // Asumir éxito si no podemos verificar
+        } else if (authUsersData && authUsersData.users) {
+          const foundUser = authUsersData.users.find((user: any) => 
+            user && typeof user.email === 'string' && 
+            user.email.toLowerCase() === email.toLowerCase()
+          );
+          
+          results.authUsers = !foundUser;
+        }
+      } catch (adminError) {
+        console.log("Error verificando auth.users:", adminError);
+        results.authUsers = true; // Asumir éxito si no podemos verificar
+      }
     }
     
     // Prepare result message

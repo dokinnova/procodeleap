@@ -19,10 +19,12 @@ export const SignInForm = ({ onToggleView, setLoginAttempts }: SignInFormProps) 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [detailedError, setDetailedError] = useState<string | null>(null);
 
   const handleManualLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoginError(null);
+    setDetailedError(null);
     setIsLoggingIn(true);
     
     if (!email || !password) {
@@ -72,6 +74,29 @@ export const SignInForm = ({ onToggleView, setLoginAttempts }: SignInFormProps) 
         // Continuar con el intento de inicio de sesión normal
       }
       
+      // Verificar primero si el usuario existe en auth.users
+      try {
+        // Verificar con un intento de inicio de sesión con contraseña incorrecta
+        const { error: checkError } = await supabase.auth.signInWithPassword({
+          email: normalizedEmail,
+          password: "TemporaryCheckPassword123!@#"
+        });
+        
+        const userExistsInAuth = checkError && checkError.message && 
+                               checkError.message.includes("Invalid login credentials");
+        
+        if (!userExistsInAuth) {
+          console.log("El usuario no existe en el sistema de autenticación");
+          setLoginError("El usuario no existe en el sistema. Por favor, regístrate o contacta al administrador.");
+          setIsLoggingIn(false);
+          return;
+        }
+      } catch (checkError) {
+        console.log("Error al verificar existencia del usuario:", checkError);
+        // Continuar con el intento normal de inicio de sesión
+      }
+      
+      // Ahora intentar el inicio de sesión real
       const { data, error } = await supabase.auth.signInWithPassword({
         email: normalizedEmail,
         password
@@ -80,6 +105,9 @@ export const SignInForm = ({ onToggleView, setLoginAttempts }: SignInFormProps) 
       if (error) {
         console.error("Error de inicio de sesión manual:", error);
         console.error("Código de error:", error.status, "Mensaje:", error.message);
+        
+        // Guardar detalles completos del error para diagnóstico
+        setDetailedError(JSON.stringify(error, null, 2));
         
         if (error.message.includes("Invalid login credentials")) {
           // Provide more specific error message to help diagnose
@@ -113,6 +141,15 @@ export const SignInForm = ({ onToggleView, setLoginAttempts }: SignInFormProps) 
         <Alert variant="destructive" className="mb-4">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>{loginError}</AlertDescription>
+        </Alert>
+      )}
+      
+      {detailedError && (
+        <Alert variant="destructive" className="mb-4 text-xs overflow-auto max-h-32">
+          <details>
+            <summary className="cursor-pointer">Ver detalles del error (para diagnóstico)</summary>
+            <pre className="whitespace-pre-wrap">{detailedError}</pre>
+          </details>
         </Alert>
       )}
       
