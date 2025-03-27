@@ -43,14 +43,37 @@ export const SignInForm = ({ onToggleView, setLoginAttempts }: SignInFormProps) 
         return;
       }
       
+      // Normalizar el email
+      const normalizedEmail = email.trim().toLowerCase();
+      
       // Log the exact input values that will be sent to the API
       console.log("Enviando solicitud de inicio de sesión con:", {
-        email: email.trim().toLowerCase(),
+        email: normalizedEmail,
         passwordLength: password.length
       });
       
+      // Verificar si el usuario existe en app_users pero no tiene un user_id válido
+      try {
+        const { data: appUser } = await supabase
+          .from("app_users")
+          .select("*")
+          .eq("email", normalizedEmail)
+          .eq("user_id", "00000000-0000-0000-0000-000000000000")
+          .maybeSingle();
+        
+        if (appUser) {
+          console.log("Usuario encontrado en app_users pero con ID temporal:", appUser);
+          setLoginError("Este usuario está pendiente de confirmación en el sistema. Por favor, contacta con el administrador.");
+          setIsLoggingIn(false);
+          return;
+        }
+      } catch (checkError) {
+        console.log("Error al verificar usuario en app_users:", checkError);
+        // Continuar con el intento de inicio de sesión normal
+      }
+      
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.trim().toLowerCase(),
+        email: normalizedEmail,
         password
       });
       
