@@ -70,7 +70,12 @@ export const useAddUser = () => {
             userId = '00000000-0000-0000-0000-000000000000';
           } else {
             // Find the user with the matching email by filtering on the client side
-            const foundUser = authUsersData.users.find(u => u.email?.toLowerCase() === email.toLowerCase());
+            const foundUser = authUsersData.users.find(user => {
+              // Ensure user object and email property exist before comparing
+              return user && typeof user.email === 'string' && 
+                     user.email.toLowerCase() === email.toLowerCase();
+            });
+            
             if (foundUser) {
               userId = foundUser.id;
               console.log("Found user ID:", userId, "for email:", email);
