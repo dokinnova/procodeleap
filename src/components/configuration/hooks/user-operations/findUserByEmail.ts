@@ -42,11 +42,12 @@ export const findUserByEmail = async (email: string): Promise<string | null> => 
     
     // Second try: Use admin API to list users (requires admin privileges)
     try {
-      // The third parameter is options, which is required by the TypeScript definition
-      const { data: authUsersData, error: listError } = await supabase.auth.admin.listUsers(
-        { page: 1, perPage: 1000 },
-        { skipNulls: false }
-      );
+      // According to Supabase API, listUsers needs one object parameter
+      const { data: authUsersData, error: listError } = await supabase.auth.admin.listUsers({
+        page: 1,
+        perPage: 1000,
+        // Add any other options like sorting if needed
+      });
       
       if (listError) {
         console.log("Cannot access admin.listUsers:", listError.message);
