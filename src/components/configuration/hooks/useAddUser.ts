@@ -31,6 +31,13 @@ export const useAddUser = () => {
         console.log("Creating auth user with email:", email);
         console.log("Password length:", password?.length || 0);
         
+        // Validación de contraseña antes de intentar registrar
+        if (!password || password.length < 6) {
+          console.error("Error de validación: La contraseña debe tener al menos 6 caracteres");
+          throw new Error("La contraseña debe tener al menos 6 caracteres");
+        }
+        
+        // Intentar registrar al usuario
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -44,6 +51,7 @@ export const useAddUser = () => {
 
         if (error) {
           console.error("Error creating auth user:", error);
+          console.error("Detalles completos del error:", JSON.stringify(error));
           
           // Special handling for already registered users
           if (error.message.includes("User already registered")) {
@@ -59,32 +67,44 @@ export const useAddUser = () => {
         let userId;
         if (data?.user?.id) {
           userId = data.user.id;
+          console.log("ID del usuario creado:", userId);
         } else {
           // If we didn't get a user ID back (e.g., user already exists), try to find it
           console.log("Trying to find user by email:", email);
           
-          // Get all users and then filter on the client side
-          const { data: authUsersData, error: listError } = await supabase.auth.admin.listUsers();
-          
-          if (listError || !authUsersData) {
-            console.error("Error listing users:", listError);
-            // Just continue with a temporary ID, it will be updated later
-            userId = '00000000-0000-0000-0000-000000000000';
-          } else {
-            // Find the user with the matching email by filtering on the client side
-            const foundUser = authUsersData.users.find((user: any) => {
-              // Ensure user object and email property exist before comparing
-              return user && typeof user.email === 'string' && 
-                     user.email.toLowerCase() === email.toLowerCase();
-            });
+          try {
+            // Get all users and then filter on the client side
+            const { data: authUsersData, error: listError } = await supabase.auth.admin.listUsers();
             
-            if (foundUser) {
-              userId = foundUser.id;
-              console.log("Found user ID:", userId, "for email:", email);
-            } else {
-              console.log("User not found in auth users list for email:", email);
+            if (listError || !authUsersData) {
+              console.error("Error listing users:", listError);
+              // Just continue with a temporary ID, it will be updated later
               userId = '00000000-0000-0000-0000-000000000000';
+            } else {
+              console.log("Total de usuarios encontrados:", authUsersData.users.length);
+              
+              // Find the user with the matching email by filtering on the client side
+              const foundUser = authUsersData.users.find((user: any) => {
+                // Ensure user object and email property exist before comparing
+                const match = user && typeof user.email === 'string' && 
+                       user.email.toLowerCase() === email.toLowerCase();
+                if (match) {
+                  console.log("Usuario encontrado:", user.email, "ID:", user.id);
+                }
+                return match;
+              });
+              
+              if (foundUser) {
+                userId = foundUser.id;
+                console.log("Found user ID:", userId, "for email:", email);
+              } else {
+                console.log("User not found in auth users list for email:", email);
+                userId = '00000000-0000-0000-0000-000000000000';
+              }
             }
+          } catch (findError) {
+            console.error("Error al buscar el usuario:", findError);
+            userId = '00000000-0000-0000-0000-000000000000';
           }
         }
 
@@ -173,7 +193,7 @@ export const useAddUser = () => {
         // Invalidate queries to force a refresh
         queryClient.invalidateQueries({ queryKey: ["app-users"] });
         
-        return { message: "Usuario añadido. Se ha enviado un email de bienvenida." };
+        return { message: "Usuario añadido correctamente. Se ha enviado un email de bienvenida." };
       } catch (error: any) {
         console.error("Error in registration process:", error);
         throw error;

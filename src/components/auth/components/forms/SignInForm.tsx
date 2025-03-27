@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -16,15 +16,14 @@ export const SignInForm = ({ onToggleView, setLoginAttempts }: SignInFormProps) 
   const navigate = useNavigate();
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleManualLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoginError(null);
     setIsLoggingIn(true);
-    
-    const formData = new FormData(e.currentTarget);
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
     
     if (!email || !password) {
       setLoginError("Por favor ingresa tu correo electrónico y contraseña");
@@ -34,6 +33,8 @@ export const SignInForm = ({ onToggleView, setLoginAttempts }: SignInFormProps) 
     
     try {
       console.log("Intentando iniciar sesión con email:", email);
+      console.log("Longitud de la contraseña:", password.length);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -88,6 +89,8 @@ export const SignInForm = ({ onToggleView, setLoginAttempts }: SignInFormProps) 
             type="email"
             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
             placeholder="Tu correo electrónico"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             required
           />
         </div>
@@ -95,14 +98,25 @@ export const SignInForm = ({ onToggleView, setLoginAttempts }: SignInFormProps) 
           <label htmlFor="password" className="block text-sm font-medium text-gray-700">
             Contraseña
           </label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
-            placeholder="Tu contraseña"
-            required
-          />
+          <div className="relative">
+            <input
+              id="password"
+              name="password"
+              type={showPassword ? "text" : "password"}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
+              placeholder="Tu contraseña"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+            <button 
+              type="button"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
         </div>
         <Button type="submit" className="w-full" disabled={isLoggingIn}>
           {isLoggingIn ? "Iniciando sesión..." : "Iniciar sesión"}
