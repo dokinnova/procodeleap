@@ -23,6 +23,9 @@ export const AddUserForm = () => {
   const { addUserMutation } = useAddUser();
 
   const validatePassword = (password: string) => {
+    if (!password) {
+      return "La contraseña es obligatoria";
+    }
     if (password.length < 6) {
       return "La contraseña debe tener al menos 6 caracteres";
     }
@@ -44,6 +47,7 @@ export const AddUserForm = () => {
     }
     
     console.log("Adding new user with email:", newUserEmail, "and role:", newUserRole);
+    console.log("Password length for validation:", newUserPassword.length);
     
     addUserMutation.mutate({ 
       email: newUserEmail, 

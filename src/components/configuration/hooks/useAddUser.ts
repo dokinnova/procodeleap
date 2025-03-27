@@ -29,6 +29,8 @@ export const useAddUser = () => {
       try {
         // Create the auth user first
         console.log("Creating auth user with email:", email);
+        console.log("Password length:", password?.length || 0);
+        
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -70,7 +72,7 @@ export const useAddUser = () => {
             userId = '00000000-0000-0000-0000-000000000000';
           } else {
             // Find the user with the matching email by filtering on the client side
-            const foundUser = authUsersData.users.find(user => {
+            const foundUser = authUsersData.users.find((user: any) => {
               // Ensure user object and email property exist before comparing
               return user && typeof user.email === 'string' && 
                      user.email.toLowerCase() === email.toLowerCase();
