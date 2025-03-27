@@ -28,14 +28,10 @@ export const findUserByEmail = async (email: string): Promise<string | null> => 
     // Second try: Use admin API to list users (requires admin privileges)
     try {
       console.log("Attempting to list auth users");
-      // Correctly formatted according to Supabase JS v2 API requirements
+      // Updated to match the Supabase JS v2 API signature
       const { data: authUsersData, error: listError } = await supabase.auth.admin.listUsers({
         page: 1,
-        perPage: 1000,
-        sortBy: {
-          column: 'created_at',
-          order: 'desc'
-        }
+        perPage: 1000
       });
       
       if (listError) {
