@@ -39,59 +39,58 @@ export const SignInForm = ({ onToggleView, setLoginAttempts }: SignInFormProps) 
       console.log("Intentando iniciar sesión con email:", normalizedEmail);
       console.log("Longitud de la contraseña:", password.length);
       
-      // First, check if the user exists in auth system directly
-      const { data: existingUserData, error: userCheckError } = await supabase.auth.signInWithPassword({
-        email: normalizedEmail,
-        password
-      });
-      
-      if (existingUserData?.user) {
-        console.log("Login successful:", existingUserData);
-        toast.success("Inicio de sesión exitoso");
-        navigate('/', { replace: true });
-        return;
-      }
-      
-      // If login failed, check if user exists in app_users
+      // Check if user exists in app_users first
       try {
-        const { data: appUser, error: queryError } = await supabase
+        const { data: appUsers, error: queryError } = await supabase
           .from("app_users")
           .select("*")
-          .eq("email", normalizedEmail)
-          .maybeSingle();
+          .eq("email", normalizedEmail);
         
         if (queryError) {
           console.error("Error verificando usuario en app_users:", queryError);
           setDetailedError(JSON.stringify(queryError, null, 2));
-        } else if (!appUser) {
+        } else if (!appUsers || appUsers.length === 0) {
+          console.log("Usuario no encontrado en app_users:", normalizedEmail);
           setLoginError("No se encontró ninguna cuenta con este correo electrónico. Por favor, verifica o contacta al administrador.");
           setDetailedError(`Email no encontrado: ${normalizedEmail}`);
           setIsLoggingIn(false);
           return;
         } else {
-          console.log("Usuario encontrado en app_users:", appUser);
+          console.log("Usuario encontrado en app_users:", appUsers[0]);
         }
       } catch (checkError) {
         console.log("Error al verificar usuario en app_users:", checkError);
         setDetailedError(JSON.stringify(checkError, null, 2));
       }
       
-      // Handle auth errors
-      if (userCheckError) {
-        console.error("Error de inicio de sesión:", userCheckError);
-        setDetailedError(JSON.stringify(userCheckError, null, 2));
+      // Attempt to sign in with Supabase auth
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: normalizedEmail,
+        password
+      });
+      
+      if (error) {
+        console.error("Error de inicio de sesión:", error);
+        setDetailedError(JSON.stringify(error, null, 2));
         
-        if (userCheckError.message.includes("Invalid login credentials")) {
+        if (error.message.includes("Invalid login credentials")) {
           setLoginError("Credenciales inválidas. El usuario existe pero la contraseña es incorrecta.");
           toast.error("Credenciales de inicio de sesión inválidas");
           setLoginAttempts(prev => prev + 1);
-        } else if (userCheckError.message.includes("Email not confirmed")) {
+        } else if (error.message.includes("Email not confirmed")) {
           setLoginError("El correo electrónico aún no ha sido confirmado. Por favor, revisa tu bandeja de entrada.");
           toast.error("Email no confirmado");
         } else {
-          setLoginError(userCheckError.message);
-          toast.error(`Error de inicio de sesión: ${userCheckError.message}`);
+          setLoginError(error.message);
+          toast.error(`Error de inicio de sesión: ${error.message}`);
         }
+      } else if (data?.user) {
+        console.log("Login successful:", data);
+        toast.success("Inicio de sesión exitoso");
+        navigate('/', { replace: true });
+      } else {
+        setLoginError("Error desconocido durante el inicio de sesión");
+        toast.error("Error desconocido durante el inicio de sesión");
       }
     } catch (err: any) {
       console.error("Error inesperado durante el inicio de sesión:", err);
