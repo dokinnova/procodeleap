@@ -14,10 +14,14 @@ import { PasswordChangeDialog } from "./users/PasswordChangeDialog";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Search } from "lucide-react";
+import { verifyUserDeleted } from "./hooks/user-operations/verifyUserDeleted";
 
 export const AppUsersTable = () => {
   const [emailToDelete, setEmailToDelete] = useState<string>("");
+  const [emailToVerify, setEmailToVerify] = useState<string>("");
+  const [verificationResult, setVerificationResult] = useState<string>("");
+  const [isVerifying, setIsVerifying] = useState(false);
   
   const { 
     appUsers, 
@@ -78,6 +82,33 @@ export const AppUsersTable = () => {
     }
   };
 
+  const handleVerifyDeletion = async () => {
+    if (!emailToVerify) {
+      toast.error("Por favor, ingresa un email para verificar");
+      return;
+    }
+    
+    setIsVerifying(true);
+    setVerificationResult("");
+    
+    try {
+      const result = await verifyUserDeleted(emailToVerify);
+      setVerificationResult(result.message);
+      
+      if (result.appUsers && result.authUsers && result.tasks) {
+        toast.success(result.message);
+      } else {
+        toast.error(result.message);
+      }
+    } catch (error) {
+      console.error("Error al verificar eliminación:", error);
+      setVerificationResult(`Error al verificar: ${error}`);
+      toast.error(`Error al verificar: ${error}`);
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
   if (isLoading || isSyncing) {
     return <div>Cargando usuarios...</div>;
   }
@@ -128,6 +159,34 @@ export const AppUsersTable = () => {
         <p className="text-sm text-gray-500 mt-2">
           Esta acción eliminará completamente al usuario de todas las tablas del sistema.
         </p>
+      </div>
+      
+      <div className="bg-blue-50 p-4 rounded-md mb-4">
+        <h3 className="text-lg font-semibold mb-2 flex items-center">
+          <Search className="mr-2 h-5 w-5 text-blue-500" />
+          Verificar eliminación de usuario
+        </h3>
+        <div className="flex gap-2">
+          <input
+            type="email"
+            placeholder="Email del usuario a verificar"
+            value={emailToVerify}
+            onChange={(e) => setEmailToVerify(e.target.value)}
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-md"
+          />
+          <Button 
+            variant="outline"
+            onClick={handleVerifyDeletion}
+            disabled={isVerifying}
+          >
+            Verificar
+          </Button>
+        </div>
+        {verificationResult && (
+          <div className="mt-2 p-2 bg-white rounded border">
+            <p className="text-sm">{verificationResult}</p>
+          </div>
+        )}
       </div>
       
       <Table>
