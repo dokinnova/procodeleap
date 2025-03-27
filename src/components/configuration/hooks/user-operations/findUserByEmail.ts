@@ -29,14 +29,10 @@ export const findUserByEmail = async (email: string): Promise<string | null> => 
     try {
       console.log("Attempting to list auth users");
       
-      // Fixed the error: Corrected parameters for listUsers
+      // Removed the sortBy parameter which was causing the TypeScript error
       const { data: authUsersData, error: listError } = await supabase.auth.admin.listUsers({
         page: 1,
-        perPage: 1000, 
-        sortBy: {
-          column: 'created_at',
-          order: 'desc'
-        }
+        perPage: 1000
       });
       
       if (listError) {
