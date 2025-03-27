@@ -42,12 +42,12 @@ export const findUserByEmail = async (email: string): Promise<string | null> => 
     
     // Second try: Use admin API to list users (requires admin privileges)
     try {
-      // According to Supabase API, listUsers needs one object parameter
-      const { data: authUsersData, error: listError } = await supabase.auth.admin.listUsers({
-        page: 1,
-        perPage: 1000,
-        // Add any other options like sorting if needed
-      });
+      // Supabase auth.admin.listUsers expects 3 arguments: page, perPage, and options
+      const { data: authUsersData, error: listError } = await supabase.auth.admin.listUsers(
+        1,  // page
+        1000, // perPage
+        { skipNulls: false } // options
+      );
       
       if (listError) {
         console.log("Cannot access admin.listUsers:", listError.message);
