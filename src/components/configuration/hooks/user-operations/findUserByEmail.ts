@@ -29,10 +29,14 @@ export const findUserByEmail = async (email: string): Promise<string | null> => 
     try {
       console.log("Attempting to list auth users");
       
-      // This is where the error was - correct format for admin.listUsers
+      // Fixed the error: Corrected parameters for listUsers
       const { data: authUsersData, error: listError } = await supabase.auth.admin.listUsers({
         page: 1,
-        perPage: 1000
+        perPage: 1000, 
+        sortBy: {
+          column: 'created_at',
+          order: 'desc'
+        }
       });
       
       if (listError) {
