@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 /**
@@ -41,6 +42,7 @@ export const findUserByEmail = async (email: string): Promise<string | null> => 
     
     // Second try: Use admin API to list users (requires admin privileges)
     try {
+      // This is the line with the error - admin.listUsers() doesn't need any parameters
       const { data: authUsersData, error: listError } = await supabase.auth.admin.listUsers();
       
       if (listError) {
