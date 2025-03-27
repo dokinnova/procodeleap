@@ -59,13 +59,22 @@ export const useAddUser = () => {
           userId = data.user.id;
         } else {
           // If we didn't get a user ID back (e.g., user already exists), try to find it
-          const { data: userData, error: userError } = await supabase.auth.admin.getUserByEmail(email);
-          if (userError || !userData) {
-            console.error("Error finding user by email:", userError);
+          // Since getUserByEmail doesn't exist, we'll need to query the users table
+          const { data: authUsers, error: listError } = await supabase.auth.admin.listUsers({
+            filter: {
+              email: email
+            }
+          });
+          
+          if (listError || !authUsers || !authUsers.users || authUsers.users.length === 0) {
+            console.error("Error finding user by email:", listError || "No users found");
             // Just continue with a temporary ID, it will be updated later
             userId = '00000000-0000-0000-0000-000000000000';
           } else {
-            userId = userData.id;
+            // Find the user with the matching email
+            const foundUser = authUsers.users.find(u => u.email === email);
+            userId = foundUser ? foundUser.id : '00000000-0000-0000-0000-000000000000';
+            console.log("Found user ID:", userId, "for email:", email);
           }
         }
 
