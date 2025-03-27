@@ -33,6 +33,7 @@ export const SignInForm = ({ onToggleView, setLoginAttempts }: SignInFormProps) 
     }
     
     try {
+      console.log("Intentando iniciar sesión con email:", email);
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -40,9 +41,15 @@ export const SignInForm = ({ onToggleView, setLoginAttempts }: SignInFormProps) 
       
       if (error) {
         console.error("Error de inicio de sesión manual:", error);
+        console.error("Código de error:", error.status, "Mensaje:", error.message);
+        
         if (error.message.includes("Invalid login credentials")) {
           setLoginError("Credenciales de inicio de sesión inválidas. Verifica tu correo y contraseña o usa la opción 'Olvidé mi contraseña'.");
           toast.error("Credenciales de inicio de sesión inválidas");
+          setLoginAttempts(prev => prev + 1);
+        } else if (error.message.includes("Email not confirmed")) {
+          setLoginError("El correo electrónico aún no ha sido confirmado. Por favor, revisa tu bandeja de entrada y confirma tu correo.");
+          toast.error("Email no confirmado");
         } else {
           setLoginError(error.message);
           toast.error(`Error de inicio de sesión: ${error.message}`);

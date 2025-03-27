@@ -1,9 +1,7 @@
 
 import { useState } from "react";
 import { UserPlus, Eye, EyeOff } from "lucide-react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
@@ -24,6 +22,13 @@ export const AddUserForm = () => {
 
   const { addUserMutation } = useAddUser();
 
+  const validatePassword = (password: string) => {
+    if (password.length < 6) {
+      return "La contraseña debe tener al menos 6 caracteres";
+    }
+    return null;
+  };
+
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -32,10 +37,13 @@ export const AddUserForm = () => {
       return;
     }
     
-    if (!newUserPassword || newUserPassword.length < 6) {
-      toast.error("Por favor, introduce una contraseña de al menos 6 caracteres");
+    const passwordError = validatePassword(newUserPassword);
+    if (passwordError) {
+      toast.error(passwordError);
       return;
     }
+    
+    console.log("Adding new user with email:", newUserEmail, "and role:", newUserRole);
     
     addUserMutation.mutate({ 
       email: newUserEmail, 

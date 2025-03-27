@@ -27,38 +27,63 @@ export const useAddUser = () => {
       }
 
       try {
-        // Use a temporary user_id that will be updated later
-        const tempUserId = '00000000-0000-0000-0000-000000000000';
+        // Create the auth user first
+        console.log("Creating auth user with email:", email);
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: window.location.origin,
+            data: {
+              role: userRole // Store role in user metadata
+            }
+          }
+        });
+
+        if (error) {
+          console.error("Error creating auth user:", error);
+          
+          // Special handling for already registered users
+          if (error.message.includes("User already registered")) {
+            console.log("User already exists in auth, continuing with app_user creation");
+          } else {
+            throw error;
+          }
+        } else {
+          console.log("Auth user created successfully:", data);
+        }
         
-        // Add the user to app_users with a temporary user_id
+        // Get the user ID from the response or try to find it
+        let userId;
+        if (data?.user?.id) {
+          userId = data.user.id;
+        } else {
+          // If we didn't get a user ID back (e.g., user already exists), try to find it
+          const { data: userData, error: userError } = await supabase.auth.admin.getUserByEmail(email);
+          if (userError || !userData) {
+            console.error("Error finding user by email:", userError);
+            // Just continue with a temporary ID, it will be updated later
+            userId = '00000000-0000-0000-0000-000000000000';
+          } else {
+            userId = userData.id;
+          }
+        }
+
+        // Add the user to app_users
+        console.log("Adding user to app_users with ID:", userId);
         const { error: insertError } = await supabase
           .from("app_users")
           .insert({
             email: email.toLowerCase(),
             role: userRole,
-            user_id: tempUserId
+            user_id: userId
           });
 
         if (insertError) {
           console.error("Error inserting user in app_users:", insertError);
           throw insertError;
         }
-
-        // Try to create the auth user
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: window.location.origin
-          }
-        });
-
-        if (error) {
-          if (!error.message.includes("User already registered")) {
-            throw error;
-          }
-        }
-
+        
         console.log("User created successfully, sending welcome email");
         
         // Send welcome email - with administrator rights
