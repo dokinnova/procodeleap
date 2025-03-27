@@ -39,58 +39,42 @@ export const SignInForm = ({ onToggleView, setLoginAttempts }: SignInFormProps) 
       console.log("Intentando iniciar sesión con email:", normalizedEmail);
       console.log("Longitud de la contraseña:", password.length);
       
-      // Step 1: Log all the attempt details for debugging
-      console.log({
-        action: "login_attempt",
-        email: normalizedEmail,
-        passwordLength: password.length,
-        timestamp: new Date().toISOString()
-      });
-      
-      // Step 2: Check if user exists in app_users
-      const { data: appUsers, error: queryError } = await supabase
-        .from("app_users")
-        .select("*")
-        .eq("email", normalizedEmail);
-      
-      if (queryError) {
-        console.error("Error verificando usuario en app_users:", queryError);
-        setDetailedError(JSON.stringify(queryError, null, 2));
-      } 
-      
-      // Log what we found
-      if (!appUsers || appUsers.length === 0) {
-        console.log("Usuario no encontrado en app_users:", normalizedEmail);
-        setLoginError("No se encontró ninguna cuenta con este correo electrónico. Por favor, verifica o contacta al administrador.");
-        setDetailedError(`Email no encontrado: ${normalizedEmail}`);
-        setIsLoggingIn(false);
-        return;
-      } else {
-        console.log("Usuario encontrado en app_users:", appUsers[0]);
-      }
-      
-      // Step 3: Attempt login with supabase auth
-      console.log("Intentando autenticar con email:", normalizedEmail);
+      // Skip app_users check and directly try authentication - this is critical for fixing the issue
+      console.log("Intentando autenticar directamente con email:", normalizedEmail);
       const { data, error } = await supabase.auth.signInWithPassword({
         email: normalizedEmail,
         password
       });
       
-      // Step 4: Handle authentication result
       if (error) {
         console.error("Error de inicio de sesión:", error);
         setDetailedError(JSON.stringify(error, null, 2));
         
-        if (error.message.includes("Invalid login credentials")) {
-          setLoginError("Credenciales inválidas. El usuario existe pero la contraseña es incorrecta.");
-          toast.error("Credenciales de inicio de sesión inválidas");
-          setLoginAttempts(prev => prev + 1);
-        } else if (error.message.includes("Email not confirmed")) {
-          setLoginError("El correo electrónico aún no ha sido confirmado. Por favor, revisa tu bandeja de entrada.");
-          toast.error("Email no confirmado");
+        // Now check if user exists in app_users after failed login
+        const { data: appUsers } = await supabase
+          .from("app_users")
+          .select("*")
+          .eq("email", normalizedEmail);
+          
+        if (appUsers && appUsers.length > 0) {
+          console.log("Usuario sí existe en app_users pero fallo de autenticación:", appUsers[0]);
+          
+          if (error.message.includes("Invalid login credentials")) {
+            setLoginError("Contraseña incorrecta. El usuario existe pero la contraseña es inválida.");
+            toast.error("Credenciales de inicio de sesión inválidas");
+            setLoginAttempts(prev => prev + 1);
+          } else if (error.message.includes("Email not confirmed")) {
+            setLoginError("El correo electrónico aún no ha sido confirmado. Por favor, revisa tu bandeja de entrada.");
+            toast.error("Email no confirmado");
+          } else {
+            setLoginError(error.message);
+            toast.error(`Error de inicio de sesión: ${error.message}`);
+          }
         } else {
-          setLoginError(error.message);
-          toast.error(`Error de inicio de sesión: ${error.message}`);
+          // User doesn't exist in app_users
+          console.log("Usuario no encontrado en app_users:", normalizedEmail);
+          setLoginError("No se encontró ninguna cuenta con este correo electrónico. Por favor, verifica o contacta al administrador.");
+          setDetailedError(`Email no encontrado: ${normalizedEmail}`);
         }
       } else if (data?.user) {
         console.log("Login successful:", data);
