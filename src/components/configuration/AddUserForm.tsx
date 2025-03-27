@@ -19,6 +19,7 @@ export const AddUserForm = () => {
   const [newUserPassword, setNewUserPassword] = useState("");
   const [newUserRole, setNewUserRole] = useState<UserRole>("viewer");
   const [showPassword, setShowPassword] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   const { addUserMutation } = useAddUser();
 
@@ -34,14 +35,17 @@ export const AddUserForm = () => {
 
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
     
     if (!newUserEmail) {
+      setFormError("Por favor, introduce un email");
       toast.error("Por favor, introduce un email");
       return;
     }
     
     const passwordError = validatePassword(newUserPassword);
     if (passwordError) {
+      setFormError(passwordError);
       toast.error(passwordError);
       return;
     }
@@ -50,7 +54,7 @@ export const AddUserForm = () => {
     console.log("Password length for validation:", newUserPassword.length);
     
     addUserMutation.mutate({ 
-      email: newUserEmail, 
+      email: newUserEmail.trim().toLowerCase(), 
       password: newUserPassword, 
       userRole: newUserRole 
     }, {
@@ -58,6 +62,7 @@ export const AddUserForm = () => {
         setNewUserEmail("");
         setNewUserPassword("");
         setNewUserRole("viewer");
+        setFormError(null);
       }
     });
   };
@@ -65,6 +70,12 @@ export const AddUserForm = () => {
   return (
     <form onSubmit={handleAddUser} className="space-y-4">
       <div className="max-w-md mx-auto">
+        {formError && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded mb-4">
+            {formError}
+          </div>
+        )}
+        
         <Input
           type="email"
           placeholder="Email del nuevo usuario"

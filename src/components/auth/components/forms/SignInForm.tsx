@@ -35,8 +35,15 @@ export const SignInForm = ({ onToggleView, setLoginAttempts }: SignInFormProps) 
       console.log("Intentando iniciar sesión con email:", email);
       console.log("Longitud de la contraseña:", password.length);
       
+      // Comprobación adicional de la contraseña antes de enviar
+      if (password.length < 6) {
+        setLoginError("La contraseña debe tener al menos 6 caracteres");
+        setIsLoggingIn(false);
+        return;
+      }
+      
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: email.trim().toLowerCase(),
         password
       });
       
